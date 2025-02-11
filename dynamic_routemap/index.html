@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动态线路图</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../UI/toast.css">
+    <link rel="stylesheet" href="station-section.css">
+</head>
+<body>
+    <!-- 拖放遮罩 -->
+    <div class="drag-overlay">
+        <div class="drag-overlay-text">松开即可导入数据</div>
+    </div>
+
+    <!-- 主展示容器 -->
+    <div class="display-container">
+        <!-- 动态线路图区域 -->
+        <div class="route-map" id="routeMap">
+            <!-- 动态生成的站点将在这里显示 -->
+        </div>
+        
+        <!-- 站点详情区域 -->
+        <div class="station-detail" id="stationDetail" style="display: none;">
+            <!-- 站点序列区域 -->
+            <div class="station-sequence">
+                <div class="station-list">
+                    <!-- 动态生成5个站点 -->
+                </div>
+            </div>
+
+            <!-- 车站剖面图区域 -->
+            <div class="station-section"></div>
+
+            <!-- 车门状态区域 -->
+            <div class="door-status">
+                <div class="door-graphics">
+                    <div class="exit-arrow"></div>
+                    <div class="no-entry-mark"></div>
+                    <div class="door-animation">
+                        <!-- 车门动画 -->
+                        <div class="door-plank"></div>
+                        <div class="door-plank"></div>
+                    </div>
+                </div>
+                <div class="door-text">
+                    <div class="text-zh"></div>
+                    <div class="text-en"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 简略信息区域 -->
+        <div class="info-bar">
+            <div class="line-name"></div>
+            <div class="divider"></div>
+            <div class="current-station">
+                <div class="station-name"></div>
+                <div class="station-name-en"></div>
+            </div>
+            <div class="divider"></div>
+            <div class="terminal-station"></div>
+        </div>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <div class="train-status">
+            <!--车厢数量控制-->
+            <div class="car-count">
+                <button id="decreaseCars">-</button>
+                <span id="carCount">6</span>
+                <button id="increaseCars">+</button>
+            </div>
+            
+            <!--车厢选择-->
+            <div class="car-select button-group">
+            <!--动态生成车厢选择按钮-->
+            </div>
+            
+            <!--车头方向-->
+            <div class="head-direction">
+                <label>1车</label>
+                <div class="head-direction button-group">
+                    <input type="radio" id="headFirst" name="direction" value="head" checked>
+                    <label for="headFirst">头</label>
+                    <input type="radio" id="headLast" name="direction" value="tail">
+                    <label for="headLast">尾</label>
+                </div>
+            </div>
+                   
+            <div class="door-buttons">
+                <button id="doorToggle" class="door-toggle">左侧车门<span class="shortcut-key">D</span></button>
+            </div>
+        </div>
+        
+        <!--线路状态-->
+        <div class="line-status">
+            <button id="uploadData" class="upload-button">导入文件<div class="shortcut-key">支持拖入</div></button>
+            <input type="file" id="fileInput" accept=".js,.json" style="display: none;">
+            <select id="lineSelect" disabled>
+                <option value="">选择线路</option>
+            </select>
+            
+            <select id="startStation" disabled>
+                <option value="">起点站</option>
+            </select>
+            →
+            <select id="endStation" disabled>
+                <option value="">终点站</option>
+            </select>
+            
+            <button id="swapStations">返程<span class="shortcut-key">R</span></button>
+        </div>
+        
+        <div class="station-control">
+            <div class="toggle-buttons">
+                <button id="toggleImmersive" class="toggle-button" style="width: 100px;"><span class="shortcut-key">I</span></button>
+                <button id="toggleTrainStatus" class="toggle-button">列车</button>
+                <button id="toggleLineStatus" class="toggle-button">线路</button>
+            </div>
+
+            <select id="currentStation" disabled>
+                <option value="">当前站</option>
+            </select>
+            
+            <button id="prevStation" disabled>上一站<span class="shortcut-key">←</span></button>
+            <button id="nextStation" disabled>下一站<span class="shortcut-key">→</span></button>
+
+            <!-- 显示模式选择 -->
+            <div class="display-mode button-group">
+                <input type="radio" id="showRoute" name="display" value="route" checked>
+                <label for="showRoute">全图</label>
+                <input type="radio" id="showDetail" name="display" value="detail">
+                <label for="showDetail">详情</label>
+            </div><span class="shortcut-key">\</span>
+            
+            <button id="actionButton" class="action-button">到站停靠<span class="shortcut-key" style="color: white">↵</span></button>
+        </div>
+
+        <div class="caption">
+            网页部分代码由AI生成，仅供学习参考，切勿用于非法用途。
+            <span class="default-data-notice">
+                “临东市”及其相关的各类组织、机构、品牌均为虚构，其本体基于一个《我的世界》基岩版（Minecraft Bedrock Edition）基友服。<a href="https://wiki.shangxiaoguan.top" target="_blank">了解更多</a>
+            </span>
+        </div>
+        <div class="caption">
+            <a href="../">雨城通首页</a> | <a href="../metro_map/" target="_blank">地铁线网图</a> | <b>动态线路图</b> | <a href="../data_composer/" target="_blank">数据编辑器</a>
+        </div>
+    </div>
+
+    <script src="../data/metro_data.js"></script>
+    <script src="../data/metro_station_detail.js"></script>
+    <script src="../UI/toast.js"></script>
+    <script src="debug.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

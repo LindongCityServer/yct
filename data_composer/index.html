@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线网数据编辑器</title>
+    <link rel="icon" href="../UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../mainpage.css">
+    <link rel="stylesheet" href="../UI/toast.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 标题栏 -->
+    <header class="header">
+        <button class="icon-button" id="back-to-home" onclick="window.location.href='../'" title="雨城通首页">
+            <img src="../UI/res/雨城通logo绿.png" alt="雨城通首页">
+        </button>
+        <h1>线网数据编辑器</h1>
+        <div class="toolbar">
+            <input type="file" id="import-file" accept=".js">
+            <button class="icon-button" id="import-data" onclick="document.getElementById('import-file').click()" title="导入数据">
+                <img src="../UI/res/open_document_black.png" alt="导入数据">
+            </button>
+            <button class="icon-button" id="export-data" title="导出数据">
+                <img src="../UI/res/save_black.png" alt="导出数据">
+            </button>
+            <button class="icon-button" id="search-button" title="搜索">
+                <img src="../UI/res/search_black.png" alt="搜索">
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 侧边栏：设置模块 -->
+        <div class="sidebar">
+            <!-- 高级选项模块 -->
+            <section class="section">
+                <div class="advanced-options">
+                    <label class="switch">
+                        <input type="checkbox" id="show-advanced">
+                        <span class="slider"></span>
+                    </label>
+                    <div class="advanced-options-text">
+                        显示<a href="../metro_map">线路图</a>选项（坐标、计费区等）
+                    </div>
+                </div>
+                <div class="advanced-options">
+                    <label class="switch">
+                        <input type="checkbox" id="show-station-section" disabled>
+                        <span class="slider"></span>
+                    </label>
+                    <div class="advanced-options-text">
+                        显示车站剖面图选项
+                    </div>
+                </div>
+                <div class="caption">基础数据可以导入进<a href="../dynamic_routemap">动态线路图</a>中正常显示</div>
+            </section>
+
+            <!-- 线网名称编辑模块 -->
+            <section class="section">
+                <div class="network-name-editor">
+                    <h2>线网名称</h2>
+                    <div class="network-name-inputs">
+                        <input type="text" id="metro-name" placeholder="线网中文名称">
+                        <input type="text" id="metro-name-en" placeholder="线网英文名称">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Logo URL 编辑模块 -->
+            <section class="section">
+                <div class="logo-editor">
+                    <h2>线网标识</h2>
+                    <input type="text" id="metro-logo" placeholder="输入图床链接">
+                </div>
+                <img id="logo-preview" src="" alt="Logo预览" style="display: none;">
+            </section>
+
+            <!-- 侧边栏说明文本 -->
+            <div class="caption sidebar-caption">网页部分代码由AI生成，仅供学习参考，切勿用于非法用途。部分图标来自<a href="https://www.icons8.com/">Icons8</a></div>
+        </div>
+
+        <!-- 主内容：线路编辑 -->
+        <div class="main-content">
+            <section class="section">
+                <div class="line-editor">
+                    <h2>线路编辑</h2>
+                    <div class="sort-buttons">
+                        <button class="sort-button" id="sort-lines-by-number">
+                            <img src="../UI/res/sort_black.png" alt="按编号排序">
+                            按编号排序
+                        </button>
+                        <button class="sort-button" id="sort-stations-by-number">
+                            <img src="../UI/res/sort_black.png" alt="按编号排序">
+                            所有车站按编号排序
+                        </button>
+                    </div>
+                    <div class="line-list" id="lines-container">
+                        <button class="add-line-button" id="add-line" title="添加新线路">
+                            <img src="../UI/res/add_black.png" alt="添加新线路">
+                            <span>添加线路</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 内嵌预览区域 -->
+        <div class="inline-preview">
+            <section class="section">
+                <div class="preview-header">
+                    <h2>线网预览</h2>
+                </div>
+                <div class="preview-container">
+                    <iframe id="inline-preview-frame" src="about:blank"></iframe>
+                </div>
+            </section>
+        </div>
+
+        <!-- 底部说明文本 -->
+        <div class="caption bottom-caption">网页部分代码由AI生成，仅供学习参考，切勿用于非法用途。部分图标来自<a href="https://www.icons8.com/">Icons8</a></div>
+    </div>
+
+    <!-- 浮动工具栏 -->
+    <div class="floating-toolbar">
+        <input type="file" id="import-file-mobile" accept=".js">
+        <button class="icon-button" id="import-data-mobile" onclick="document.getElementById('import-file-mobile').click()" title="导入数据">
+            <img src="../UI/res/open_document_black.png" alt="导入数据">
+        </button>
+        <button class="icon-button" id="export-data-mobile" title="导出数据">
+            <img src="../UI/res/save_black.png" alt="导出数据">
+        </button>
+        <button class="icon-button" id="search-button-mobile" title="搜索">
+            <img src="../UI/res/search_black.png" alt="搜索">
+        </button>
+    </div>
+
+    <!-- Toast提示 -->
+    <div class="toast-overlay">
+        <p class="toast-text"></p>
+    </div>
+
+    <!-- 线路模板 -->
+    <template id="line-template">
+        <div class="line-item" draggable="true">
+            <div class="line-header">
+                <div class="drag-handle line-drag-handle" title="拖拽排序">
+                    <img src="../UI/res/drag_indicator_black.png" alt="拖拽">
+                </div>
+                <button class="toggle-button" title="展开/折叠">
+                    <img src="../UI/res/expand_more_black.png" alt="展开/折叠">
+                </button>
+                <div class="line-title">
+                    <span class="line-name-text"></span>
+                    <input type="text" class="line-name" placeholder="线路名称" readonly>
+                </div>
+                <button class="icon-button edit-line" title="编辑线路名称">
+                    <img src="../UI/res/edit_black.png" alt="编辑">
+                </button>
+                <input type="color" class="line-color" title="线路颜色">
+                <button class="icon-button remove-line" title="删除线路">
+                    <img src="../UI/res/delete_black.png" alt="删除线路">
+                </button>
+            </div>
+            <div class="stations-container">
+                <div class="station-list"></div>
+                <button class="add-station-button">
+                    <img src="../UI/res/add_black.png" alt="添加车站">
+                    <span>添加车站</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- 车站模板 -->
+    <template id="station-template">
+        <div class="station-item" draggable="true">
+            <div class="station-header">
+                <div class="drag-handle station-drag-handle" title="拖拽排序">
+                    <img src="../UI/res/drag_indicator_black.png" alt="拖拽">
+                </div>
+                <button class="toggle-button" title="展开/折叠">
+                    <img src="../UI/res/expand_more_black.png" alt="展开/折叠">
+                </button>
+                <div class="station-title">
+                    <span class="station-name-text"></span>
+                    <input type="text" class="station-name" placeholder="车站名称" readonly>
+                </div>
+                <button class="icon-button edit-station" title="编辑车站名称">
+                    <img src="../UI/res/edit_black.png" alt="编辑">
+                </button>
+                <button class="icon-button remove-station" title="删除车站">
+                    <img src="../UI/res/delete_black.png" alt="删除车站">
+                </button>
+            </div>
+            <div class="station-content">
+                <div class="platform-info">
+                    <input type="text" class="station-name-en" placeholder="车站英文名">
+                    <div class="platform-controls">
+                        <select class="platform-side">
+                            <option value="left">左侧站台</option>
+                            <option value="right">右侧站台</option>
+                            <option value="both">双侧站台</option>
+                        </select>
+                        <div class="swap-platform">
+                            <input type="checkbox" class="swap-platform-checkbox" id="swap-platform-${Date.now()}">
+                            <label for="swap-platform-${Date.now()}">交换站台</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="advanced-fields">
+                    <div class="coordinates">
+                        <input type="number" class="coord-x" placeholder="X坐标">
+                        <input type="number" class="coord-y" placeholder="Y坐标">
+                    </div>
+                    <input type="text" class="fare-zone" placeholder="计费区">
+                    <div class="label-offset">
+                        <input type="number" class="offset-x" placeholder="标签X偏移">
+                        <input type="number" class="offset-y" placeholder="标签Y偏移">
+                    </div>
+                    <input type="number" class="travel-time" placeholder="行驶时间">
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 搜索框 -->
+    <div class="search-overlay">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="搜索线路或车站...">
+            <div class="search-navigation">
+                <button class="icon-button" id="prev-result" title="上一个结果" disabled>
+                    <img src="../UI/res/arrow_upward_black.png" alt="上一个">
+                </button>
+                <span class="search-count">0/0</span>
+                <button class="icon-button" id="next-result" title="下一个结果" disabled>
+                    <img src="../UI/res/arrow_downward_black.png" alt="下一个">
+                </button>
+            </div>
+            <button class="icon-button" id="close-search">
+                <img src="../UI/res/close_black.png" alt="关闭">
+            </button>
+        </div>
+    </div>
+
+    <div class="preview-toolbar">
+        <button class="icon-button" id="toggle-preview" title="预览线网图">
+            <img src="../UI/res/map_preview_black.png" alt="预览">
+        </button>
+    </div>
+
+    <div class="preview-overlay">
+        <div class="preview-header">
+            <h3>线网预览</h3>
+            <button class="icon-button" id="close-preview">
+                <img src="../UI/res/close_black.png" alt="关闭">
+            </button>
+        </div>
+        <div class="preview-container">
+            <iframe id="preview-frame" src="about:blank"></iframe>
+        </div>
+    </div>
+
+    <script src="../UI/toast.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

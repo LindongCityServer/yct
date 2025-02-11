@@ -1,0 +1,1078 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汽车客运站 - 实时信息大屏</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000033;
+            color: #fff;
+            font-family: "Microsoft YaHei", sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background: #000066;
+            padding: 1vh;
+            text-align: center;
+            position: relative;
+            border-bottom: 2px solid #0066cc;
+            height: 8vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: min(3vw, 5vh);
+            font-weight: bold;
+        }
+
+        .platform-name {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: left;
+            font-size: min(1.5vw, 2.5vh);
+            color: #ffffff;
+        }
+
+        .datetime {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: right;
+            font-size: min(1.5vw, 2.5vh);
+            color: #ffffff;
+        }
+
+        .content {
+            flex: 1;
+            padding: 1vh 1vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .route-table-container {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            margin-bottom: 1vh;
+        }
+
+        .route-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .route-table th {
+            background: #000066;
+            color: white;
+            font-weight: bold;
+            font-size: min(2vw, 3vh);
+            padding: 1.5vh;
+            border: 1px solid #0066cc;
+            white-space: nowrap;
+        }
+
+        .route-table td {
+            padding: 1.2vh;
+            text-align: center;
+            border: 1px solid #0066cc;
+            font-size: min(1.8vw, 2.8vh);
+            color: #00ffff;
+            white-space: nowrap;
+        }
+
+        .route-table td.status-ready {
+            color: #00ffff; /* 默认颜色 */
+        }
+
+        .route-table td.status-boarding {
+            color: #00ff00; /* 亮绿色 */
+        }
+
+        .route-table td.status-stop {
+            color: #ff3333; /* 亮红色 */
+        }
+
+        .route-table tr:nth-child(odd) {
+            background: rgba(0, 0, 102, 0.3);
+        }
+
+        .route-table tr:nth-child(even) {
+            background: rgba(0, 0, 102, 0.5);
+        }
+
+        .marquee {
+            background: #000066;
+            padding: 1.5vh;
+            white-space: nowrap;
+            overflow: hidden;
+            border-top: 2px solid #0066cc;
+            height: 5vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .marquee span {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 30s linear infinite;
+            font-size: min(1.5vw, 2.5vh);
+            color: #ffff00;
+            white-space: nowrap;
+        }
+
+        @keyframes marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+
+        .audio-control {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            z-index: 1000;
+            opacity: 0.1;
+        }
+
+        .no-routes-message {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-size: min(4vw, 6vh);
+            color: #ffff00;
+        }
+
+        /* 确保表格内容不会被压缩 */
+        .route-table th, .route-table td {
+            min-width: max-content;
+            padding-left: 2vw;
+            padding-right: 2vw;
+        }
+
+        /* 优化滚动条 */
+        .route-table-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* 状态列样式优化 */
+        .route-table td.status-ready,
+        .route-table td.status-boarding,
+        .route-table td.status-stop {
+            min-width: 8vw;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="toggleAudio()" class="audio-control" id="audioControl">🔊</button>
+
+    <div class="header">
+        <h1 id="stationName">加载中...</h1>
+        <div class="platform-name">临东市道路客运联网服务平台</div>
+        <div class="datetime" id="datetime"></div>
+    </div>
+
+    <div class="content">
+        <div class="route-table-container">
+            <table class="route-table">
+                <thead>
+                    <tr>
+                        <th>方向/线路</th>
+                        <th>班次</th>
+                        <th>发车时间</th>
+                        <th>检票口</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody id="routeTableBody">
+                    <!-- 路线数据将通过JavaScript动态插入 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="marquee">
+        <span id="announcement">加载中...</span>
+    </div>
+
+    <script>
+        let audioEnabled = true;
+        let isPlaying = false;
+        let audioQueue = [];
+        const speechSynth = window.speechSynthesis;
+        let lastAnnouncedStates = new Map();
+        
+        // 音频设置
+        const AUDIO_SETTINGS = {
+            notificationVolume: 0.75,  // 提示音音量
+            speechVolume: 1.0,         // 语音音量
+            speechRate: 0.9            // 语音速率
+        };
+
+        // 初始化音频
+        const startSound = new Audio('ring/start.mp3');
+        const endSound = new Audio('ring/end.mp3');
+        const departureSound = new Audio('ring/ring-10.mp3');
+        startSound.volume = AUDIO_SETTINGS.notificationVolume;
+        endSound.volume = AUDIO_SETTINGS.notificationVolume;
+        departureSound.volume = AUDIO_SETTINGS.notificationVolume;
+
+        // 广播队列处理
+        class AudioQueueManager {
+            constructor() {
+                this.queue = [];
+                this.isPlaying = false;
+                this.currentAnnouncement = null;
+                this.lastPlayTime = 0;
+                this.playedAnnouncements = new Set();
+                
+                setInterval(() => this.clearPlayedHistory(), 300000);
+            }
+
+            clearPlayedHistory() {
+                this.playedAnnouncements.clear();
+            }
+
+            async add(text) {
+                // 检查是否在最近播放过
+                if (this.playedAnnouncements.has(text)) {
+                    return;
+                }
+
+                // 检查是否已经在队列中
+                if (!this.queue.includes(text) && text !== this.currentAnnouncement) {
+                    this.queue.push(text);
+                    if (!this.isPlaying) {
+                        await this.processQueue();
+                    }
+                }
+            }
+
+            async processQueue() {
+                if (this.queue.length === 0 || this.isPlaying) {
+                    return;
+                }
+
+                this.isPlaying = true;
+                while (this.queue.length > 0) {
+                    try {
+                        this.currentAnnouncement = this.queue[0];
+                        
+                        // 检查是否已经播放过
+                        if (!this.playedAnnouncements.has(this.currentAnnouncement)) {
+                            await this.playAnnouncement(this.currentAnnouncement);
+                            // 记录已播放的广播
+                            this.playedAnnouncements.add(this.currentAnnouncement);
+                        }
+                        
+                        this.queue.shift();
+                    } catch (error) {
+                        console.error('Error playing announcement:', error);
+                        // 出错时也移除当前广播
+                        this.queue.shift();
+                    }
+                }
+                this.isPlaying = false;
+                this.currentAnnouncement = null;
+            }
+
+            async playSound(sound) {
+                return new Promise((resolve) => {
+                    if (!audioEnabled) {
+                        resolve();
+                        return;
+                    }
+
+                    const soundClone = sound.cloneNode();
+                    soundClone.volume = AUDIO_SETTINGS.notificationVolume;
+                    
+                    soundClone.onended = () => {
+                        resolve();
+                    };
+
+                    soundClone.play().catch((error) => {
+                        console.error('Error playing sound:', error);
+                        resolve();
+                    });
+                });
+            }
+
+            async playAnnouncement(text) {
+                if (!audioEnabled) return;
+
+                try {
+                    // 播放开始提示音
+                    await this.playSound(startSound);
+
+                    // 播放语音
+                    await this.speakText(text);
+
+                    // 播放结束提示音
+                    await this.playSound(endSound);
+                    
+                    this.lastPlayTime = Date.now();
+                } catch (error) {
+                    console.error('Error in playAnnouncement:', error);
+                    throw error;
+                }
+            }
+
+            async speakText(text) {
+                return new Promise((resolve, reject) => {
+                    // 取消之前的语音
+                    speechSynth.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = AUDIO_SETTINGS.speechRate;
+                    utterance.pitch = 1.0;
+                    utterance.volume = AUDIO_SETTINGS.speechVolume;
+
+                    utterance.onend = () => resolve();
+                    utterance.onerror = (event) => {
+                        console.error('Speech synthesis error:', event);
+                        reject(event);
+                    };
+
+                    // 添加超时处理
+                    const timeout = setTimeout(() => {
+                        speechSynth.cancel();
+                        reject(new Error('Speech synthesis timeout'));
+                    }, 30000); // 30秒超时
+
+                    utterance.onend = () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    };
+
+                    speechSynth.speak(utterance);
+                });
+            }
+        }
+
+        // 创建音频队列管理器实例
+        const audioQueueManager = new AudioQueueManager();
+
+        // 发车提示音系统
+        class DepartureNotification {
+            constructor() {
+                this.isPlaying = false;
+                this.playedDepartures = new Set();
+            }
+
+            // 检查并播放发车提示音
+            async checkAndPlay(route) {
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                const [hours, minutes] = route.time.split(':').map(Number);
+                const departureTime = hours * 60 + minutes;
+
+                // 在发车时播放提示音
+                if (departureTime === currentTime && !this.playedDepartures.has(route.time)) {
+                    try {
+                        if (!this.isPlaying && audioEnabled) {
+                            this.isPlaying = true;
+                            departureSound.currentTime = 0;
+                            await departureSound.play();
+                            this.playedDepartures.add(route.time);
+                        }
+                    } catch (error) {
+                        console.error('Error playing departure sound:', error);
+                    } finally {
+                        this.isPlaying = false;
+                    }
+                }
+
+                // 每天0点清理播放记录
+                if (now.getHours() === 0 && now.getMinutes() === 0) {
+                    this.playedDepartures.clear();
+                }
+            }
+        }
+
+        // 创建发车提示音实例
+        const departureNotification = new DepartureNotification();
+
+        // 修改音频控制按钮点击事件
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audioControl').textContent = audioEnabled ? '🔊' : '🔈';
+            if (!audioEnabled) {
+                // 停止所有正在播放的音频
+                speechSynth.cancel();
+                startSound.pause();
+                endSound.pause();
+                departureSound.pause();
+            }
+        }
+
+        // 数字读音映射
+        const NUMBER_READINGS = {
+            '0': '零',
+            '1': '幺',
+            '2': '二',
+            '3': '三',
+            '4': '四',
+            '5': '五',
+            '6': '六',
+            '7': '七',
+            '8': '八',
+            '9': '九'
+        };
+
+        // 小时读音映射（十几点和二十点的特殊处理）
+        const HOUR_READINGS = {
+            '0': '零',
+            '1': '一',
+            '2': '二',
+            '3': '三',
+            '4': '四',
+            '5': '五',
+            '6': '六',
+            '7': '七',
+            '8': '八',
+            '9': '九',
+            '10': '十',
+            '11': '十一',
+            '12': '十二',
+            '13': '十三',
+            '14': '十四',
+            '15': '十五',
+            '16': '十六',
+            '17': '十七',
+            '18': '十八',
+            '19': '十九',
+            '20': '二十',
+            '21': '二十一',
+            '22': '二十二',
+            '23': '二十三'
+        };
+
+        function convertTimeToSpeech(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            let timeText = HOUR_READINGS[hours] + '点';
+            
+            if (minutes === 0) {
+                timeText += '整';
+            } else if (minutes < 10) {
+                timeText += NUMBER_READINGS[minutes] + '分';
+            } else if (minutes === 10) {
+                timeText += '十分';
+            } else if (minutes < 20) {
+                timeText += '十' + NUMBER_READINGS[minutes % 10] + '分';
+            } else if (minutes % 10 === 0) {
+                timeText += NUMBER_READINGS[Math.floor(minutes / 10)] + '十分';
+            } else {
+                timeText += NUMBER_READINGS[Math.floor(minutes / 10)] + '十' + NUMBER_READINGS[minutes % 10] + '分';
+            }
+            
+            return timeText;
+        }
+
+        function convertBusNumberToSpeech(busNumber) {
+            return busNumber.split('').map(digit => {
+                // 如果是数字，转换为对应的读音
+                if (/[0-9]/.test(digit)) {
+                    return NUMBER_READINGS[digit];
+                }
+                // 如果不是数字，保持原样（比如字母或其他字符）
+                return digit;
+            }).join('');
+        }
+
+        // 检查指定时间是否在停运时段内
+        async function isInStopPeriod(routeTime) {
+            try {
+                const response = await fetch('../stop.txt');
+                const text = await response.text();
+                const lines = text.split('\n');
+
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth() + 1;
+                const currentDate = now.getDate();
+                const [routeHours, routeMinutes] = routeTime.split(':').map(Number);
+                const routeTimeInMinutes = routeHours * 60 + routeMinutes;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const trimmedLine = lines[i].trim();
+                    if (!trimmedLine) continue;
+
+                    if (trimmedLine.startsWith('[时段]')) {
+                        const periodStr = trimmedLine.substring(4).trim();
+                        const matches = periodStr.match(/(\d+)\s*年\s*(\d+)\s*月\s*(\d+)\s*日\s*(\d+):(\d+)-(\d+):(\d+)/);
+                        if (matches) {
+                            const stopPeriod = {
+                                year: parseInt(matches[1]),
+                                month: parseInt(matches[2]),
+                                date: parseInt(matches[3]),
+                                startHour: parseInt(matches[4]),
+                                startMinute: parseInt(matches[5]),
+                                endHour: parseInt(matches[6]),
+                                endMinute: parseInt(matches[7])
+                            };
+
+                            const stopStartTime = stopPeriod.startHour * 60 + stopPeriod.startMinute;
+                            const stopEndTime = stopPeriod.endHour * 60 + stopPeriod.endMinute;
+
+                            if (currentYear === stopPeriod.year && 
+                                currentMonth === stopPeriod.month && 
+                                currentDate === stopPeriod.date &&
+                                routeTimeInMinutes >= stopStartTime && 
+                                routeTimeInMinutes <= stopEndTime) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            } catch (error) {
+                console.error('Error checking stop period:', error);
+                return false;
+            }
+        }
+
+        // 获取班次状态
+        async function getRouteStatus(routeTime) {
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            const [hours, minutes] = routeTime.split(':').map(Number);
+            const departureTime = hours * 60 + minutes;
+            const timeUntilDeparture = departureTime - currentTime;
+
+            // 检查是否在停运时段内
+            const routeInStopPeriod = await isInStopPeriod(routeTime);
+            if (routeInStopPeriod) {
+                return { text: '取消', class: 'status-stop' };
+            }
+
+            if (timeUntilDeparture <= 3) {
+                return { text: '停止检票', class: 'status-stop' };
+            } else if (timeUntilDeparture <= 15) {
+                return { text: '正在检票', class: 'status-boarding' };
+            } else {
+                return { text: '候车', class: 'status-ready' };
+            }
+        }
+
+        function checkRouteStatus(route) {
+            const now = new Date();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            const [hours, minutes] = route.time.split(':').map(Number);
+            const departureTime = hours * 60 + minutes;
+            const timeUntilDeparture = departureTime - currentTime;
+
+            // 检查是否在停运时段内
+            isInStopPeriod(route.time).then(routeInStopPeriod => {
+                if (routeInStopPeriod) {
+                    return;
+                }
+
+                // 检查是否需要播放发车提示音
+                departureNotification.checkAndPlay(route);
+
+                const routeKey = `${route.busNumber}-${route.time}`;
+                const currentState = {
+                    timeUntilDeparture,
+                    announcements: []
+                };
+
+                // 转换班次号码和时间为语音读法
+                const busNumberSpeech = convertBusNumberToSpeech(route.busNumber);
+                const timeSpeech = convertTimeToSpeech(route.time);
+
+                // 只在特定时间点添加广播
+                if ([17, 15, 5, 3].includes(timeUntilDeparture)) {
+                    const lastState = lastAnnouncedStates.get(routeKey);
+                    
+                    // 检查是否需要播放新广播
+                    if (!lastState || lastState.timeUntilDeparture !== timeUntilDeparture) {
+                        let announcement = '';
+                        
+                        if (timeUntilDeparture === 17) {
+                            announcement = `旅客们，你们好！${timeSpeech}。开的。${route.direction}的。${busNumberSpeech}。班次马上就要开始检票了。有乘坐。${route.direction}的。${busNumberSpeech}。班次的旅客请到。${route.gate}。检票口检票。`;
+                        } else if (timeUntilDeparture === 15) {
+                            announcement = `旅客们，你们好！${timeSpeech}。开的。${route.direction}的。${busNumberSpeech}。班次已经开始检票了。有乘坐。${route.direction}的。${busNumberSpeech}。班次的旅客请到。${route.gate}。检票口检票。`;
+                        } else if (timeUntilDeparture === 5) {
+                            announcement = `旅客们，你们好！${timeSpeech}。开的。${route.direction}的。${busNumberSpeech}。班次马上就要停止检票了。有乘坐。${route.direction}的。${busNumberSpeech}。班次的旅客请尽快到。${route.gate}。检票口检票。`;
+                        } else if (timeUntilDeparture === 3) {
+                            announcement = `旅客们，${timeSpeech}。开的。${route.direction}的。${busNumberSpeech}。班次现在停止检票。${route.direction}的。${busNumberSpeech}。班次现在停止检票。`;
+                        }
+
+                        if (announcement) {
+                            currentState.announcements.push(announcement);
+                            audioQueueManager.add(announcement);
+                        }
+                    }
+
+                    lastAnnouncedStates.set(routeKey, currentState);
+                }
+            });
+        }
+
+        // 获取URL参数
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // 加载站点数据
+        async function loadStations() {
+            try {
+                const response = await fetch('station.txt');
+                const text = await response.text();
+                const lines = text.split('\n');
+                const stations = {};
+                
+                for (let i = 0; i < lines.length; i += 2) {
+                    if (lines[i] && lines[i + 1]) {
+                        stations[lines[i].trim()] = lines[i + 1].trim();
+                    }
+                }
+                return stations;
+            } catch (error) {
+                console.error('Error loading stations:', error);
+                return {};
+            }
+        }
+
+        // 加载检票口数据
+        async function loadTicketGates() {
+            try {
+                const response = await fetch('tickets.txt');
+                const text = await response.text();
+                const lines = text.split('\n');
+                const gates = {};
+                let currentStation = '';
+                let currentRoute = '';
+
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (!line) return;
+
+                    if (line.startsWith('[车站]')) {
+                        currentStation = line.substring(4).trim();
+                        if (!gates[currentStation]) {
+                            gates[currentStation] = {};
+                        }
+                    } else if (line.startsWith('[线路]')) {
+                        currentRoute = line.substring(4).trim();
+                    } else if (line.startsWith('[检票口]')) {
+                        const gate = line.substring(5).trim();
+                        if (currentStation && currentRoute) {
+                            // 存储完整线路名称的映射
+                            gates[currentStation][currentRoute] = gate;
+                            
+                            // 同时存储反向线路的映射
+                            const routeParts = currentRoute.split(' - ');
+                            if (routeParts.length === 2) {
+                                const reverseRoute = `${routeParts[1]} - ${routeParts[0]}`;
+                                gates[currentStation][reverseRoute] = gate;
+                            }
+                        }
+                    }
+                });
+                console.log('Loaded gates:', gates); // 添加日志
+                return gates;
+            } catch (error) {
+                console.error('Error loading ticket gates:', error);
+                return {};
+            }
+        }
+
+        // 加载区间用时数据
+        async function loadRunningTime() {
+            try {
+                const response = await fetch('rttime.txt');
+                const text = await response.text();
+                const lines = text.split('\n');
+                const runningTimeMap = new Map();
+                let currentSection = '';
+
+                lines.forEach(line => {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) return;
+
+                    if (trimmedLine.startsWith('[区间]')) {
+                        currentSection = trimmedLine.split('] ')[1].trim();
+                    } else if (trimmedLine.startsWith('[用时]')) {
+                        const timeStr = trimmedLine.split('] ')[1].trim();
+                        const minutes = parseInt(timeStr);
+                        if (!isNaN(minutes)) {
+                            runningTimeMap.set(currentSection, minutes);
+                        }
+                    }
+                });
+                return runningTimeMap;
+            } catch (error) {
+                console.error('Error loading running time:', error);
+                return new Map();
+            }
+        }
+
+        // 计算到达时间
+        function calculateArrivalTime(departureTime, runningTimeMinutes) {
+            const [hours, minutes] = departureTime.split(':').map(Number);
+            let totalMinutes = hours * 60 + minutes + runningTimeMinutes;
+            
+            // 处理跨天的情况
+            if (totalMinutes >= 24 * 60) {
+                totalMinutes -= 24 * 60;
+            }
+            
+            const newHours = Math.floor(totalMinutes / 60);
+            const newMinutes = totalMinutes % 60;
+            
+            return `${newHours}:${String(newMinutes).padStart(2, '0')}`;
+        }
+
+        // 初始化站点
+        async function initStation() {
+            const stations = await loadStations();
+            const code = getQueryParam('code');
+            if (!code || !stations[code]) {
+                window.location.href = 'index.html?code=01'; // 默认跳转到临东站
+                return;
+            }
+            document.getElementById('stationName').textContent = stations[code];
+            document.title = stations[code] + " - 车站大屏";
+            return stations;
+        }
+
+        // 加载路线数据
+        async function loadRoutes() {
+            try {
+                const response = await fetch('../route.txt');
+                const text = await response.text();
+                const stationCode = getQueryParam('code');
+                if (!stationCode) return;
+
+                const stations = await loadStations();
+                const runningTimeMap = await loadRunningTime();
+                const routes = [];
+                const lines = text.split('\n');
+                let currentRoute = {};
+
+                // 解析路线数据
+                lines.forEach(line => {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) return;
+
+                    if (trimmedLine.startsWith('[班次]')) {
+                        if (Object.keys(currentRoute).length > 0) {
+                            // 检查是否为当前站点的班次
+                            if (currentRoute.isRelevant) {
+                                routes.push({
+                                    direction: currentRoute.direction,
+                                    busNumber: currentRoute.busNumber,
+                                    time: currentRoute.time,
+                                    gate: currentRoute.gate || '',
+                                    status: '默认',
+                                    fullRouteName: currentRoute.fullRouteName,
+                                    startStation: currentRoute.startStation,
+                                    isStartStation: currentRoute.isStartStation,
+                                    stationsList: currentRoute.stationsList,
+                                    stationIndex: currentRoute.stationIndex
+                                });
+                            }
+                        }
+                        currentRoute = {
+                            busNumber: trimmedLine.split('] ')[1].trim(),
+                            isRelevant: false,
+                            isStartStation: false
+                        };
+                    } else if (trimmedLine.startsWith('[发车时间]')) {
+                        currentRoute.time = trimmedLine.split('] ')[1].trim();
+                    } else if (trimmedLine.startsWith('[线路]')) {
+                        const route = trimmedLine.split('] ')[1].trim();
+                        currentRoute.fullRouteName = route;
+                        if (!route.includes(' - ')) {
+                            currentRoute.direction = route;
+                        } else {
+                            const [start, end] = route.split(' - ');
+                            currentRoute.direction = end;
+                        }
+                    } else if (trimmedLine.startsWith('[途径]')) {
+                        const stationsList = trimmedLine.split('] ')[1].trim().split(' - ');
+                        const currentStationName = stations[stationCode];
+                        
+                        const stationIndex = stationsList.findIndex(station => 
+                            station && currentStationName && station.includes(currentStationName)
+                        );
+
+                        if (stationIndex !== -1 && stationIndex < stationsList.length - 1) {
+                            currentRoute.isRelevant = true;
+                            currentRoute.startStation = stationsList[0];
+                            currentRoute.isStartStation = (stationIndex === 0);
+                            currentRoute.stationsList = stationsList;
+                            currentRoute.stationIndex = stationIndex;
+                        }
+                    }
+                });
+
+                // 处理最后一条路线
+                if (Object.keys(currentRoute).length > 0 && currentRoute.isRelevant) {
+                    routes.push({
+                        direction: currentRoute.direction,
+                        busNumber: currentRoute.busNumber,
+                        time: currentRoute.time,
+                        gate: currentRoute.gate || '',
+                        status: '默认',
+                        fullRouteName: currentRoute.fullRouteName,
+                        startStation: currentRoute.startStation,
+                        isStartStation: currentRoute.isStartStation,
+                        stationsList: currentRoute.stationsList,
+                        stationIndex: currentRoute.stationIndex
+                    });
+                }
+
+                // 计算途径站的发车时间
+                routes.forEach(route => {
+                    if (!route.isStartStation) {
+                        let totalRunningTime = 0;
+                        // 计算从始发站到当前站的总用时
+                        for (let i = 0; i < route.stationIndex; i++) {
+                            const section = `${route.stationsList[i]} - ${route.stationsList[i + 1]}`;
+                            const runningTime = runningTimeMap.get(section) || 0;
+                            totalRunningTime += runningTime;
+                        }
+                        // 更新发车时间
+                        route.time = calculateArrivalTime(route.time, totalRunningTime);
+                    }
+                });
+
+                // 根据发车时间排序
+                routes.sort((a, b) => {
+                    const timeA = a.time.split(':').map(Number);
+                    const timeB = b.time.split(':').map(Number);
+                    return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1]);
+                });
+
+                // 获取检票口信息
+                const gateMap = await loadTicketGates();
+                const stationGates = gateMap[stationCode];
+                console.log('Station gates for', stationCode, ':', stationGates); // 添加日志
+
+                // 更新检票口信息
+                routes.forEach(route => {
+                    if (stationGates) {
+                        let gate = '';
+                        // 首先尝试匹配完整的线路名称
+                        if (route.fullRouteName) {
+                            gate = stationGates[route.fullRouteName];
+                            //console.log('尝试匹配完整线路名称:', route.fullRouteName, '结果:', gate);
+                        }
+                        // 如果没有找到匹配的检票口，尝试使用简单线路名称
+                        if (!gate && route.direction) {
+                            gate = stationGates[route.direction];
+                            //console.log('尝试匹配简单线路名称:', route.direction, '结果:', gate);
+                        }
+                        route.gate = gate || '';
+                        //console.log('最终检票口:', route.gate);
+                    }
+                });
+
+                // 只显示未发车的班次
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                const futureRoutes = routes.filter(route => {
+                    const [hours, minutes] = route.time.split(':').map(Number);
+                    const routeTime = hours * 60 + minutes;
+                    return routeTime >= currentTime;
+                });
+
+                updateRouteTable(futureRoutes);
+            } catch (error) {
+                console.error('Error loading routes:', error);
+            }
+        }
+
+        // 更新路线表格
+        async function updateRouteTable(routes) {
+            const container = document.querySelector('.route-table-container');
+
+            if (!routes || routes.length === 0) {
+                container.innerHTML = '<div class="no-routes-message">本站今日已无班次</div>';
+                return;
+            }
+
+            // 确保表格存在
+            if (!container.querySelector('.route-table')) {
+                container.innerHTML = `
+                    <table class="route-table">
+                        <thead>
+                            <tr>
+                                <th>方向/线路</th>
+                                <th>班次</th>
+                                <th>发车时间</th>
+                                <th>检票口</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routeTableBody">
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            // 更新表格内容
+            const routePromises = routes.map(async route => {
+                const status = await getRouteStatus(route.time);
+                checkRouteStatus(route);
+                return `
+                    <tr>
+                        <td>${route.direction}</td>
+                        <td>${route.busNumber}</td>
+                        <td>${route.time.split(':').map((num, index) => index === 0 ? parseInt(num) : String(parseInt(num)).padStart(2, '0')).join(':')}</td>
+                        <td>${route.gate}</td>
+                        <td class="${status.class}">${status.text}</td>
+                    </tr>
+                `;
+            });
+
+            const routeRows = await Promise.all(routePromises);
+            document.getElementById('routeTableBody').innerHTML = routeRows.join('');
+        }
+
+        // 加载公告
+        async function loadAnnouncement() {
+            try {
+                const response = await fetch('notice.txt');
+                if (!response.ok) {
+                    throw new Error('Failed to load notice');
+                }
+                const text = await response.text();
+                // 移除换行符并设置公告内容
+                document.getElementById('announcement').textContent = text.replace(/[\r\n]+/g, ' ');
+            } catch (error) {
+                console.error('Error loading announcement:', error);
+                document.getElementById('announcement').textContent = '欢迎乘坐临东市汽车客运，祝您旅途愉快！';
+            }
+        }
+
+        // 更新时间显示
+        function updateDateTime() {
+            const now = new Date();
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日星期${weekdays[now.getDay()]} ` +
+                          `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            document.getElementById('datetime').textContent = dateStr;
+
+            // 检查是否需要刷新页面或更新路线表
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            // 当分钟是5的倍数且秒数为0时刷新整个页面
+            if (minutes % 5 === 0 && seconds === 0) {
+                window.location.reload();
+            }
+            // 当秒数为0时更新路线表
+            else if (seconds === 0) {
+                loadRoutes();
+            }
+        }
+
+        // 初始化
+        initStation();
+        loadAnnouncement();
+        loadRoutes();
+
+        // 定时更新时间（每秒）
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // 页面加载完成后模拟点击和触摸以初始化音频
+        window.addEventListener('load', () => {
+            // 创建模拟事件的函数
+            function simulateInteraction() {
+                // 模拟点击事件
+                const clickEvent = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: 100,
+                    clientY: 100
+                });
+                
+                // 模拟触摸事件
+                const touchEvent = new TouchEvent('touchstart', {
+                    bubbles: true,
+                    cancelable: true,
+                    touches: [new Touch({
+                        identifier: 0,
+                        target: document.body,
+                        clientX: 100,
+                        clientY: 100,
+                        pageX: 100,
+                        pageY: 100
+                    })]
+                });
+
+                // 触发事件
+                document.body.dispatchEvent(clickEvent);
+                document.body.dispatchEvent(touchEvent);
+            }
+
+            // 1秒后执行第一次模拟
+            setTimeout(simulateInteraction, 1000);
+
+            // 2秒后执行第二次模拟
+            setTimeout(simulateInteraction, 2000);
+        });
+
+        function showTicketPage(departure, arrival, routes) {
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('ticketPage').style.display = 'block';
+            document.body.classList.remove('at-home');
+            document.querySelector('.page-title').textContent = `${departure}-${arrival}`;
+            pageHistory.push('ticketPage');
+            
+            const datePicker = document.getElementById('datePicker');
+            datePicker.innerHTML = '';
+            
+            let selectedDateIndex = 0;
+            
+            for (let i = 0; i < 6; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() + i);
+                const dateItem = document.createElement('div');
+                dateItem.className = `date-item ${i === 0 ? 'active' : ''}`;
+                dateItem.textContent = `${date.getMonth() + 1}月${date.getDate()}日`;
+                dateItem.dataset.date = date.toISOString().split('T')[0];
+                dateItem.dataset.index = i;
+                
+                dateItem.addEventListener('click', (e) => {
+                    // 阻止事件冒泡
+                    e.stopPropagation();
+                    
+                    document.querySelectorAll('.date-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    selectedDateIndex = parseInt(e.target.dataset.index);
+                    updateRouteList(routes, selectedDateIndex);
+                });
+                
+                datePicker.appendChild(dateItem);
+            }
+            
+            updateRouteList(routes, selectedDateIndex);
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>周边图鉴</title>
+    <link rel="icon" href="../UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../mainpage.css">
+    <link rel="stylesheet" href="../UI/toast.css">
+    <link rel="stylesheet" href="../data_composer/style.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 标题栏 -->
+    <header class="header">
+        <button class="icon-button" id="back-to-home" onclick="window.location.href='../'" title="雨城通首页">
+            <img src="../UI/res/雨城通logo绿.png" alt="雨城通首页">
+        </button>
+        <h1>周边图鉴</h1>
+        <div class="toolbar">
+            <button class="icon-button" id="search-button" title="搜索">
+                <img src="../UI/res/search_black.png" alt="搜索">
+            </button>
+        </div>
+    </header>
+
+    <!-- 按瀑布流展示不同批次的周边 -->
+    <div class="product-gallery">
+        <div class="product-item">
+            <img src="./res/雨城通卡/第三版雨城通卡面.png" alt="雨城通卡">
+            <h3>雨城通卡</h3>
+            <p>雨城通卡是雨城通APP的"实体卡"，可以用于乘坐地铁、公交等交通工具，2023年7月作为物品正式引入服务器内。</p>
+        </div> 
+        <div class="caption-section">
+            <p class="caption">"临东""临东服务器"及其相关的各类组织、品牌均为虚构，其本体基于一个《我的世界》基岩版（Minecraft Bedrock Edition）服务器。</p>
+            <p class="caption">网站部分代码使用AI生成，部分图标来自<a href="https://www.icons8.com/">Icons8</a>。</p>
+        </div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div class="toast-overlay">
+        <p class="toast-text"></p>
+    </div>
+    
+    <!-- 搜索框 -->
+    <div class="search-overlay">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="搜索线路或车站...">
+            <div class="search-navigation">
+                <button class="icon-button" id="prev-result" title="上一个结果" disabled>
+                    <img src="../UI/res/arrow_upward_black.png" alt="上一个">
+                </button>
+                <span class="search-count">0/0</span>
+                <button class="icon-button" id="next-result" title="下一个结果" disabled>
+                    <img src="../UI/res/arrow_downward_black.png" alt="下一个">
+                </button>
+            </div>
+            <button class="icon-button" id="close-search">
+                <img src="../UI/res/close_black.png" alt="关闭">
+            </button>
+        </div>
+    </div>  
+
+    <script src="../UI/toast.js"></script>
+    <script src="script.js" type="module"></script>
+</body>
+</html>

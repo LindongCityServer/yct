@@ -1,0 +1,12 @@
+banner大小为1765*732。
+
+bar：页面弹窗，留空则不弹窗。
+dest：所有站点。
+route：线路数据。（和screen共享）
+stop：停运信息。（和screen共享）
+
+screen：车站大屏，部分数据存储在这个文件夹内。
+	notice：下方滚动条公告。
+	rttime：区间票价和用时。（和ltcx共享）
+	station：记录车站代码。
+	tickets：记录检票口。

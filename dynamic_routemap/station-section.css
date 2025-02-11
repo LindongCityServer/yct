@@ -1,0 +1,122 @@
+.station-section {
+    width: 384px;
+    height: 112px;
+    padding: 10px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.floor {
+    width:384px;
+    height: fit-content;
+    display: flex;
+    align-items: center;
+}
+
+    .floor:last-child {
+        margin-bottom: 0;
+    }
+
+.floor-label {
+    width: 48px;
+    text-align: right;
+    margin-right: 4px;
+    line-height: 0.4;
+}
+
+    .floor-label p {
+        margin: 0;
+        font-size: 10px; /* Chinese */
+    }
+
+    .floor-label span {
+        font-size: 8px; /* English */
+    }
+
+.floor-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width:320px;
+    height: fit-content;
+    min-height: 18px;
+    border-bottom: black 1px solid;
+}
+
+.facilities {
+    width: 288px;
+    padding: 2px;
+    display: flex;
+}
+
+.facilities img {
+    width: 14px;
+    height: 14px;
+}
+
+.transfer {
+    position: absolute;
+    padding: 0;
+    font-size: 6px;
+    display: flex;
+    padding: 2px;
+    border-radius: 4px;
+    line-height: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateX(-50%);
+    color: white;
+}
+
+.car-group {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 2px;
+    border-bottom: 2px solid black;
+    padding-bottom: 2px;
+    overflow: hidden;
+}
+
+.car {
+    height: 14px;
+    border-radius: 6px 6px 2px 2px;
+    background-color: lightgray;
+}
+
+/* 添加闪烁动画 */
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+/* 添加三角形样式 */
+.direction-arrow {
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-left: 10px solid red;
+    margin-left: 4px;
+    animation: blink 2s infinite;
+}
+
+/* 添加滑动动画 */
+@keyframes slideIn {
+    from {
+        transform: translateX(-600%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* 添加动画类 */
+.car-group.animate .car {
+    animation: slideIn 3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}

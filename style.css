@@ -1,0 +1,252 @@
+@import url('../UI/fonts/HarmonyOS_Sans_SC.ttf');
+@import url('../UI/fonts/HarmonyOS_Sans_SC_Bold.ttf');
+@import url('../UI/fonts/HarmonyOS_Sans_SC_Medium.ttf');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'HarmonyOS Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+body {
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f7f8f8;
+    position: relative;
+    overflow: hidden;
+}
+
+h3 {
+    margin-top: 0;
+    margin-bottom: 2px;
+}
+
+/* 通用控制面板样式 */
+.controls {
+    position: absolute;
+    top: 72px;
+    right: 12px;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 6px;
+    border-radius: 50px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-flow: column;
+}
+
+    .controls button {
+        width: 24px;
+        height: 24px;
+        border: none;
+        border-radius: 30px;
+        background-color: #fff;
+        color: #888;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+.controls button:hover {
+    background-color: #dbe0e1;
+}
+
+/* 搜索控制样式 */
+.search-controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 12px;
+    border-radius: 30px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.search-controls input {
+    border: 1px solid #dbe0e1;
+    width: 72px;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 30px;
+}
+
+.search-controls button {
+    padding: 5px 10px;
+    border: none;
+    background-color: #2c9678;
+    color: #fff;
+    cursor: pointer;
+    margin-left: 6px;
+    margin-right: 6px;
+    border-radius: 30px;
+}
+
+.search-controls button:hover {
+    background-color: #1B5B49;
+}
+
+/* 通用按钮样式 */
+.close-button {
+    float: right;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 30px;
+    background-color: #fff;
+    color: #888;
+    cursor: pointer;
+    text-align: center;
+    text-anchor: middle;
+}
+
+.close-button:hover {
+    background-color: #dbe0e1;
+}
+
+.caption {
+    color: #7b8a8f;
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* 从dynamic_routemap合并的控制面板样式 */
+.control-panel button, 
+.control-panel select {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 30px;
+    background-color: #fff;
+    color: #888;
+    cursor: pointer;
+}
+
+.control-panel button:disabled, 
+.control-panel select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.door-buttons {
+    width: 120px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.button-group {
+    flex: 1;
+    display: flex;
+    border: 1px solid #dbe0e1;
+    border-radius: 30px;
+    overflow: hidden;
+    margin: 0;
+}
+
+.button-group input[type="radio"] {
+    display: none;
+}
+
+.button-group label {
+    padding: 5px 10px;
+    background: white;
+    cursor: pointer;
+    user-select: none;
+    border-right: 1px solid #dbe0e1;
+    flex: 1;
+    text-align: center;
+    margin: 0;
+}
+
+.button-group label:last-child {
+    border-right: none;
+}
+
+.button-group input[type="radio"]:checked + label {
+    background: #dbe0e1;
+}
+
+.toast-overlay {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 24px;
+    z-index: 1000;
+    transition: top 0.3s ease-in-out;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.toast-text {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1a1a1a;
+        color: #ffffff;
+    }
+
+    /* 只对功能图标应用反色效果，不包括 logo */
+    .header #search-button img,
+    .search-navigation img,
+    #close-search img {
+        filter: invert(1);
+    }
+
+    .controls,
+    .search-controls,
+    .control-panel button,
+    .control-panel select,
+    .button-group label {
+        background-color: #2d2d2d;
+        color: #ffffff;
+    }
+
+    .controls button:hover,
+    .close-button:hover,
+    .button-group input[type="radio"]:checked + label {
+        background-color: #404040;
+    }
+
+    .button-group {
+        border-color: #404040;
+    }
+
+    .button-group label {
+        border-color: #404040;
+        background-color: #2d2d2d;
+    }
+
+    .caption {
+        color: #a0a0a0;
+    }
+}
+
+:root {
+    /* 图标相关变量 */
+    --icon-filter: invert(0%); /* 浅色模式下不反转颜色 */
+    --select-arrow-icon: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+/* 深色模式 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* 深色模式下的图标变量 */
+        --icon-filter: invert(100%); /* 深色模式下反转颜色 */
+    }
+}

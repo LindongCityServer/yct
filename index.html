@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雨城通</title>
+    <link rel="icon" href="../UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="mainpage.css">
+    <link rel="stylesheet" href="metro_map/style.css">
+</head>
+<body>
+    <!-- 头部导航栏 -->
+    <header>
+        <div class="logo">
+            <img src="UI/res/雨城通logo带文字浅色.png" alt="雨城通">
+        </div>
+        <div class="header-actions">
+            <button class="header-apply-card-btn">
+                <img src="UI/res/card_white.png" alt="发起乘车">
+                <span>发起乘车</span>
+            </button>
+            <button class="search-btn">
+                <img src="UI/res/search_black.png" alt="搜索">
+            </button>
+            <button class="login-btn">我的</button>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main>
+        <div class="main-content">
+            <!-- 左侧内容 -->
+            <div class="main-left">
+                <!-- Banner轮播 -->
+                <section class="banner-carousel">
+                    <div class="carousel-container">
+                        <!-- 轮播内容将通过JavaScript动态添加 -->
+                    </div>
+                    <div class="carousel-indicators">
+                        <!-- 指示器将通过JavaScript动态添加 -->
+                    </div>
+                    <div class="carousel-title">
+                        <!-- 标题将通过JavaScript动态添加 -->
+                    </div>
+                </section>
+
+                <!-- 行程信息展示区 -->
+                <section class="trip-info">
+                    <div class="trip-header">
+                        <h3>本机行程</h3>
+                        <div class="more-link">
+                            <span>更多行程</span>
+                            <img src="UI/res/arrow_right_black.png" alt="更多">
+                        </div>
+                    </div>
+                    <div class="trip-content">
+                        <!-- 行程内容将通过JavaScript动态加载 -->
+                    </div>
+                </section>
+
+                <!-- 功能图标区 -->
+                <section class="feature-icons">
+                    <div class="icons-container">
+                        <div class="icon-item" data-feature="metro">
+                            <img src="UI/res/subway_black.png" alt="地铁线网" class="themed-icon">
+                            <span>地铁线网</span>
+                        </div>
+                        <!-- 其他图标将通过JavaScript动态添加 -->
+                        <div class="icon-item show-all">
+                            <img src="UI/res/expand_more_black.png" alt="显示全部">
+                            <span>显示全部</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 附近车站模块改为服务器状态 -->
+                <section class="nearby-station">
+                    <div class="server-info">
+                        <div class="server-status">
+                            <h3>服务器状态</h3>
+                            <span class="status-indicator offline"></span>
+                            <span class="server-players">正在连接...</span>
+                        </div>
+                        <div class="server-actions">
+                            <button class="join-btn" title="加入游戏">
+                                <img src="UI/res/open_white.png" alt="加入游戏">
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 服务器MOTD，但是现有能滚动的实在还原不出来，所以先隐藏 -->
+                    <!-- <div class="server-motd">正在获取服务器信息...</div> -->
+                    <div class="server-version"></div>
+                </section>
+
+                <!-- Caption文本 - 大屏模式 -->
+                <section class="caption-section desktop-caption">
+                    <p class="caption">"临东""临东服务器"及其相关的各类组织、品牌均为虚构，其本体基于一个《我的世界》基岩版（Minecraft Bedrock Edition）服务器。</p>
+                    <p class="caption">网站部分代码使用AI生成，部分图标来自<a href="https://www.icons8.com/">Icons8</a>。</p>
+                </section>
+            </div>
+
+            <!-- 右侧内容 -->
+            <div class="main-right">
+                <!-- 最新资讯 -->
+                <section class="news">
+                    <div class="news-header">
+                        <h3>最新资讯</h3>
+                        <div class="social-links">
+                            <a href="https://jq.qq.com/?_wv=1027&k=2ohkcKQI" class="social-link">
+                                <img src="UI/res/qq.png" alt="QQ">
+                            </a>
+                            <a href="https://space.bilibili.com/106279202" class="social-link">
+                                <img src="UI/res/bilibili.png" alt="Bilibili">
+                            </a>
+                            <a href="#" class="social-link" id="wechat-link" onclick="handleWechatClick()">
+                                <img src="UI/res/wechat.png" alt="WeChat">
+                            </a>
+                            <a href="https://pd.qq.com/g/58ocn0s744" class="social-link">
+                                <img src="UI/res/qq_pd.png" alt="QQ频道">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="news-content">
+                        <!-- 新闻内容将通过JavaScript动态加载 -->
+                    </div>
+                </section>
+
+                <!-- 历史资讯 -->
+                <section class="history-news">
+                    <div class="history-news-header">
+                        <button class="toggle-history-btn">
+                            <img src="UI/res/expand_more_black.png" alt="历史资讯">
+                            <span></span>
+                        </button>
+                    </div>
+                    <div class="history-news-content hidden">
+                        <!-- 历史新闻内容将通过JavaScript动态加载 -->
+                    </div>
+                </section>
+
+                <!-- Caption文本 - 移动端 -->
+                <section class="caption-section mobile-caption">
+                    <p class="caption">"临东""临东服务器"及其相关的各类组织、品牌均为虚构，其本体基于一个《我的世界》基岩版（Minecraft Bedrock Edition）服务器。</p>
+                    <p class="caption">网站部分代码使用AI生成，部分图标来自<a href="https://www.icons8.com/">Icons8</a>。</p>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- 搜索面板 -->
+    <div class="search-panel hidden">
+        <div class="search-header">
+            <input type="text" placeholder="搜索车站或线路">
+            <button class="close-search">
+                <img src="UI/res/close_black.png" alt="关闭">
+            </button>
+        </div>
+        <div class="search-results">
+            <!-- 搜索结果将通过JavaScript动态添加 -->
+        </div>
+    </div>
+
+    <!-- 浮动乘车按钮 -->
+    <footer>
+        <button class="apply-card-btn">
+            <img src="UI/res/card_white.png" alt="发起乘车">
+            <span>发起乘车</span>
+        </button>
+    </footer>
+
+    <div id="wechat-image" style="display: none;" onclick="this.style.display = 'none';">
+        <img src="https://wiki.shangxiaoguan.top/images/d/d2/%E4%B8%B4%E4%B8%9C%E5%BE%AE%E5%BF%97.png" alt="微信图标说明">
+    </div>
+
+    <!-- 新闻项模板 -->
+    <template id="news-item-template">
+        <div class="news-item">
+            <div class="news-meta">
+                <span class="news-category"></span>
+                <span class="news-date"></span>
+                <span class="expired-tag">已过期</span>
+            </div>
+            <h4 class="news-title">
+                <a href="#" target="_blank"></a>
+            </h4>
+            <p class="news-summary"></p>
+        </div>
+    </template>
+
+    <!-- 请求通知权限的脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查浏览器是否支持通知
+            if ('Notification' in window) {
+                // 如果通知权限未设置，则请求权限
+                if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(function(permission) {
+                        console.log('通知权限状态:', permission);
+                    });
+                }
+            }
+        });
+    </script>
+
+    <script src="data/metro_data.js" type="module"></script>
+    <script src="data/tram_data.js" type="module"></script>
+    <script src="script.js" type="module"></script>
+</body>
+</html> 

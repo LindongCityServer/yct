@@ -1,0 +1,1186 @@
+/* 方向区域样式 */
+.direction-section {
+    margin-bottom: 24px;
+}
+
+.direction-section:last-child {
+    margin-bottom: 0;
+}
+
+.direction-section h3 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: var(--tertiary-text);
+    padding-left: 36px;
+}
+
+/* 调整第一个和最后一个站点的线条 */
+.direction-section .station-item:first-child .station-line {
+    top: 50%;
+}
+
+.direction-section .station-item:last-child .station-line {
+    bottom: 50%;
+}
+
+/* 头部导航栏样式 */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--card-background);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+.header h1 {
+    flex: 1;
+    margin: 0;
+    font-size: 20px;
+    color: var(--text-color);
+    text-align: left;
+    margin-left: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0; /* 防止工具栏被压缩 */
+}
+
+/* 确保公交线路图页面的工具栏始终显示 */
+.route-toolbar {
+    display: flex !important;
+}
+
+.icon-button {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* 防止按钮被压缩 */
+}
+
+.icon-button img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+/* 主体内容区域样式 */
+main {
+    padding-top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    width: -webkit-fill-available;
+    max-width: 1024px;
+}
+
+/* 大屏幕下的双栏布局 */
+@media (min-width: 640px) {
+    main {
+        display: flex;
+        padding: 24px 0 0 0;
+    }
+
+    .transfer-section {
+        width: 45%;
+        max-width: 420px;
+        min-width: 240px;
+        flex-shrink: 0;
+        border-right: 1px solid #eee;
+        height: 100%;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .route-section {
+        flex: 1;
+        height: 100%;
+        overflow-y: auto;
+        padding: 8px;
+        min-width: 0; /* 确保flex子元素可以正确收缩 */
+    }
+
+    /* 在大屏幕下隐藏浮动面板 */
+    body .transfer-panel {
+        display: none !important;
+    }
+
+    .transfer-results {
+        margin-top: 20px;
+        border-radius: 18px;
+    }
+}
+
+/* 小屏幕下的样式 */
+@media (max-width: 639px) {
+    .transfer-section {
+        display: none; /* 在小屏幕下隐藏左侧栏，使用浮动面板 */
+    }
+
+    .route-section {
+        width: 100%;
+    }
+}
+
+/* 路线信息头部样式 */
+.route-header {
+    padding: 20px;
+    background: var(--card-background);
+    border-radius: 18px;
+    margin: 20px;
+    line-height: 1.2;
+}
+
+.route-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.route-title h2 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 24px;
+    flex: 1;
+}
+
+.route-title .icon-button {
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+}
+
+.route-title .icon-button:hover {
+    background: var(--hover-background);
+}
+
+.route-title .icon-button img {
+    width: 20px;
+    height: 20px;
+}
+
+.route-info {
+    display: flex;
+    flex-direction: column;
+    margin: 8px 0;
+    color: var(--secondary-text);
+    font-size: 14px;
+}
+
+.route-info p {
+    margin: 5px 0;
+}
+
+/* 站点列表样式 */
+.station-list {
+    padding: 20px;
+    margin: 0 20px 20px 20px;
+    background: var(--card-background);
+    border-radius: 18px;
+}
+
+.station-item {
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-height: 40px;
+    cursor: pointer;
+}
+
+.station-line {
+    position: absolute;
+    left: 18px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--bus-color);
+    z-index: 1;
+    transform: translateX(-50%);
+}
+
+.station-item:first-child .station-line {
+    top: 50%;
+}
+
+.station-item:last-child .station-line {
+    bottom: 50%;
+}
+
+.station-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--card-background);
+    border: 3px solid var(--bus-color);
+    border-radius: 50%;
+    margin: 0 12px;
+    position: relative;
+    z-index: 2;
+}
+
+.station-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 0;
+    min-width: 0;
+}
+
+.station-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    justify-content: flex-start;
+}
+
+.station-name {
+    font-size: 16px;
+    color: var(--text-color);
+    white-space: nowrap;
+    text-align: left;
+}
+
+.station-status {
+    color: var(--tertiary-text);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.metro-badges {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.metro-badge {
+    background: var(--line-color, #1890ff);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+/* 单向行驶标记 */
+.one-way-up .station-line {
+    background: linear-gradient(to bottom, var(--bus-color) 50%, transparent 50%);
+}
+
+.one-way-down .station-line {
+    background: linear-gradient(to bottom, transparent 50%, var(--bus-color) 50%);
+}
+
+/* 搜索面板样式 */
+.search-panel {
+    position: fixed;
+    top: 60px; /* 为顶部导航栏留出空间 */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--card-background);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.search-panel.hidden {
+    display: none;
+}
+
+.search-header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.search-header input {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+}
+
+.close-search {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.search-results {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* 搜索结果项样式 */
+.search-result-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    text-align: left;
+    color: #333;
+    font-size: 14px;
+}
+
+.search-result-item:hover {
+    background: var(--hover-background);
+}
+
+.search-result-item.route {
+    color: var(--text-color);
+}
+
+.search-result-item.station {
+    position: relative;
+    padding: 12px 16px;
+}
+
+.search-result-item .station-info {
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+    padding: 4px 0;
+}
+
+.search-result-item .station-info span {
+    font-size: 14px;
+}
+
+.search-result-item .station-actions {
+    display: none;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--card-background);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 4px;
+    gap: 4px;
+    z-index: 10;
+}
+
+/* 显示操作按钮 - 桌面端悬停，移动端点击后显示 */
+@media (min-width: 640px) {
+    .search-result-item.station:hover .station-actions {
+        display: flex;
+    }
+}
+
+@media (max-width: 639px) {
+    .search-result-item.station.active .station-actions {
+        display: flex;
+    }
+}
+
+.search-result-item .station-action-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 16px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 添加换乘查询面板样式 */
+.transfer-panel {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--background-color);
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    padding: 16px;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 40px);
+    max-width: 360px;
+    max-height: calc(100vh - 120px);
+}
+
+/* 大屏幕下强制隐藏浮动面板 */
+@media (min-width: 640px) {
+    body .transfer-panel {
+        display: none !important;
+    }
+}
+
+.transfer-panel.hidden {
+    display: none !important;
+}
+
+.transfer-inputs {
+    display: flex;
+    gap: 8px;
+}
+
+.transfer-input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.transfer-input-group label {
+    font-size: 12px;
+    color: var(--secondary-text);
+}
+
+.transfer-input-group input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.transfer-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.transfer-button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 18px;
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.transfer-button.secondary {
+    background: var(--card-background);
+    color: var(--text-color);
+    font-weight: normal;
+}
+
+.transfer-results {
+    display: none;
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--text-color);
+    border-radius: 12px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.transfer-route {
+    padding: 12px;
+    border-radius: 18px;
+    background: var(--background-color);
+    margin-bottom: 12px;
+}
+
+.transfer-route:last-child {
+    margin-bottom: 0;
+}
+
+.transfer-route h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.transfer-route .route-badge {
+    background: var(--bus-color);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.transfer-route .route-steps {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+    position: relative;
+}
+
+.transfer-route .route-step {
+    position: relative;
+    padding: 8px 0 8px 36px;
+    line-height: 1.2;
+    color: var(--secondary-text)
+}
+
+.transfer-route .route-step::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    background: var(--card-background);
+    border: 3px solid #ccc;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    opacity: 0;
+}
+
+.transfer-route .route-step::after {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--bus-color);
+    z-index: 1;
+}
+
+.transfer-route .route-step:first-child::after {
+    top: 50%;
+}
+
+.transfer-route .route-step:last-child::after {
+    bottom: 50%;
+}
+
+.transfer-route .route-step.start::before {
+    border-color: var(--card-background);
+    background: #008000;
+    width: 12px;
+    height: 12px;
+    left: 10px;
+    opacity: 1;
+}
+
+.transfer-route .route-step.end::before {
+    border-color: var(--card-background);
+    background: #ffa500;
+    width: 12px;
+    height: 12px;
+    left: 10px;
+    opacity: 1;
+}
+
+.route-step.start, .route-step.end {
+    font-size: 16px;
+}
+
+.route-step.start .station-link,.route-step.end .station-link{
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.transfer-route .route-step.transfer::before {
+    border-color: var(--bus-color);
+    background: var(--card-background);
+    opacity: 1;
+}
+
+.transfer-route .route-step.transfer .station-link {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.share-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.share-button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.share-button:hover {
+    background: var(--hover-background);
+}
+
+/* 当在同一行时的样式 */
+.station-info.inline {
+    flex-direction: row;
+    align-items: center;
+}
+
+/* 当需要换行时的样式 */
+.station-info:not(.inline) .metro-badges {
+    margin-left: 0;
+}
+
+/* 站点操作按钮容器 */
+.station-actions {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--card-background);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 4px;
+    gap: 4px;
+    z-index: 10;
+}
+
+/* 显示操作按钮 - 桌面端悬停，移动端点击后显示 */
+@media (min-width: 640px) {
+    .station-item:hover .station-actions {
+        display: flex;
+    }
+}
+
+@media (max-width: 639px) {
+    .station-item.active .station-actions {
+        display: flex;
+    }
+}
+
+/* 站点操作按钮样式 */
+.station-action-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 16px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 调整关闭按钮大小 */
+.close-modal {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-modal img {
+    width: 16px;
+    height: 16px;
+}
+
+.station-action-btn:hover {
+    background: var(--hover-background);
+}
+
+.station-action-btn.set-start {
+    background: #008000;
+    color: #fff;
+}
+
+.station-action-btn.set-start img {
+    filter: brightness(0) invert(1);
+}
+
+.station-action-btn.set-start:hover {
+    background: #006700;
+}
+
+.station-action-btn.set-end {
+    background: #ffa500;
+    color: #fff;
+}
+
+.station-action-btn.set-end img {
+    filter: brightness(0) invert(1);
+}
+
+.station-action-btn.set-end:hover {
+    background: #f59300;
+}
+
+/* 站点详情弹窗 */
+.station-detail-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card-background);
+    border-radius: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 20px;
+    max-width: 90%;
+    width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.station-detail-modal.show {
+    display: block;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.route-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.route-item {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.route-item:hover {
+    background-color: var(--hover-background);
+}
+
+.route-info-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.route-name {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.route-name.operating {
+    color: var(--bus-color);
+}
+
+.route-name.not-operating {
+    color: var(--secondary-text);
+}
+
+.direction-times {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.direction-time {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.direction-label {
+    color: var(--secondary-text);
+    white-space: nowrap;
+}
+
+.operation-time {
+    color: var(--text-color);
+    font-family: monospace;
+}
+
+/* 换乘方案中的运营状态警告 */
+.operation-warning {
+    margin: 5px 0;
+    padding: 8px;
+    background-color: #fff3e0;
+    border-left: 4px solid var(--bus-color);
+    color: #e65100;
+    font-size: 0.9em;
+}
+
+.transfer-route.not-operating {
+    opacity: 0.8;
+}
+
+.transfer-route.not-operating::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--bus-color);
+}
+
+/* 确保transfer-route有相对定位以支持绝对定位的警告条 */
+.transfer-route {
+    position: relative;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--card-background);
+    border-radius: 8px;
+}
+
+/* 遮罩层 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    display: none;
+}
+
+.modal-overlay.show {
+    display: block;
+}
+
+/* 方向切换tabs样式 */
+.direction-tabs {
+    display: flex;
+    gap: 1px;
+    background: var(--background-color);
+    padding: 1px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--secondary-text);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.tab-button:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.tab-button:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+.tab-button:hover{
+    background: var(--hover-background);
+}
+
+.tab-button.active {
+    background: var(--card-background);
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+/* 方向内容区域样式 */
+.station-content {
+    position: relative;
+}
+
+.direction-section {
+    display: none;
+}
+
+.direction-section.active {
+    display: block;
+}
+
+/* 浮动面板隐藏按钮 */
+#toggle-transfer-panel {
+    margin-right: 8px;
+}
+
+/* 大屏幕下隐藏浮动面板切换按钮 */
+@media (min-width: 640px) {
+    #toggle-transfer-panel {
+        display: none;
+    }
+}
+
+/* 添加行程提醒对话框 */
+#add-trip-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card-background);
+    border-radius: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 20px;
+    max-width: 90%;
+    width: 400px;
+    z-index: 1000;
+    display: none;
+}
+
+#add-trip-dialog.show {
+    display: block;
+}
+
+.dialog-content {
+    width: 100%;
+}
+
+.dialog-content h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    color: var(--text-color);
+}
+
+.dialog-body {
+    margin-bottom: 20px;
+}
+
+.time-type-selector {
+    margin-bottom: 16px;
+}
+
+.time-type-selector label {
+    margin-right: 16px;
+    color: var(--text-color);
+}
+
+.time-input {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.time-input label {
+    color: var(--secondary-text);
+}
+
+.time-input input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.dialog-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.dialog-button.primary {
+    background: var(--primary-color);
+    color: #fff;
+    font-weight: bold;
+}
+
+/* 导出图片页脚 */
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: var(--card-background);
+    border-top: 1px solid #eee;
+    margin-top: 20px;
+}
+
+.footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-logo {
+    height: 26px;
+    width: fit-content;
+}
+
+.footer-caption {
+    font-size: 12px;
+    color: var(--secondary-text);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.footer-right {
+    display: flex;
+}
+
+.footer-qr {
+    width: 96px;
+    height: 96px;
+}
+
+.route-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+}
+
+.action-button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.action-button:hover {
+    background: var(--hover-background);
+}
+
+.action-button img {
+    opacity: 0.7;
+}
+
+.estimated-time,
+.estimated-arrival {
+    color: var(--secondary-text);
+    font-size: 14px;
+    margin: 4px 0;
+}
+
+/* 图片导出容器样式 */
+.image-container {
+    background: var(--card-background);
+    padding: 20px;
+    border-radius: 18px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.image-container .transfer-route {
+    margin: 0;
+    background: var(--card-background);
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+    /* ... existing code ... */
+    
+    /* 让功能图标在深色模式下变为白色，但排除返回首页按钮 */
+    .toolbar .icon-button img,
+    .station-action-btn img,
+    .action-button img,
+    .close-modal img {
+        filter: invert(1);
+    }
+}
+
+/* 主题感知图标 */
+.theme-aware-icon {
+    filter: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    .theme-aware-icon {
+        filter: invert(1);
+    }
+}
+
+.station-link,
+.route-link {
+    color: var(--bus-color);
+    cursor: pointer;
+}
+
+.station-link:hover,
+.route-link:hover {
+    text-decoration: underline;
+}
+
+.latest-departure-time {
+    background-color: var(--card-background);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.highlight-route {
+    cursor: pointer;
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.latest-route-indicator {
+    font-weight: bold;
+    color: var(--bus-color);
+}
+
+.transfer-route.highlighted {
+    background-color: #e88f1240;
+    transition: background-color 0.3s ease;
+}

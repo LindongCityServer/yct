@@ -1,0 +1,659 @@
+body {
+    padding: 0;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: var(--card-background);
+    border-bottom: 1px solid var(--border-color);
+    height: 64px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    white-space: nowrap;
+}
+
+.header-controls {
+    display: flex;
+    justify-content: center;
+    padding: 0 1rem;
+}
+
+.station-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    max-width: 800px;
+    width: 100%;
+}
+
+.station-select {
+    flex: 1;
+    padding: 0.5rem 2rem 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    cursor: pointer;
+    appearance: none;
+    background-image: var(--select-arrow-icon);
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1em;
+}
+
+.direction-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.direction-toggle:hover {
+    background-color: var(--hover-background);
+}
+
+.direction-toggle.arrival .direction-icon {
+    transform: rotate(180deg);
+}
+
+.direction-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+    filter: var(--icon-filter);
+}
+
+.status-select {
+    padding: 0.5rem 2rem 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    cursor: pointer;
+    appearance: none;
+    background-image: var(--select-arrow-icon);
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1em;
+    width: fit-content;
+    min-width: 90px;
+    max-width: 90px;
+}
+
+.route-display {
+    padding-top: 64px;
+    overflow-x: auto;
+    height: 100vh;
+    width: 100%;
+    background: var(--background-color);
+}
+
+#route-table {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background: var(--card-background);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    table-layout: fixed;
+}
+
+#route-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--card-background);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+#route-table th {
+    background: var(--card-background);
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* 确保表头在滚动时不会被内容穿透 */
+#route-table thead::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: inherit;
+    z-index: -1;
+}
+
+#route-table th,
+#route-table td {
+    padding: 0.4rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 为第一列和最后一列添加额外的左右内边距 */
+#route-table th:first-child,
+#route-table td:first-child {
+    padding-left: 2rem;
+}
+
+#route-table th:last-child,
+#route-table td:last-child {
+    padding-right: 2rem;
+}
+
+/* 设置各列的宽度和对齐方式 */
+/* 班次列 */
+#route-table th:nth-child(1),
+#route-table td:nth-child(1) {
+    width: 100px;
+}
+
+/* 时间列 */
+#route-table th:nth-child(2),
+#route-table td:nth-child(2) {
+    width: 120px;
+    text-align: center;
+}
+
+/* 表头时间列样式 */
+#route-table thead th:nth-child(2) {
+    position: relative;
+}
+
+#route-table thead th:nth-child(2)::after {
+    content: '';
+    display: inline-block;
+    width: 8px; /* 与 .next-day 的宽度相同 */
+}
+
+/* 时间文本容器 */
+#route-table td:nth-child(2) {
+    position: relative;
+}
+
+/* 时间文本样式 */
+#route-table td:nth-child(2) > span {
+    display: inline-block;
+    min-width: 45px; /* 给时间文本一个固定的最小宽度 */
+    text-align: right;
+}
+
+/* 线路列 */
+#route-table th:nth-child(3),
+#route-table td:nth-child(3) {
+    width: 160px;
+}
+
+/* 途径站点列 */
+#route-table th:nth-child(4),
+#route-table td:nth-child(4) {
+    width: 160px;
+    white-space: normal;
+    line-height: 1.5;
+}
+
+/* 检票口列 */
+#route-table th:nth-child(5),
+#route-table td:nth-child(5) {
+    width: 80px;
+    text-align: center;
+}
+
+/* 状态列 */
+#route-table th:nth-child(6),
+#route-table td:nth-child(6) {
+    width: 120px;
+    text-align: center;
+}
+
+/* 创建滚动内容容器 */
+#route-table td:nth-child(3) > span,
+#route-table td:nth-child(4) > span {
+    display: inline-block;
+    padding-right: 2rem;
+    animation: none;
+}
+
+/* 当内容超出时启用动画 */
+#route-table td:nth-child(3):hover > span,
+#route-table td:nth-child(4):hover > span {
+    animation: marquee 15s linear infinite;
+}
+
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+#route-table tbody tr:hover {
+    background: var(--hover-background);
+}
+
+#route-table ul.station-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    gap: 0;
+}
+
+.status-ready {
+    color: #00c8c8;
+    font-weight: 500;
+}
+
+.status-boarding {
+    color: #00cc00;
+    font-weight: 500;
+}
+
+.status-stop {
+    color: #ff4d4d;
+    font-weight: 500;
+}
+
+.status-stopped {
+    color: #ff3333;
+    font-weight: 500;
+}
+
+.no-routes-message {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+.filter-controls {
+    padding: 1rem;
+    background: var(--background-color);
+    display: flex;
+    justify-content: center;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 64px;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filter-controls select {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    min-width: 180px;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.station-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.station-list li {
+    position: relative;
+    padding-left: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.station-list li:last-child {
+    margin-bottom: 0;
+}
+
+.station-list li::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--border-color);
+}
+
+.station-list li:first-child::before {
+    top: 50%;
+}
+
+.station-list li:last-child::before {
+    bottom: 50%;
+}
+
+.station-list li::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--border-color);
+    transform: translateY(-50%);
+}
+
+.station-list li.current {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.station-list li.current::after {
+    background-color: var(--primary-color);
+}
+
+@media (max-width: 660px) {
+    .header {
+        padding: 0 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .header h1 {
+        display: none;
+    }
+
+    .header-controls {
+        flex: 1;
+        padding: 0;
+    }
+
+    .station-group {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .station-select {
+        min-width: 120px;
+    }
+
+    .direction-toggle {
+        min-width: 60px;
+        padding: 0.5rem;
+    }
+
+    .direction-toggle .direction-icon {
+        margin: 0;
+    }
+
+    .direction-toggle .direction-text {
+        display: none;
+    }
+
+    .status-select {
+        min-width: 70px;
+        max-width: 70px;
+    }
+
+    /* 确保搜索按钮在小屏幕下显示 */
+    .toolbar {
+        display: flex !important;
+        margin-left: auto;
+    }
+
+    #search-button {
+        display: flex !important;
+    }
+
+    .route-display {
+        padding-top: 64px;
+    }
+
+    #route-table {
+        font-size: 0.9rem;
+    }
+    
+    #route-table th,
+    #route-table td {
+        padding: 0.4rem 0.75rem;
+    }
+
+    /* 班次列 */
+    #route-table th:nth-child(1),
+    #route-table td:nth-child(1) {
+        width: 80px;
+    }
+}
+
+@media (max-width: 540px) {
+    .header {
+        padding: 0 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .header h1 {
+        display: none;
+    }
+
+    .header-controls {
+        flex: 1;
+        padding: 0;
+    }
+
+    .station-group {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .station-select {
+        min-width: 100px;
+    }
+
+    .direction-toggle {
+        min-width: 40px;
+        padding: 0.5rem;
+    }
+
+    .direction-toggle .direction-icon {
+        margin: 0;
+    }
+
+    .direction-toggle .direction-text {
+        display: none;
+    }
+
+    .status-select {
+        min-width: 70px;
+        max-width: 70px;
+    }
+
+    /* 确保搜索按钮在小屏幕下显示 */
+    .toolbar {
+        display: flex !important;
+        margin-left: auto;
+    }
+
+    #search-button {
+        display: flex !important;
+    }
+
+    .route-display {
+        padding-top: 64px;
+    }
+
+    #route-table {
+        font-size: 0.9rem;
+    }
+    
+    #route-table th,
+    #route-table td {
+        padding: 0.75rem;
+    }
+}
+
+#route-table tr.current-route {
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+#route-table tr.current-route:hover {
+    background-color: rgba(var(--primary-color-rgb), 0.15);
+}
+
+.time-divider {
+    padding: 0.75rem 2rem !important;
+    font-size: 0.9rem;
+    color: var(--tertiary-text);
+    background-color: var(--background-color);
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.time-divider span {
+    font-weight: 500;
+}
+
+.next-day {
+    color: var(--primary-color);
+    font-size: 0.75em;
+    font-weight: 500;
+    vertical-align: super;
+    margin-left: 2px;
+    display: inline-block;
+    min-width: 18px;
+    text-align: left;
+}
+
+.next-day.placeholder {
+    opacity: 0;
+}
+
+/* 搜索样式 */
+.search-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background-color: rgba(var(--background-rgb), 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1000;
+    padding: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+#search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    font-size: 16px;
+}
+
+#search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.search-navigation {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-count {
+    font-size: 14px;
+    color: var(--text-color);
+    min-width: 48px;
+    text-align: center;
+}
+
+/* 搜索结果高亮 */
+.search-highlight {
+    background-color: var(--highlight-background);
+}
+
+.search-highlight td:first-child {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* 按钮禁用状态 */
+.icon-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 适配深色模式 */
+@media (prefers-color-scheme: dark) {
+    .search-overlay {
+        background-color: rgba(var(--background-rgb), 0.9);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-ready {
+        color: #40e0e0;
+    }
+
+    .status-boarding {
+        color: #40ff40;
+    }
+
+    .status-stop {
+        color: #ff6666;
+    }
+
+    .status-stopped {
+        color: #ff4d4d;
+    }
+}
