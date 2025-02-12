@@ -577,7 +577,7 @@ const busRoutes = {
             {name: "机场高速口"}
         ]
     },
-    "216": {
+    /*"216": {
         name: "216路",
         operator: "临东客运集团通运巴士运营管理服务中心",
         firstLastBus: {
@@ -614,7 +614,7 @@ const busRoutes = {
             {name: "凌州大道兴工街"},
             {name: "凌州大道锦工街"}
         ]
-    },
+    },*/
     "235": {
         name: "235路",
         operator: "临东客运集团丰河公共汽车分公司",
@@ -1115,7 +1115,7 @@ const busRoutes = {
             {name: "会展中心"},
             {name: "文化宫北"},
             {name: "松山湖南"},
-            {name: "松山湖商场", oneWay: "up"},
+            {name: "松山湖广场", oneWay: "up"},
             {name: "来又来商场"}
         ]
     },
