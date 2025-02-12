@@ -930,6 +930,77 @@ let lastMotdUpdate = 0; // 记录上次更新MOTD的时间
 let lastMotd = ''; // 存储上一次的 MOTD
 let firstMotd = ''; // 存储第一条 MOTD
 
+// 颜色映射表
+const minecraftColorMap = {
+    '0': 'color: var(--text-color-0)',
+    '1': 'color: var(--text-color-1)',
+    '2': 'color: var(--text-color-2)',
+    '3': 'color: var(--text-color-3)',
+    '4': 'color: var(--text-color-4)',
+    '5': 'color: var(--text-color-5)',
+    '6': 'color: var(--text-color-6)',
+    '7': 'color: var(--text-color-7)',
+    '8': 'color: var(--text-color-8)',
+    '9': 'color: var(--text-color-9)',
+    'a': 'color: var(--text-color-a)',
+    'b': 'color: var(--text-color-b)',
+    'c': 'color: var(--text-color-c)',
+    'd': 'color: var(--text-color-d)',
+    'e': 'color: var(--text-color-e)',
+    'f': 'color: var(--text-color-f)',
+    'g': 'color: var(--text-color-g)',
+    'h': 'color: var(--text-color-h)',
+    'i': 'color: var(--text-color-i)',
+    'j': 'color: var(--text-color-j)',
+    'k': 'color: var(--text-color-k)',
+    'l': 'font-weight: bold;', // 粗体
+    'm': 'color: var(--text-color-m)',
+    'n': 'color: var(--text-color-n)',
+    'o': 'font-style: italic;', // 斜体
+    'p': 'color: var(--text-color-p)',
+    'q': 'color: var(--text-color-q)',
+    'r': 'color: inherit; font-weight: normal; text-decoration: none; font-style: normal;', // 重置所有格式
+    's': 'color: var(--text-color-s)',
+    't': 'color: var(--text-color-t)',
+    'u': 'color: var(--text-color-u)',
+    'v': 'color: var(--text-color-v)'
+};
+
+// 将 Minecraft 颜色代码转换为 HTML 颜色代码
+function convertMinecraftColors(text) {
+    let html = '';
+    let currentStyle = '';
+    let buffer = '';
+
+    for (let i = 0; i < text.length; i++) {
+        if (text[i] === '§' && i + 1 < text.length) {
+            const code = text[i + 1];
+            if (minecraftColorMap[code]) {
+                if (buffer) {
+                    html += `<span style="${currentStyle}">${buffer}</span>`;
+                    buffer = '';
+                }
+                if (code === 'r') {
+                    currentStyle = '';
+                } else {
+                    currentStyle += minecraftColorMap[code] + ' ';
+                }
+                i++; // Skip the next character as it's part of the color code
+            } else {
+                buffer += text[i];
+            }
+        } else {
+            buffer += text[i];
+        }
+    }
+
+    if (buffer) {
+        html += `<span style="${currentStyle}">${buffer}</span>`;
+    }
+
+    return html;
+}
+
 async function updateServerStatus() {
     // 检查必需的元素
     const requiredElements = {
@@ -953,10 +1024,10 @@ async function updateServerStatus() {
         if (!window.hasLoggedMissingElements) {
             console.warn('Missing required server status elements:', missingRequired.join(', '));
             window.hasLoggedMissingElements = true;
-                            }
-                            return;
-                        }
-                        
+        }
+        return;
+    }
+
     const SERVER_ADDRESS = 'ld.cmsy.xyz';
     const SERVER_PORT = '19132';
     const API_URL = 'https://wiki.shangxiaoguan.top/api.php';
@@ -978,7 +1049,7 @@ async function updateServerStatus() {
 
         // 尝试解析 JSON
         const data = await response.json();
-        
+
         // 检查响应数据结构
         if (!data || !data.lindongrequest) {
             throw new Error('Invalid response format');
@@ -990,13 +1061,13 @@ async function updateServerStatus() {
             // 更新状态指示器
             requiredElements.statusIndicator.classList.remove('offline');
             requiredElements.statusIndicator.classList.add('online');
-            
+
             // 更新在线人数
             requiredElements.serverPlayers.textContent = `${serverData.online}/${serverData.max}`;
-            
+
             // 更新服务器信息
             if (optionalElements.serverMotd) {
-                optionalElements.serverMotd.textContent = serverData.motd.replace(/§[0-9a-fklmnor]/g, '');
+                optionalElements.serverMotd.innerHTML = convertMinecraftColors(serverData.motd);
             }
             requiredElements.serverVersion.textContent = `游戏版本：${serverData.version} | 延迟：${serverData.delay}ms`;
         } else {
@@ -1051,6 +1122,11 @@ function initServerStatus() {
     updateWithRetry(); // 立即更新一次
     setInterval(updateWithRetry, 5000); // 每5秒更新一次
 }
+
+// 初始化服务器状态
+document.addEventListener('DOMContentLoaded', () => {
+    initServerStatus();
+});
 
 // 从localStorage获取行程信息
 function getTripsFromStorage() {
@@ -1393,7 +1469,7 @@ function loadTripInfo() {
     }
     
     // 显示行程信息模块
-    tripSection.style.display = 'block';
+    tripSection.style.display = 'flex';
     
     // 获取当前时间
     const now = new Date();
@@ -1441,60 +1517,67 @@ function loadTripInfo() {
     if (pendingTrips > 0) {
         const tripTitle = document.querySelector('.trip-info .trip-header h3');
         if (tripTitle) {
-        tripTitle.innerHTML = `本机行程 <span class="pending-count">${pendingTrips}</span>`;
+            tripTitle.innerHTML = `本机行程 <span class="pending-count">${pendingTrips}</span>`;
         }
     }
     
     // 更新行程显示
     function updateTripDisplay() {
-    if (!isTripListExpanded) {
-        let tripsToShow = [];
-        if (ongoingTrip) tripsToShow.push(ongoingTrip);
-        if (upcomingTrip) tripsToShow.push(upcomingTrip);
-        tripContent.innerHTML = tripsToShow.map(trip => renderTrip(trip, now)).join('');
-    } else {
-        // 分离不同状态的行程
-        const ongoingTrips = [];
-        const upcomingTrips = [];
-        const completedTrips = [];
-        
-        sortedTrips.forEach(trip => {
-            const [year, month, day] = trip.date.split('-').map(Number);
-            const [hours, minutes] = trip.route.time.split(':').map(Number);
-            const tripDateTime = new Date(year, month - 1, day, hours, minutes);
+        if (!isTripListExpanded) {
+            let tripsToShow = [];
+            if (ongoingTrip) tripsToShow.push(ongoingTrip);
+            if (upcomingTrip) tripsToShow.push(upcomingTrip);
+            tripContent.innerHTML = tripsToShow.map(trip => renderTrip(trip, now)).join('');
+        } else {
+            // 分离不同状态的行程
+            const ongoingTrips = [];
+            const upcomingTrips = [];
+            const completedTrips = [];
             
-            if (trip.status === 'completed') {
-                completedTrips.push(trip);
-            } else if (tripDateTime <= now) {
-                ongoingTrips.push(trip);
-            } else {
-                upcomingTrips.push(trip);
-            }
-        });
-        
-        // 对已完成行程按时间倒序排序
-        completedTrips.sort((a, b) => {
-            const [yearA, monthA, dayA] = a.date.split('-').map(Number);
-            const [hoursA, minutesA] = a.route.time.split(':').map(Number);
-            const dateA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
+            sortedTrips.forEach(trip => {
+                const [year, month, day] = trip.date.split('-').map(Number);
+                const [hours, minutes] = trip.route.time.split(':').map(Number);
+                const tripDateTime = new Date(year, month - 1, day, hours, minutes);
+                
+                if (trip.status === 'completed') {
+                    completedTrips.push(trip);
+                } else if (tripDateTime <= now) {
+                    ongoingTrips.push(trip);
+                } else {
+                    upcomingTrips.push(trip);
+                }
+            });
             
-            const [yearB, monthB, dayB] = b.date.split('-').map(Number);
-            const [hoursB, minutesB] = b.route.time.split(':').map(Number);
-            const dateB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
+            // 对已完成行程按时间倒序排序
+            completedTrips.sort((a, b) => {
+                const [yearA, monthA, dayA] = a.date.split('-').map(Number);
+                const [hoursA, minutesA] = a.route.time.split(':').map(Number);
+                const dateA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
+                
+                const [yearB, monthB, dayB] = b.date.split('-').map(Number);
+                const [hoursB, minutesB] = b.route.time.split(':').map(Number);
+                const dateB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
+                
+                return dateB - dateA;  // 倒序排列
+            });
             
-            return dateB - dateA;  // 倒序排列
-        });
+            // 组合所有行程：进行中 + 未出行 + 已完成
+            const orderedTrips = [...ongoingTrips, ...upcomingTrips, ...completedTrips];
+            tripContent.innerHTML = orderedTrips.map(trip => renderTrip(trip, now)).join('');
+        }
         
-        // 组合所有行程：进行中 + 未出行 + 已完成
-        const orderedTrips = [...ongoingTrips, ...upcomingTrips, ...completedTrips];
-        tripContent.innerHTML = orderedTrips.map(trip => renderTrip(trip, now)).join('');
-    }
-    
         // 更新更多行程按钮的显示
-    moreLink.innerHTML = `
-        <span>${isTripListExpanded ? '收起' : '显示全部'}</span>
-        <img src="UI/res/expand_more_black.png" alt="${isTripListExpanded ? '收起' : '显示全部'}" style="transform: rotate(${isTripListExpanded ? '180deg' : '0'})">
-    `;
+        moreLink.innerHTML = `
+            <span>${isTripListExpanded ? '收起' : '显示全部'}</span>
+            <img src="UI/res/expand_more_black.png" alt="${isTripListExpanded ? '收起' : '显示全部'}" style="transform: rotate(${isTripListExpanded ? '180deg' : '0'})">
+        `;
+        
+        // 检查 tripContent 是否为空，并调整 display 属性
+        if (tripContent.innerHTML.trim() === '') {
+            tripContent.style.display = 'none';
+        } else {
+            tripContent.style.display = 'flex';
+        }
     }
     
     // 初始显示
@@ -1515,7 +1598,10 @@ tripStyle.textContent = `
         background: var(--card-background);
         border-radius: 12px;
         padding: 16px;
-        margin: 16px 0;
+        margin: 16px 0;    
+        display: flex;
+        gap: 12px;
+        flex-direction: column;
     }
     
     .trip-item {

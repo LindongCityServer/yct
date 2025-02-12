@@ -41,6 +41,34 @@
     --toast-text: #ffffff;
     --header-background: rgba(255, 255, 255, 0.9);
     --search-background: rgba(255, 255, 255, 0.98);
+    --text-color-0: #000000;  /* 黑色保持 */
+    --text-color-1: #0000EE;  /* 原#0000aa加深 */
+    --text-color-2: #006400;  /* 原#00aa00加深 */
+    --text-color-3: #008B8B;  /* 原#00aaaa加深 */
+    --text-color-4: #CC0000;  /* 原#aa0000提亮 */
+    --text-color-5: #8A2BE2;  /* 原#aa00aa优化 */
+    --text-color-6: #FF8C00;  /* 原#ffaa00暗化 */
+    --text-color-7: #666666;  /* 原#aaaaaa加深 */
+    --text-color-8: #555555;  /* 保持 */
+    --text-color-9: #4169E1;  /* 原#5555ff优化 */
+    --text-color-a: #32CD32;  /* 原#55ff55优化 */
+    --text-color-b: #00CED1;  /* 原#55ffff优化 */
+    --text-color-c: #FF4444;  /* 原#ff5555优化 */
+    --text-color-d: #DA70D6;  /* 原#ff55ff优化 */
+    --text-color-e: #FFD700;  /* 原#ffff55优化 */
+    --text-color-f: #FFFFFF;  /* 白色保持（特殊用途）*/
+    --text-color-g: #B3A905;  /* 原#ddd605加深 */
+    --text-color-h: #A89B95;  /* 原#e3d4d1加深 */
+    --text-color-i: #999090;  /* 原#cecaca加深 */
+    --text-color-j: #332A2B;  /* 原#443a3b优化 */
+    --text-color-m: #8B0000;  /* 原#971607优化 */
+    --text-color-n: #A0522D;  /* 原#b4684d优化 */
+    --text-color-p: #CD950C;  /* 原#deb12d优化 */
+    --text-color-q: #3C8D2F;  /* 原#47a036优化 */
+    --text-color-s: #20B2AA;  /* 原#2cbaa8优化 */
+    --text-color-t: #1E3A8A;  /* 原#21497b优化 */
+    --text-color-u: #9370DB;  /* 原#9a5cc6优化 */
+    --text-color-v: #FF7F24;  /* 原#eb7114优化 */
 }
 
 /* 深色模式样式，但不应用于强制浅色模式 */
@@ -63,7 +91,35 @@
         --toast-background: rgba(255, 255, 255, 0.1);
         --toast-text: #e0e0e0;
         --header-background: rgba(30, 30, 30, 0.9);
-        --search-background: rgba(30, 30, 30, 0.98);
+        --search-background: rgba(30, 30, 30, 0.98);        
+        --text-color-0: #FFFFFF;  /* 白色文本 */
+        --text-color-1: #7F97FF;  /* 亮蓝色 */
+        --text-color-2: #76EE00;  /* 亮绿色 */
+        --text-color-3: #5F9EA0;  /* 柔化青蓝 */
+        --text-color-4: #FF6B6B;  /* 亮红色 */
+        --text-color-5: #BA68C8;  /* 亮紫色 */
+        --text-color-6: #FFB74D;  /* 亮橙色 */
+        --text-color-7: #CCCCCC;  /* 浅灰 */
+        --text-color-8: #888888;  /* 中灰 */
+        --text-color-9: #82B1FF;  /* 浅蓝 */
+        --text-color-a: #98FB98;  /* 浅绿 */
+        --text-color-b: #AFEEEE;  /* 浅青 */
+        --text-color-c: #FFA07A;  /* 浅红 */
+        --text-color-d: #FFB6C1;  /* 浅粉 */
+        --text-color-e: #FFFACD;  /* 浅黄 */
+        --text-color-f: #212121;  /* 深灰（特殊用途）*/
+        --text-color-g: #FFEB3B;  /* 亮黄 */
+        --text-color-h: #D7CCC8;  /* 浅米色 */
+        --text-color-i: #E0E0E0;  /* 浅灰 */
+        --text-color-j: #BCAAA4;  /* 浅棕 */
+        --text-color-m: #EF9A9A;  /* 浅红 */
+        --text-color-n: #D2B48C;  /* 浅褐 */
+        --text-color-p: #FFD54F;  /* 亮金 */
+        --text-color-q: #81C784;  /* 浅绿 */
+        --text-color-s: #80DEEA;  /* 浅青 */
+        --text-color-t: #90CAF9;  /* 浅蓝 */
+        --text-color-u: #B39DDB;  /* 浅紫 */
+        --text-color-v: #FFAB91;  /* 浅橙 */
     }
 
     .fare-zone {
@@ -250,6 +306,9 @@ main {
     padding: 20px;
     margin: 24px 0;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 /*.nearby-station:hover {
@@ -261,7 +320,6 @@ main {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
 }
 
 .server-status {
@@ -300,17 +358,16 @@ main {
 .server-motd {
     color: var(--secondary-text);
     font-size: 0.9rem;
-    margin: 8px 0;
     line-height: 1.4;
     background-color: var(--background-color);
     padding: 8px 12px;
     border-radius: 8px;
+    margin-top: 4px;
 }
 
 .server-version {
     color: #999;
     font-size: 0.8rem;
-    margin-top: 8px;
 }
 
 .server-actions {
@@ -1499,7 +1556,7 @@ input[type="color"]::-moz-color-swatch {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    width: 100%;
 }
 
 .trip-header h3 {
