@@ -969,21 +969,59 @@ const minecraftColorMap = {
 // 将 Minecraft 颜色代码转换为 HTML 颜色代码
 function convertMinecraftColors(text) {
     let html = '';
-    let currentStyle = '';
+    let formatState = {
+        color: '',
+        bold: false,
+        italic: false
+    };
     let buffer = '';
+
+    function applyFormat() {
+        let style = [];
+        if (formatState.color) style.push(`color: ${formatState.color}`);
+        if (formatState.bold) style.push('font-weight: bold');
+        if (formatState.italic) style.push('font-style: italic');
+        return style.join('; ');
+    }
 
     for (let i = 0; i < text.length; i++) {
         if (text[i] === '§' && i + 1 < text.length) {
             const code = text[i + 1];
             if (minecraftColorMap[code]) {
                 if (buffer) {
-                    html += `<span style="${currentStyle}">${buffer}</span>`;
+                    html += `<span style="${applyFormat().trim()}">${buffer}</span>`;
                     buffer = '';
                 }
                 if (code === 'r') {
-                    currentStyle = '';
+                    formatState = {
+                        color: '',
+                        bold: false,
+                        italic: false
+                    };
                 } else {
-                    currentStyle += minecraftColorMap[code] + ' ';
+                    if (code.startsWith('color:')) {
+                        formatState.color = `var(--text-color-${code[1]})`;
+                    } else if (code === 'l') {
+                        formatState.bold = true;
+                    } else if (code === 'm') {
+                        formatState.color = `var(--text-color-m)`;
+                    } else if (code === 'n') {
+                        formatState.color = `var(--text-color-n)`;
+                    } else if (code === 'o') {
+                        formatState.italic = true;
+                    } else if (code === 'p') {
+                        formatState.color = `var(--text-color-p)`;
+                    } else if (code === 'q') {
+                        formatState.color = `var(--text-color-q)`;
+                    } else if (code === 'r') {
+                        formatState = {
+                            color: '',
+                            bold: false,
+                            italic: false
+                        };
+                    } else {
+                        formatState.color = `var(--text-color-${code})`;
+                    }
                 }
                 i++; // Skip the next character as it's part of the color code
             } else {
@@ -995,7 +1033,7 @@ function convertMinecraftColors(text) {
     }
 
     if (buffer) {
-        html += `<span style="${currentStyle}">${buffer}</span>`;
+        html += `<span style="${applyFormat().trim()}">${buffer}</span>`;
     }
 
     return html;
