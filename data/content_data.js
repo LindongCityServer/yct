@@ -20,6 +20,15 @@ const contentData = [
         showInBanner: true
     },
     {
+        title: '松山湖有轨电车停运改造',
+        image: '',
+        link: '',
+        date: '2025-02-17',
+        summary: '为配合会展中心区域改造升级以及新型列车运营调试，松山湖有轨电车所有线路从2月16日开始停运改造。',
+        category: '运营信息',
+        showInBanner: true
+    },
+    {
         title: '上官发表服务器2025年新年献词',
         image: '../data/content_banner/25贺词头图.png',
         link: 'https://www.bilibili.com/video/BV1DDFPesEqS',
@@ -125,7 +134,6 @@ const contentData = [
         category: '运营信息',
         showInBanner: true
     },
-    
 ];
 
 // 导出数据

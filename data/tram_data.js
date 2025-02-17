@@ -4,7 +4,7 @@ export const tram_name_en = "Songshanhu Tram";
 export const tram_logo = "https://wiki.shangxiaoguan.top/images/3/33/%E6%9D%BE%E5%B1%B1%E6%B9%96%E6%9C%89%E8%BD%A8.png";
 
 export const tramLines = [
-    {
+    /*{
         name: "TSS1",
         color: "#F6F21F",
         stations: [
@@ -52,6 +52,44 @@ export const tramLines = [
             { name: "体育中心", nameEN: "Bantian Sports Center", fareZone: "坂田" },
             { name: "海心沙", nameEN: "Haixinsha", fareZone: "坂田" },
         ]
-    }
+    }*/
+    {
+        name: "松山湖线",
+        color: "#00b0f0",
+        stations: [
+            { name: "北台路", nameEN: "BEITAILU", fareZone: "北站" },
+            { name: "会展北", nameEN: "HUIZHANBEI", fareZone: "市区" },
+            { name: "会展南", nameEN: "HUIZHANNAN", fareZone: "市区" },
+            { name: "松山湖广场", nameEN: "SONGSHANHUGUANGCHANG", fareZone: "市区" },
+            { name: "宣庆文化宫", nameEN: "XUANQINGWENHUAGONG", fareZone: "市区" },
+        ]
+    },    
+    {
+        name: "松山湖线",
+        color: "#00b0f0",
+        stations: [
+            { name: "北台路", nameEN: "BEITAILU", fareZone: "市区" },
+            { name: "会展北", nameEN: "HUIZHANBEI", fareZone: "市区" },
+            { name: "会议中心", nameEN: "HUIYIZHONGXIN", fareZone: "市区" },
+            { name: "南风", nameEN: "NANFENG", fareZone: "坂田" },
+            { name: "大剧院", nameEN: "DAJUYUAN", fareZone: "坂田" },
+            { name: "坂田客运港", nameEN: "BANTIANKEYUNGANG", fareZone: "坂田" },
+            { name: "海心沙", nameEN: "HAIXINSHA", fareZone: "坂田" },
+        ]
+    },
+    {
+        name: "松山湖线",
+        color: "#00b0f0",
+        stations: [
+            { name: "宣庆文化宫", nameEN: "XUANQINGWENHUAGONG", fareZone: "市区" },
+            { name: "松山湖广场", nameEN: "SONGSHANHUGUANGCHANG", fareZone: "市区" },
+            { name: "会展南", nameEN: "HUIZHANNAN", fareZone: "市区" },
+            { name: "会议中心", nameEN: "HUIYIZHONGXIN", fareZone: "市区" },
+            { name: "南风", nameEN: "NANFENG", fareZone: "坂田" },
+            { name: "大剧院", nameEN: "DAJUYUAN", fareZone: "坂田" },
+            { name: "坂田客运港", nameEN: "BANTIANKEYUNGANG", fareZone: "坂田" },
+            { name: "海心沙", nameEN: "HAIXINSHA", fareZone: "坂田" },
+        ]
+    },
 ];
 
