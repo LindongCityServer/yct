@@ -1774,9 +1774,6 @@ input[type="color"]::-moz-color-swatch {
     }
 
     /* 保持轮播图浅色外观 */
-    .banner-carousel {
-        background-color: #f5f5f5;
-    }
 
     .carousel-slide.no-image {
         background-color: #00796b;
