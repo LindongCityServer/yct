@@ -20,11 +20,11 @@ const contentData = [
         showInBanner: true
     },
     {
-        title: '松山湖有轨电车停运改造',
-        image: '',
+        title: '松山湖有轨部分线路停运改造',
+        image: '#00b0f0',
         link: '',
         date: '2025-02-17',
-        summary: '为配合会展中心区域改造升级以及新型列车运营调试，松山湖有轨电车所有线路从2月16日开始停运改造。',
+        summary: '为配合会展中心区域改造升级以及新型列车运营调试，松山湖有轨电车一号线、二号线从2月16日开始停运改造。',
         category: '运营信息',
         showInBanner: true
     },

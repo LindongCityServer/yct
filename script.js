@@ -652,21 +652,15 @@ function initCarousel() {
     // 设置轮播图容器的宽高比
     function updateCarouselAspectRatio() {
         const containerWidth = carouselContainer.offsetWidth;
-        const minRatio = 1.5;  // 3:2 = 1.5:1
-        const maxRatio = 2.35; // 最宽的情况
-        
-        // 计算当前容器的实际宽高比
-        const containerHeight = carouselContainer.offsetHeight;
-        const currentRatio = containerWidth / containerHeight;
-        
-        // 如果当前比例超出范围，则调整到边界值
-        let targetRatio = currentRatio;
-        if (currentRatio > maxRatio) {
-            targetRatio = maxRatio;
-        } else if (currentRatio < minRatio) {
-            targetRatio = minRatio;
+        let targetRatio;
+
+        // 检查屏幕宽度
+        if (window.innerWidth <= 639) {
+            targetRatio = 2.35; // 小屏模式下为2.35:1
+        } else {
+            targetRatio = 16 / 9; // 大屏模式下为16:9
         }
-        
+
         // 根据目标比例设置高度
         const height = containerWidth / targetRatio;
         carouselContainer.style.height = `${height}px`;
@@ -853,7 +847,7 @@ function goToSlide(index) {
     slides.forEach(slide => slide.classList.remove('active'));
     
     currentSlide = index;
-    carouselContainer.style.transform = `translateX(-${index * 100}%)`;
+    carouselContainer.style.transform = `translateX(calc(-${index * 100}% - ${index * 16}px))`;
     
     // 添加新幻灯片的active类
     setTimeout(() => {
