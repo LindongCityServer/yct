@@ -112,19 +112,20 @@
                 <option value="">终点站</option>
             </select>
             
+            <select id="currentStation" disabled>
+                <option value="">当前站</option>
+            </select>
+            
             <button id="swapStations">返程<span class="shortcut-key">R</span></button>
+            
         </div>
         
         <div class="station-control">
             <div class="toggle-buttons">
                 <button id="toggleImmersive" class="toggle-button" style="width: 100px;"><span class="shortcut-key">I</span></button>
-                <button id="toggleTrainStatus" class="toggle-button">列车</button>
-                <button id="toggleLineStatus" class="toggle-button">线路</button>
+                <button id="toggleTrainStatus" class="toggle-button">列车设置</button>
+                <button id="toggleLineStatus" class="toggle-button">线路设置</button>
             </div>
-
-            <select id="currentStation" disabled>
-                <option value="">当前站</option>
-            </select>
             
             <button id="prevStation" disabled>上一站<span class="shortcut-key">←</span></button>
             <button id="nextStation" disabled>下一站<span class="shortcut-key">→</span></button>
@@ -137,6 +138,7 @@
                 <label for="showDetail">详情</label>
             </div><span class="shortcut-key">\</span>
             
+            <button id="announcementButton" class="announcement-button" style="width:72px">报站<span class="shortcut-key">A</span></button>
             <button id="actionButton" class="action-button">到站停靠<span class="shortcut-key" style="color: white">↵</span></button>
         </div>
 

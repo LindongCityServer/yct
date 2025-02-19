@@ -10,6 +10,7 @@ const metro_logo = "https://wiki.shangxiaoguan.top/images/1/10/%E4%B8%B4%E4%B8%9
 const lines = [
     {
         name: "1号线",
+        nameEN: "Line 1",
         color: "#e60012",
         stations: [
             { name: "临北路", nameEN: "LINBEILU", coordinates: { x: 460, y: 140 }, fareZone: "坂田", labelOffset: { x: 8, y: -8 }, travelTime: 3.2, platformSide: "left", },
@@ -26,6 +27,7 @@ const lines = [
     },
     /*{
         name: "2号线",
+        nameEN: "Line 2",
         color: "#00a0e9",
         stations: [
             { name: "方形广场", nameEN: "FANGXINGGUANGCHANG", coordinates: { x: 530, y: 450 }, fareZone: "坂田", labelOffset: { x: 18, y: -8 }, travelTime: 2, platformSide: "both", trainPosition: 0.5 },
@@ -41,6 +43,7 @@ const lines = [
     },*/
     {
         name: "3号线",
+        nameEN: "Line 3",
         color: "#f5d000",
         stations: [
             { name: "临湖路", nameEN: "LINHULU", coordinates: { x: 100, y: 600 }, fareZone: "铁西", labelOffset: { x: -48, y: -8 }, travelTime: 4, platformSide: "left", },
@@ -57,6 +60,7 @@ const lines = [
     },
     {
         name: "6号线",
+        nameEN: "Line 6",
         color: "#ec6941",
         stations: [
             { name: "金阳大街", nameEN: "JINYANGDAJIE", coordinates: { x: 300, y: 100 }, fareZone: "北站", labelOffset: { x: 8, y: -8 }, travelTime: 3.6, platformSide: "left", },
@@ -71,6 +75,7 @@ const lines = [
     },
     /*{
         name: "9号线",
+        nameEN: "Line 9",
         color: "#e4007f",
         stations: [
             { name: "工人村", nameEN: "GONGRENCUN", coordinates: { x: 40, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2 },
@@ -84,6 +89,7 @@ const lines = [
     },*/
     {
         name: "10号线",
+        nameEN: "Line 10",
         color: "#57d33e",
         stations: [
             { name: "坂田客运港", nameEN: "BANTIANKEYUNGANG", coordinates: { x: 530, y: 360 }, fareZone: "坂田", labelOffset: { x: 18, y: -8 }, travelTime: 2.5, platformSide: "right", },
@@ -99,6 +105,7 @@ const lines = [
     },
     /*{
         name: "机场线",
+        nameEN: "Aero Express",
         color: "rgb(82 0 160)",
         stations: [
             { name: "坂田客运港", nameEN: "BANTIANKEYUNGANG", coordinates: { x: 540, y: 360 }, fareZone: "坂田", labelOffset: { x: 8, y: -8 }, travelTime: 3, platformSide: "right", },

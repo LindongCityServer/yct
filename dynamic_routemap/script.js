@@ -1509,6 +1509,239 @@ document.querySelectorAll('input[name="display"]').forEach(radio => {
     });
 });
 
+// 初始化报站按钮
+function initializeAnnouncementButton() {
+    const announcementButton = document.getElementById('announcementButton');
+    announcementButton.addEventListener('click', () => {
+        playAnnouncement();
+    });
+
+    // 添加键盘快捷键支持
+    document.addEventListener('keydown', function(e) {
+        if (document.activeElement.tagName !== 'INPUT' && 
+            document.activeElement.tagName !== 'SELECT' && 
+            document.activeElement.tagName !== 'TEXTAREA') {
+            if (e.key.toLowerCase() === 'a') {
+                playAnnouncement();
+            }
+        }
+    });
+}
+
+// 播放报站内容
+function playAnnouncement() {
+    const currentStation = currentLine.stations[currentStationIndex];
+    const startIndex = parseInt(document.getElementById('startStation').value);
+    const endIndex = parseInt(document.getElementById('endStation').value);
+    const isStartStation = currentStationIndex <= startIndex + 1 && currentStationIndex >= startIndex - 1 ;
+    const isEndStation = currentStationIndex === endIndex;
+    //const lineName = currentLine.name;
+    //const lineNameEN = currentLine.nameEN || currentLine.name;
+    const terminalStation = currentLine.stations[endIndex];
+    //const terminalStationName = terminalStation.name;
+    //const terminalStationNameEN = terminalStation.nameEN || terminalStation.name;
+
+    // 检查当前显示模式和换乘线路
+    const displayMode = document.querySelector('input[name="display"]:checked').value;
+    const transfers = findTransferLine(currentStation.name);
+
+    // 获取当前站的 platformSide 值
+    const platformSideEN = currentStation.platformSide || 'left';  // 默认为左侧车门
+    const platformSide = platformSideEN === 'right' ? '右侧' : '左侧';
+
+    // 检查当前站是否有 swapPlatform 参数
+    const swapPlatform = currentStation.swapPlatform || false;
+
+    // 确定实际的车门方向
+    const actualDoorSide = swapPlatform ? (platformSide === '右侧' ? '左侧' : '右侧') : platformSide;
+    const actualDoorSideEN = actualDoorSide === '右侧' ? 'right' : 'left';
+
+    let announcements = [];
+
+    if (isStartStation) {
+        if (displayMode === 'route') {
+            announcements.push(
+                `欢迎乘坐${metro_name}，祝您出行愉快！`,
+                `本次列车终点站${terminalStation.name}，`,
+                `下一站${currentStation.name}，`,
+                `列车开启前进方向${actualDoorSide}车门，`,
+                `请下车的乘客做好准备。`,
+                `Welcome to take ${metro_name_en || metro_name}. `,
+                `We wish you have a pleasant trip.`,
+                `The destination of the train is ${terminalStation.nameEN || terminalStation.name}.`,
+                `The next station is ${currentStation.nameEN || currentStation.name}. `,
+                `The ${actualDoorSideEN} door will be used.`
+            );
+        } else if (displayMode === 'detail' && transfers.length === 0) {
+            announcements.push(
+                `${currentStation.name}到了，`,
+                `请从列车前进方向${actualDoorSide}车门下车`,
+                `We are arriving at ${currentStation.nameEN || currentStation.name}. `,
+                `The ${actualDoorSideEN} door will be used.`
+            );
+        }
+    } else if (isEndStation) {
+        if (displayMode === 'route') {
+            announcements.push(
+                `下一站为本次列车的终点站${currentStation.name}，`,
+                `列车开启前进方向${actualDoorSide}车门，`,
+                `请全体乘客做好下车准备。`,
+                `The next station is ${currentStation.nameEN || currentStation.name}, `,
+                `the destination of the train. `,
+                `All the passengers, please prepare to get off.`
+            );
+        } else if (displayMode === 'detail') {
+            announcements.push(
+                `终点站${currentStation.name}到了，`,
+                `欢迎您再次乘坐${metro_name}。`,
+                `We are arriving at ${currentStation.nameEN || currentStation.name}, `,
+                `the destination of the train. `,
+                `Welcome to take ${metro_name_en || metro_name} again.`
+            );
+        }
+    } else {
+        if (displayMode === 'route') {
+            announcements.push(
+                `列车启动，请扶好站稳，`,
+                `下一站${currentStation.name}，`,
+                `列车开启前进方向${actualDoorSide}车门，`,
+                `请下车的乘客做好准备。`,
+                `The next station is ${currentStation.nameEN || currentStation.name}. `,
+                `The ${actualDoorSideEN} door will be used.`
+            );
+        } else if (displayMode === 'detail' && transfers.length === 0) {
+            announcements.push(
+                `${currentStation.name}到了，`,
+                `请从列车前进方向${actualDoorSide}车门下车`,
+                `We are arriving at ${currentStation.nameEN || currentStation.name}. `,
+                `The ${actualDoorSideEN} door will be used.`
+            );
+        }
+    }
+
+    if (transfers.length > 0) {
+        transfers.forEach(transfer => {
+            const transferLineName = transfer.name;
+            let transferLineNameEN = transfer.nameEN || transfer.name;
+
+            // 将 transferLineNameEN 中的数字转换为英文单词
+            transferLineNameEN = replaceNumbersWithWords(transferLineNameEN);
+
+            if (displayMode === 'route') {
+                announcements.push(
+                    `换乘${transferLineName}的乘客请在该站下车，`,
+                    `请您注意换乘时间，合理安排行程。`,
+                    `Passengers for ${transferLineNameEN} please prepare to get off. `,
+                    `Please pay attention to transfer time, and arrange your travel properly.`
+                );
+            } else if (displayMode === 'detail' && !isEndStation) {
+                announcements.push(
+                    `${currentStation.name}到了，`,
+                    `换乘${transferLineName}的乘客请从列车前进方向${actualDoorSide}车门下车。`,
+                    `We are arriving at ${currentStation.nameEN || currentStation.name}. `,
+                    `Passengers for ${transferLineNameEN} please get off at this station. `,
+                    `The ${actualDoorSideEN} door will be used.`
+                );
+            }
+        });
+    }
+
+    // 处理车站英文名
+    announcements = announcements.map(announcement => {
+        if (currentStation.nameEN === currentStation.nameEN.toUpperCase()) {
+            return announcement.replace(currentStation.nameEN, currentStation.name);
+        }
+        return announcement;
+    });
+    announcements = announcements.map(announcement => {
+        if (terminalStation.nameEN === terminalStation.nameEN.toUpperCase()) {
+            return announcement.replace(terminalStation.nameEN, terminalStation.name);
+        }
+        return announcement;
+    });
+
+    // 播放报站内容
+    announcements.forEach((announcement, index) => {
+        setTimeout(() => {
+            speak(announcement, index);
+            showToast(announcement);
+        }, index * 2000); // 每条播报间隔2秒
+    });
+}
+
+// 将公告中的所有数字转换为英文单词
+function replaceNumbersWithWords(text) {
+    return text.replace(/\b\d+\b/g, match => numberToWords(parseInt(match)));
+}
+
+// 数字转英文单词
+function numberToWords(number) {
+    const ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+    const teens = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+    const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+    const thousands = ["", "thousand", "million", "billion", "trillion"];
+
+    function convertChunk(chunk) {
+        let output = "";
+        if (chunk >= 100) {
+            output += ones[Math.floor(chunk / 100)] + " hundred ";
+            chunk %= 100;
+        }
+        if (chunk >= 20) {
+            output += tens[Math.floor(chunk / 10)] + " ";
+            chunk %= 10;
+        }
+        if (chunk >= 10) {
+            output += teens[chunk - 10] + " ";
+        } else if (chunk > 0) {
+            output += ones[chunk] + " ";
+        }
+        return output.trim();
+    }
+
+    function convertNumber(num) {
+        let output = "";
+        let chunkIndex = 0;
+        while (num > 0) {
+            const chunk = num % 1000;
+            if (chunk > 0) {
+                output = convertChunk(chunk) + " " + thousands[chunkIndex] + " " + output;
+            }
+            num = Math.floor(num / 1000);
+            chunkIndex++;
+        }
+        return output.trim() || "zero";
+    }
+
+    return convertNumber(number);
+}
+
+// 语音播报函数
+function speak(text, index) {
+    if (!window.speechSynthesis) {
+        console.error('Speech synthesis is not supported in this browser.');
+        return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        // 选择第一个女声和第一个男声
+        const femaleVoice = voices.find(voice => voice.name.includes('Female'));
+        const maleVoice = voices.find(voice => voice.name.includes('Male'));
+        utterance.voice = index % 2 === 0 ? femaleVoice : maleVoice;
+    } else {
+        // 如果没有找到可用的语音，使用默认语音
+        console.warn('No voices found, using default voice.');
+    }
+    window.speechSynthesis.speak(utterance);
+}
+
+// 初始化报站按钮
+window.addEventListener('DOMContentLoaded', function() {
+    initializeAnnouncementButton();
+});
+
 function renderStationSection(stationName, lineName) {
     const stationSection = document.querySelector('.station-section');
     stationSection.innerHTML = '';
