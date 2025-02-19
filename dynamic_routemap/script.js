@@ -1648,7 +1648,9 @@ function playAnnouncement() {
 
     // 处理车站英文名
     announcements = announcements.map(announcement => {
-        if (currentStation.nameEN === currentStation.nameEN.toUpperCase()) {
+        // 在报站文本中将英文名为全大写且只包含字母、数字、连字符和隔音符号的车站（和天津、沈阳等地的地铁站样式相同）转换为使用中文名朗读
+        // 如英文名为缩写则可以在里面加句点（如NJCI（南京交院）需改为N.J.C.I.才能避免转换，NMU·JIETT（南医大·江苏经贸学院）不会被转换为中文名）
+        if (currentStation.nameEN === currentStation.nameEN.toUpperCase() && /^[A-Z0-9'-]+$/.test(currentStation.nameEN)) {
             return announcement.replace(currentStation.nameEN, currentStation.name);
         }
         return announcement;
