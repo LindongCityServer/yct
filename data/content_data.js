@@ -135,6 +135,15 @@ const contentData = [
         showInBanner: false
     },
     {
+        title: '公交“翡翠池”站更名',
+        image: '--bus-color',
+        link: '',
+        date: '2025-02-19',
+        summary: '“翡翠池“公交站更名为“水镜未来馆”，涉及152路、155路。目前站名更改工作正在进行，乘客可访问“公交线路图”页面查询具体信息。',
+        category: '运营信息',
+        showInBanner: true
+    },
+    {
         title: '临铁海峡.外运轮渡停运半年',
         image: '',
         link: '',

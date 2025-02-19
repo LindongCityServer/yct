@@ -670,12 +670,14 @@ function initCarousel() {
     carouselContainer.innerHTML = bannerData.map((banner, index) => {
         const hasImage = banner.image && banner.image.trim() !== '';
         const isColorCode = hasImage && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(banner.image);
+        const isCssVariable = hasImage && /^--[\w-]+$/.test(banner.image); // 检查是否为CSS变量
         
         return `
-            <div class="carousel-slide${(!hasImage || isColorCode) ? ' no-image' : ''}" 
+            <div class="carousel-slide${(!hasImage || isColorCode || isCssVariable) ? ' no-image' : ''}" 
                  data-index="${index}"
-                 ${isColorCode ? `style="background-color: ${banner.image};"` : ''}>
-                ${hasImage && !isColorCode ? `
+                 ${isColorCode ? `style="background-color: ${banner.image};"` : ''}
+                 ${isCssVariable ? `style="background-color: var(${banner.image});"` : ''}>
+                ${hasImage && !isColorCode && !isCssVariable ? `
                     <img src="${banner.image}" alt="${banner.title}" onerror="this.parentElement.classList.add('no-image')">
                     <div class="carousel-title">${banner.title}</div>
                 ` : `
