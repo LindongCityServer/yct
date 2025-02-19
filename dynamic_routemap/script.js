@@ -14,7 +14,9 @@ let hasShownSectionNotice = false;
 // 页面加载时初始化
 window.addEventListener('DOMContentLoaded', function() {
     try {
-        // 确保 metro_logo 在全局范围内可用
+        // 在DOMContentLoaded事件监听器中添加
+        window.metro_name = metro_name; // 新增
+        window.metro_name_en = metro_name_en; // 新增
         window.metro_logo = metro_logo;
         // 确保正确加载默认数据
         if (typeof lines !== 'undefined') {
@@ -1237,14 +1239,21 @@ function initializeFileUpload() {
 async function handleFileUpload(file) {
     try {
         const content = await file.text();
-        // 尝试作为 JavaScript 执行
         const scope = {};
-        const execute = new Function('scope', content + '; scope.lines = lines; scope.metro_logo = metro_logo; return scope;');
+        const execute = new Function('scope', content + 
+            '; scope.lines = lines;' +
+            ' scope.metro_logo = metro_logo;' +
+            ' scope.metro_name = metro_name;' +
+            ' scope.metro_name_en = metro_name_en;' +
+            ' return scope;'
+        );
         const data = execute(scope);
 
         // 更新全局变量
         window.lines = data.lines;
         window.metro_logo = data.metro_logo;
+        window.metro_name = data.metro_name; // 确保没有默认值覆盖
+        window.metro_name_en = data.metro_name_en; // 确保没有默认值覆盖
         lineData = { lines: window.lines };
 
         // 重置当前选中的线路和站点
@@ -1276,6 +1285,9 @@ async function handleFileUpload(file) {
         if (defaultNotice) {
             defaultNotice.style.display = 'none';
         }
+
+        console.log('导入的地铁名称:', window.metro_name);
+        console.log('导入的地铁英文名称:', window.metro_name_en);
 
         showToast('数据导入成功！');
     } catch (error) {
@@ -1536,6 +1548,8 @@ function playAnnouncement() {
     const isStartStation = currentStationIndex <= startIndex + 1 && currentStationIndex >= startIndex - 1;
     const isEndStation = currentStationIndex === endIndex;
     const terminalStation = currentLine.stations[endIndex];
+    const metroName = window.metro_name;
+    const metroNameEN = window.metro_name_en;
 
     // 获取当前站的 platformSide 值
     const platformSideEN = currentStation.platformSide || 'left';  // 默认为左侧车门
@@ -1556,9 +1570,9 @@ function playAnnouncement() {
     if (isStartStation) {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
-                { text: `欢迎乘坐${metro_name}，祝您出行愉快！本次列车终点站${terminalStation.name}，`, gender: 'female' },
-                { text: `下一站${currentStation.name}，列车开启前进方向${actualDoorSide}车门，请下车的乘客做好准备。`, gender: 'female' },
-                { text: `Welcome to take ${metro_name_en || metro_name}. We wish you have a pleasant trip. The destination of the train is ${terminalStation.nameEN || terminalStation.name}.`, gender: 'male' },
+                { text: `欢迎乘坐${metroName}，祝您出行愉快！本次列车终点站：${terminalStation.name}，`, gender: 'female' },
+                { text: `下一站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，请下车的乘客做好准备。`, gender: 'female' },
+                { text: `Welcome to take ${metroNameEN || metroName}. We wish you have a pleasant trip. The destination of the train is ${terminalStation.nameEN || terminalStation.name}.`, gender: 'male' },
                 { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
@@ -1570,19 +1584,19 @@ function playAnnouncement() {
     } else if (isEndStation) {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
-                { text: `列车启动，请扶好站稳。下一站为本次列车的终点站${currentStation.name}，列车开启前进方向${actualDoorSide}车门，请全体乘客做好下车准备。`, gender: 'female' },
+                { text: `列车启动，请扶好站稳。下一站为本次列车的终点站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，请全体乘客做好下车准备。`, gender: 'female' },
                 { text: `The next station is ${currentStation.nameEN || currentStation.name}, the destination of the train. All the passengers, please prepare to get off.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail') {
             announcements.push(
-                { text: `终点站${currentStation.name}到了，欢迎您再次乘坐${metro_name}。`, gender: 'female' },
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, the destination of the train. Welcome to take ${metro_name_en || metro_name} again.`, gender: 'male' },
+                { text: `终点站${currentStation.name}到了，欢迎您再次乘坐${metroName}。`, gender: 'female' },
+                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, the destination of the train. Welcome to take ${metroNameEN || metroName} again.`, gender: 'male' },
             );
         }
     } else {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
-                { text: `列车启动，请扶好站稳。下一站${currentStation.name}，列车开启前进方向${actualDoorSide}车门，请下车的乘客做好准备。`, gender: 'female' },
+                { text: `列车启动，请扶好站稳。下一站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，请下车的乘客做好准备。`, gender: 'female' },
                 { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
@@ -1630,12 +1644,15 @@ function playAnnouncement() {
         return announcement;
     });
 
+    console.log('线网名称：' + window.metro_name);  // 应该输出 "临东地铁"
+    console.log('线网英文名：' + window.metro_name_en);  // 应该输出 "Lindong Metro"
+
     // 播放报站内容
     announcements.forEach((announcement, index) => {
         setTimeout(() => {
             speak(announcement.text, index, announcement.gender);
             showToast(announcement.text);
-        }, index * 3000); // 每条播报间隔3秒
+        }, index * 2000); // 每条播报间隔2秒
     });
 }
 
