@@ -24,7 +24,7 @@ const contentData = [
         image: '#00b0f0',
         link: '',
         date: '2025-02-18',
-        summary: '为了合理利用资源，现决定，松山湖有轨电车停止对外服务，园区穿梭巴士行车间隔由20分钟一班压缩至10分钟一班，至有轨电车松山湖线整改完成后恢复正常间隔。',
+        summary: '为了合理利用资源，现决定松山湖有轨电车停止对外服务，园区穿梭巴士行车间隔由20分钟一班压缩至10分钟一班，至有轨电车松山湖线整改完成后恢复正常间隔。',
         category: '运营信息',
         showInBanner: true
     },
@@ -136,7 +136,7 @@ const contentData = [
     },
     {
         title: '公交“翡翠池”站更名',
-        image: '--bus-color',
+        image: '../data/content_banner/公交水镜未来馆站.png',
         link: '',
         date: '2025-02-19',
         summary: '“翡翠池“公交站更名为“水镜未来馆”，涉及152路、155路。目前站名更改工作正在进行，乘客可访问“公交线路图”页面查询具体信息。',
@@ -153,6 +153,16 @@ const contentData = [
         category: '运营信息',
         showInBanner: true
     },
+    {
+        title: '155路公布3月时刻表',
+        image: '../data/content_banner/155路3月时刻表.jpg',
+        link: '../data/content_banner/155路3月时刻表.jpg',
+        date: '2025-02-20',
+        expireDate: '2025-03-31',
+        summary: '为方便广大乘客候车，现公布3月临东临北巴士155路发车时刻表（部分）以供参考。日常运营中会根据实际运营情况临时调点，推荐广大乘客提前5-10分钟候车！！！---临北巴士北关岭车队',
+        category: '运营信息',
+        showInBanner: true
+    }
 ];
 
 // 导出数据
