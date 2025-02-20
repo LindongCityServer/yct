@@ -382,6 +382,9 @@ function importData(file) {
                     const lineNameText = lineItem.querySelector('.line-name-text');
                     lineNameInput.value = line.name || `${nextLineNumber}号线`;
                     lineNameText.textContent = lineNameInput.value;
+
+                    const lineNameENInput = lineItem.querySelector('.line-name-en');
+                    lineNameENInput.value = line.nameEN || `Line ${nextLineNumber}`;
                     
                     // 为新线路初始化车站编号计数器
                     const lineNumber = parseInt(line.name) || nextLineNumber;
@@ -510,6 +513,7 @@ function exportData() {
     // 收集线路数据
     document.querySelectorAll('.line-item').forEach(lineItem => {
         const lineName = lineItem.querySelector('.line-name').value;
+        const lineNameEN = lineItem.querySelector('.line-name-en').value; // 添加对英文名的支持
         const lineColor = lineItem.querySelector('.line-color').value;
         const stations = [];
 
@@ -536,6 +540,7 @@ function exportData() {
         if (lineName && stations.length > 0) {
             lines.push({
                 name: lineName,
+                nameEN: lineNameEN, // 添加对英文名的支持
                 color: lineColor,
                 stations: stations
             });
@@ -551,6 +556,7 @@ const metro_name_en = "${metroNameEn}";
 const lines = [
 ${lines.map(line => `    {
         name: "${line.name}",
+        nameEN: "${line.nameEN}",
         color: "${line.color}",
         stations: [
 ${line.stations.map(station => `            {
@@ -625,6 +631,10 @@ addLineButton.addEventListener('click', function() {
     const defaultLineName = `${nextLineNumber}号线`;
     lineNameInput.value = defaultLineName;
     lineNameText.textContent = defaultLineName;
+
+    const lineNameENInput = lineItem.querySelector('.line-name-en');
+    const defaultLineNameEN = `Line ${nextLineNumber}`;
+    lineNameENInput.value = defaultLineNameEN;
     
     // 设置默认颜色
     const colorInput = lineItem.querySelector('.line-color');
@@ -707,6 +717,7 @@ function addStation(stationList) {
     // 获取所属的线路元素
     const lineItem = stationList.closest('.line-item');
     const lineName = lineItem.querySelector('.line-name').value;
+    const lineNameEN = lineItem.querySelector('.line-name-en').value;
     const lineNumber = parseInt(lineName) || 1;
     let nextStationNumber = lineNumberMap.get(lineItem) || (lineNumber * 100 + 1);
     
@@ -828,6 +839,7 @@ function handleSearch() {
     
     lines.forEach(line => {
         const lineName = line.querySelector('.line-name').value.toLowerCase();
+        const lineNameEN = line.querySelector('.line-name-en').value.toLowerCase();
         const stations = line.querySelectorAll('.station-item');
         let lineMatched = lineName.includes(searchTerm);
         
@@ -981,6 +993,7 @@ function updatePreview() {
     // 收集线路数据
     document.querySelectorAll('.line-item').forEach(lineItem => {
         const lineName = lineItem.querySelector('.line-name').value;
+        const lineNameEN = lineItem.querySelector('.line-name-en').value;
         const lineColor = lineItem.querySelector('.line-color').value;
         const stations = [];
 
@@ -1007,6 +1020,7 @@ function updatePreview() {
         if (lineName && stations.length > 0) {
             currentData.lines.push({
                 name: lineName,
+                nameEN: lineNameEN,
                 color: lineColor,
                 stations: stations
             });
