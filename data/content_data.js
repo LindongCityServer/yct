@@ -20,13 +20,22 @@ const contentData = [
         showInBanner: true
     },
     {
+        title: '松山湖有轨电车改造计划公布',
+        image: '../content/res/250221松山湖有轨电车公布改造计划/0.jpg',
+        link: '../content/250221松山湖有轨电车公布改造计划.html',
+        date: '2025-02-21',
+        summary: '松山湖有轨电车全面升级：运力翻倍、混跑提速、色彩缤纷、标准统一、调度强大……点击查看全图，了解更多详情！',
+        category: '运营信息',
+        showInBanner: true
+    },
+    {
         title: '松山湖有轨电车停止对外服务',
         image: '#00b0f0',
         link: '',
         date: '2025-02-18',
         summary: '为了合理利用资源，现决定松山湖有轨电车停止对外服务，园区穿梭巴士行车间隔由20分钟一班压缩至10分钟一班，至有轨电车松山湖线整改完成后恢复正常间隔。',
         category: '运营信息',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '上官发表服务器2025年新年献词',
