@@ -612,7 +612,9 @@ function updateInfoBar() {
     const lineName = document.querySelector('.line-name');
     lineName.innerHTML = `
         <div class="line-name-container">
-            <img src="${window.metro_logo}" alt="地铁标识">
+            ${window.metro_logo ? 
+                `<img src="${window.metro_logo}" alt="地铁标识">` : 
+                ''}
             <div class="line-name-text" style="background-color: ${currentLine.color}">
                 ${currentLine.name.replace(/([0-9A-Z]+)(线|号线|路)$/, '$1')}
             </div>
