@@ -4,6 +4,7 @@ let currentDirection = false;
 let currentStationIndex = -1;
 let carCount = 6;
 let selectedCar = 1;
+let isExternalData = false; // 是否导入了外部线网数据
 
 // 添加一个标记来追踪动画触发来源
 let shouldAnimate = false;
@@ -1290,6 +1291,7 @@ async function handleFileUpload(file) {
         console.log('导入的地铁英文名称:', window.metro_name_en);
 
         showToast('数据导入成功！');
+        isExternalData = true;
     } catch (error) {
         console.error('数据解析失败:', error);
         showToast('数据格式错误，请确保文件格式正确！');
@@ -1553,14 +1555,14 @@ function playAnnouncement() {
 
     // 获取当前站的 platformSide 值
     const platformSideEN = currentStation.platformSide || 'left';  // 默认为左侧车门
-    const platformSide = platformSideEN === 'right' ? '右侧' : '左侧';
+    const platformSide = platformSideEN === 'right' ? '右' : '左';
 
     // 检查当前站是否有 swapPlatform 参数
     const swapPlatform = currentStation.swapPlatform || false;
 
     // 确定实际的车门方向
-    const actualDoorSide = swapPlatform ? (platformSide === '右侧' ? '左侧' : '右侧') : platformSide;
-    const actualDoorSideEN = actualDoorSide === '右侧' ? 'right' : 'left';
+    const actualDoorSide = swapPlatform ? (platformSide === '右' ? '左' : '右') : platformSide;
+    const actualDoorSideEN = actualDoorSide === '右' ? 'right' : 'left';
 
     let announcements = [];
 
@@ -1570,39 +1572,45 @@ function playAnnouncement() {
     if (isStartStation) {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
-                { text: `欢迎乘坐${metroName}，祝您出行愉快！本次列车终点站：${terminalStation.name}，`, gender: 'female' },
-                { text: `下一站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，请下车的乘客做好准备。`, gender: 'female' },
-                { text: `Welcome to take ${metroNameEN || metroName}. We wish you have a pleasant trip. The destination of the train is ${terminalStation.nameEN || terminalStation.name}.`, gender: 'male' },
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `欢迎乘坐${metroName}，祝您出行愉快！本次列车终点站：${terminalStation.name}，`, gender: 'female', dialect: false },
+                { text: `下一站：${currentStation.name}。列车开启前进方向${actualDoorSide}侧车门，请下车的乘客做好准备。`, gender: 'female', dialect: false },
+                { text: `Welcome to take ${metroNameEN || metroName}. We wish you have a pleasant trip. The destination of the train is ${terminalStation.nameEN || terminalStation.name}.`, gender: 'male', dialect: false },
+                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male', dialect: false },
+                { text: `欢迎乘坐${metroName}，祝大家伙坐得迂拙！咱这趟车往${terminalStation.name}开，下一站搁${currentStation.name}停，开${actualDoorSide}半拉门儿，要下车的瞅着点儿！`, dialect: true } // 添加 dialect 属性
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
             announcements.push(
-                { text: `${currentStation.name}到了，请从列车前进方向${actualDoorSide}车门下车。`, gender: 'female' },
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `${currentStation.name}到了，请从列车前进方向${actualDoorSide}侧车门下车。`, dialect: false },
+                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male', dialect: false },
+                { text: `到${currentStation.name}了，要下车的搁${actualDoorSide}半拉门儿下车。`, dialect: true } // 添加 dialect 属性
             );
         }
     } else if (isEndStation) {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
-                { text: `列车启动，请扶好站稳。下一站为本次列车的终点站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，请全体乘客做好下车准备。`, gender: 'female' },
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}, the destination of the train. All the passengers, please prepare to get off.`, gender: 'male' },
+                { text: `列车启动，请扶好站稳。下一站为本次列车的终点站：${currentStation.name}。列车开启前进方向${actualDoorSide}侧车门，请全体乘客做好下车准备。`, gender: 'female', dialect: false },
+                { text: `The next station is ${currentStation.nameEN || currentStation.name}, the destination of the train. All the passengers, please prepare to get off.`, gender: 'male', dialect: false },
+                { text: `列车启动，拽好栏杆儿，站稳当儿地。下一站就到终点${currentStation.name}了啊，开${actualDoorSide}半拉门儿，所有人都得下了啊！`, dialect: true } // 添加 dialect 属性
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail') {
             announcements.push(
-                { text: `终点站${currentStation.name}到了，欢迎您再次乘坐${metroName}。`, gender: 'female' },
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, the destination of the train. Welcome to take ${metroNameEN || metroName} again.`, gender: 'male' },
+                { text: `终点站${currentStation.name}到了，欢迎您再次乘坐${metroName}。`, gender: 'female', dialect: false },
+                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, the destination of the train. Welcome to take ${metroNameEN || metroName} again.`, gender: 'male', dialect: false },
+                { text: `终点站${currentStation.name}到了，咱${metroName}您要稀罕就再来。`, dialect: true } // 添加 dialect 属性
             );
         }
     } else {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
-                { text: `列车启动，请扶好站稳。下一站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，请下车的乘客做好准备。`, gender: 'female' },
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `列车启动，请扶好站稳。下一站：${currentStation.name}。列车开启前进方向${actualDoorSide}侧车门，请下车的乘客做好准备。`, gender: 'female', dialect: false },
+                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male', dialect: false },
+                { text: `列车启动，拽好栏杆儿，站稳当儿地。下一站搁${currentStation.name}停，开${actualDoorSide}半拉门儿，要下车的瞅着点儿！`, dialect: true } // 添加 dialect 属性
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
             announcements.push(
-                { text: `${currentStation.name}到了，请从列车前进方向${actualDoorSide}车门下车`, gender: 'female' },
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `${currentStation.name}到了，请从列车前进方向${actualDoorSide}侧车门下车`, gender: 'female', dialect: false },
+                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, The ${actualDoorSideEN} door will be used.`, gender: 'male', dialect: false },
+                { text: `到${currentStation.name}了，要下车的搁${actualDoorSide}半拉门儿下车。`, dialect: true } // 添加 dialect 属性
             );
         }
     }
@@ -1618,13 +1626,15 @@ function playAnnouncement() {
 
             if (document.querySelector('input[name="display"]:checked').value === 'route') {
                 announcements.push(
-                    { text: `换乘${transferLineName}的乘客请在该站下车，请您注意换乘时间，合理安排行程。`, gender: 'female' },
-                    { text: `Passengers for ${transferLineNameEN}, please prepare to get off. Please pay attention to transfer time,and arrange your travel properly.`, gender: 'male' },
+                    { text: `换乘${transferLineName}的乘客请在该站下车，请您注意换乘时间，合理安排行程。`, gender: 'female', dialect: false },
+                    { text: `Passengers for ${transferLineNameEN}, please prepare to get off. Please pay attention to transfer time,and arrange your travel properly.`, gender: 'male', dialect: false },
+                    { text: `捯${transferLineName}的乘客得搁这站下了，瞅着点儿点儿，别把行程耽误了。`, dialect: true } // 添加 dialect 属性
                 );
             } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && !isEndStation) {
                 announcements.push(
-                    { text: `${currentStation.name}到了，换乘${transferLineName}的乘客，请从列车前进方向${actualDoorSide}车门下车。`, gender: 'female' },
-                    { text: `We are arriving at ${currentStation.nameEN || currentStation.name}. Passengers for ${transferLineNameEN} please get off at this station. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                    { text: `${currentStation.name}到了，换乘${transferLineName}的乘客，请从列车前进方向${actualDoorSide}侧车门下车。`, gender: 'female', dialect: false },
+                    { text: `We are arriving at ${currentStation.nameEN || currentStation.name}. Passengers for ${transferLineNameEN} please get off at this station. The ${actualDoorSideEN} door will be used.`, gender: 'male', dialect: false },
+                    { text: `到${currentStation.name}了，捯${transferLineName}的乘客搁${actualDoorSide}半拉门儿下车。`, dialect: true } // 添加 dialect 属性
                 );
             }
         });
@@ -1633,24 +1643,101 @@ function playAnnouncement() {
     // 处理车站英文名
     announcements = announcements.map(announcement => {
         if (currentStation.nameEN === currentStation.nameEN.toUpperCase() && /^[A-Z0-9'-]+$/.test(currentStation.nameEN)) {
-            return { text: announcement.text.replace(currentStation.nameEN, currentStation.name), gender: announcement.gender };
+            return { text: announcement.text.replace(currentStation.nameEN, currentStation.name), gender: announcement.gender, dialect: announcement.dialect };
         }
         return announcement;
     });
     announcements = announcements.map(announcement => {
         if (terminalStation.nameEN === terminalStation.nameEN.toUpperCase()) {
-            return { text: announcement.text.replace(terminalStation.nameEN, terminalStation.name), gender: announcement.gender };
+            return { text: announcement.text.replace(terminalStation.nameEN, terminalStation.name), gender: announcement.gender, dialect: announcement.dialect };
         }
         return announcement;
     });
 
+    
     console.log('线网名称：' + window.metro_name);  // 应该输出 "临东地铁"
     console.log('线网英文名：' + window.metro_name_en);  // 应该输出 "Lindong Metro"
+
+    // 获取所有可用的语音
+    const voices = window.speechSynthesis.getVoices();
+
+    // 查找特定的语音
+    const femaleVoice = voices.find(voice => voice.name === 'Microsoft Xiaoxiao Online (Natural) - Chinese (Mainland)');
+    const maleVoice = voices.find(voice => voice.name === 'Microsoft Yunyang Online (Natural) - Chinese (Mainland)');
+
+    // 查找备选语音
+    const backupFemaleVoice = voices.find(voice => voice.name === 'Microsoft Yaoyao Online (Natural) - Chinese (Mainland)');
+    const backupMaleVoice = voices.find(voice => voice.name === 'Microsoft Kangkang Online (Natural) - Chinese (Mainland)');
+
+    // 查找方言语音
+    const dialectVoice = voices.find(voice => voice.name === 'Microsoft Xiaobei Online (Natural) - Chinese (Northeastern Mandarin)' && voice.lang === 'zh-CN-liaoning');
+
+    // 调试信息：检查是否找到方言语音
+    if (dialectVoice) {
+        console.log('找到方言语音:', dialectVoice.name);
+    } else {
+        console.warn('未找到方言语音: Microsoft Xiaobei Online (Natural) - Chinese (Northeastern Mandarin)');
+    }
+
+    const shouldUseDialect = announcements.dialect 
+        && dialectVoice 
+        && isDefaultLineData 
+        && !isExternalData
+        && !document.getElementById('dialectToggle').classList.contains('disabled');
+
+    if (shouldUseDialect) {
+        utterance.voice = dialectVoice;
+        console.log('使用方言语音:', dialectVoice.name);
+    }
+
+    // 检查是否没有导入其他线网数据
+    const isDefaultLineData = typeof lines !== 'undefined' && lines.length === 1;
 
     // 播放报站内容
     announcements.forEach((announcement, index) => {
         setTimeout(() => {
-            speak(announcement.text, index, announcement.gender);
+            const utterance = new SpeechSynthesisUtterance(announcement.text);
+            utterance.gender = announcement.gender;
+
+            // 根据 dialect 属性决定使用哪种语音
+            if (announcement.dialect && dialectVoice && isDefaultLineData && !isExternalData) {
+                utterance.voice = dialectVoice;
+                console.log('使用方言语音:', dialectVoice.name, dialectVoice.lang, dialectVoice.voiceURI);
+            } else {
+                if (announcement.gender === 'male') {
+                    if (maleVoice) {
+                        utterance.voice = maleVoice;
+                    } else if (backupMaleVoice) {
+                        utterance.voice = backupMaleVoice;
+                    } else {
+                        // 如果没有找到特定的语音，选择第一个可用的中文语音
+                        const chineseVoices = voices.filter(voice => voice.lang.includes('zh-CN'));
+                        if (chineseVoices.length > 0) {
+                            utterance.voice = chineseVoices[index % chineseVoices.length];
+                        } else {
+                            // 如果没有找到可用的中文语音，使用默认语音
+                            console.warn('No specific Chinese voices found, using default voice.');
+                        }
+                    }
+                } else {
+                    if (femaleVoice) {
+                        utterance.voice = femaleVoice;
+                    } else if (backupFemaleVoice) {
+                        utterance.voice = backupFemaleVoice;
+                    } else {
+                        // 如果没有找到特定的语音，选择第一个可用的中文语音
+                        const chineseVoices = voices.filter(voice => voice.lang.includes('zh-CN'));
+                        if (chineseVoices.length > 0) {
+                            utterance.voice = chineseVoices[index % chineseVoices.length];
+                        } else {
+                            // 如果没有找到可用的中文语音，使用默认语音
+                            console.warn('No specific Chinese voices found, using default voice.');
+                        }
+                    }
+                }
+            }
+
+            window.speechSynthesis.speak(utterance);
             showToast(announcement.text);
         }, index * 2000); // 每条播报间隔2秒
     });
@@ -1704,7 +1791,7 @@ function numberToWords(number) {
 }
 
 // 语音播报函数
-function speak(text, index, gender) {
+function speak(text, index, gender, dialect) {
     if (!window.speechSynthesis) {
         console.error('Speech synthesis is not supported in this browser.');
         return;
@@ -1717,19 +1804,49 @@ function speak(text, index, gender) {
     const femaleVoice = voices.find(voice => voice.name === 'Microsoft Xiaoxiao Online (Natural) - Chinese (Mainland)');
     const maleVoice = voices.find(voice => voice.name === 'Microsoft Yunyang Online (Natural) - Chinese (Mainland)');
 
-    if (femaleVoice && maleVoice) {
-        utterance.voice = gender === 'male' ? maleVoice : femaleVoice;
+    // 查找备选语音
+    const backupFemaleVoice = voices.find(voice => voice.name === 'Microsoft Yaoyao Online (Natural) - Chinese (Mainland)');
+    const backupMaleVoice = voices.find(voice => voice.name === 'Microsoft Kangkang Online (Natural) - Chinese (Mainland)');
+
+    // 查找方言语音
+    const dialectVoice = voices.find(voice => voice.name === 'Microsoft Xiaobei Online (Natural) - Chinese (Northeastern Mandarin)');
+
+    if (dialect) {
+        utterance.voice = dialectVoice;
+        console.log('使用方言语音:', dialectVoice.name, dialectVoice.lang, dialectVoice.voiceURI);
     } else {
-        // 如果没有找到特定的语音，选择第一个可用的中文语音
-        const chineseVoices = voices.filter(voice => voice.lang.includes('zh-CN'));
-        if (chineseVoices.length > 0) {
-            utterance.voice = chineseVoices[index % chineseVoices.length];
+        if (gender === 'male') {
+            if (maleVoice) {
+                utterance.voice = maleVoice;
+            } else if (backupMaleVoice) {
+                utterance.voice = backupMaleVoice;
+            } else {
+                // 如果没有找到特定的语音，选择第一个可用的中文语音
+                const chineseVoices = voices.filter(voice => voice.lang.includes('zh-CN'));
+                if (chineseVoices.length > 0) {
+                    utterance.voice = chineseVoices[index % chineseVoices.length];
+                } else {
+                    // 如果没有找到可用的中文语音，使用默认语音
+                    console.warn('No specific Chinese voices found, using default voice.');
+                }
+            }
         } else {
-            // 如果没有找到可用的中文语音，使用默认语音
-            console.warn('No specific Chinese voices found, using default voice.');
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            } else if (backupFemaleVoice) {
+                utterance.voice = backupFemaleVoice;
+            } else {
+                // 如果没有找到特定的语音，选择第一个可用的中文语音
+                const chineseVoices = voices.filter(voice => voice.lang.includes('zh-CN'));
+                if (chineseVoices.length > 0) {
+                    utterance.voice = chineseVoices[index % chineseVoices.length];
+                } else {
+                    // 如果没有找到可用的中文语音，使用默认语音
+                    console.warn('No specific Chinese voices found, using default voice.');
+                }
+            }
         }
     }
-
     window.speechSynthesis.speak(utterance);
 }
 
