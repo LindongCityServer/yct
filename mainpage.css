@@ -2117,3 +2117,14 @@ input[type="color"]::-moz-color-swatch {
         opacity: 0.8;
     }
 }
+
+.caption-section .beian{    
+    font-size: 12px; 
+    margin-top: 6px; 
+    display: flex; 
+    flex-wrap: wrap; 
+}
+
+.caption-section .beian a:link, a:visited, a:hover, a:active { 
+    color: var(--secondary-text); 
+}
