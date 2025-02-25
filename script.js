@@ -704,10 +704,13 @@ function initCarousel() {
     carouselContainer.addEventListener('click', (e) => {
         const clickedSlide = e.target.closest('.carousel-slide');
         if (!clickedSlide) return;
-        
+
         const slideIndex = parseInt(clickedSlide.dataset.index);
         const banner = bannerData[slideIndex];
-        
+
+        // 阻止事件冒泡
+        e.stopPropagation();
+
         if (!banner.link || banner.link.trim() === '') {
             // 在新闻列表中查找对应的新闻项
             const newsItem = document.querySelector(`.news-item .news-title a[title="${banner.title}"]`)?.closest('.news-item');
