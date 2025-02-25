@@ -163,12 +163,12 @@ const contentData = [
         showInBanner: true
     },
     {
-        title: '155路公布3月时刻表',
+        title: '临北巴士公布3月时刻表',
         image: '../data/content_banner/155路3月时刻表.jpg',
-        link: '../data/content_banner/155路3月时刻表.jpg',
-        date: '2025-02-20',
+        link: '../content/250225临北巴士3月发车时间.html',
+        date: '2025-02-25',
         expireDate: '2025-03-31',
-        summary: '为方便广大乘客候车，现公布3月临东临北巴士155路发车时刻表（部分）以供参考。日常运营中会根据实际运营情况临时调点，推荐广大乘客提前5-10分钟候车！！！---临北巴士北关岭车队',
+        summary: '为方便广大乘客候车，现公布3月临东临北巴士155路和181路发车时刻表以供参考。日常运营中会根据实际运营情况临时调点，推荐广大乘客提前5-10分钟候车！！！',
         category: '运营信息',
         showInBanner: true
     }
