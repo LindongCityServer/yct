@@ -1,12 +1,12 @@
 // footer.js
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded and parsed');
+    //console.log('DOM fully loaded and parsed');
     
     const captionContainers = document.getElementsByClassName('caption-section');
     if (captionContainers.length > 0) {
         for (let i = 0; i < captionContainers.length; i++) {
             const container = captionContainers[i];
-            console.log(`Found caption-section element at index ${i}`, container);
+            //console.log(`Found caption-section element at index ${i}`, container);
             
             // Ensure innerHTML is set correctly
             container.innerHTML = `
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <a href="https://beian.mps.gov.cn">辽公网安备21100502000117号</a>
                 </div>
             `;
-            console.log(`Updated caption-section element at index ${i}`, container.innerHTML);
+            //console.log(`Updated caption-section element at index ${i}`, container.innerHTML);
         }
     } else {
         console.error('No caption-section elements found');

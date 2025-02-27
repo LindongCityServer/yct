@@ -53,6 +53,15 @@
                             <img src="UI/res/arrow_right_black.png" alt="更多">
                         </div>
                     </div>
+                    <div class="permission-banner">
+                        <p>启用通知推送，行程提醒更有效</p>
+                        <div class="actions">
+                            <button class="action-button notification-permission">去设置</button>
+                            <button class="close-button">
+                                <img src="UI/res/close_black.png" alt="关闭">
+                            </button>
+                        </div>
+                    </div>
                     <div class="trip-content">
                         <!-- 行程内容将通过JavaScript动态加载 -->
                     </div>
@@ -182,7 +191,7 @@
     </template>
 
     <!-- 请求通知权限的脚本 -->
-    <script>
+    <!--<script>
         document.addEventListener('DOMContentLoaded', function() {
             // 检查浏览器是否支持通知
             if ('Notification' in window) {
@@ -194,7 +203,7 @@
                 }
             }
         });
-    </script>
+    </script>-->
 
     <script src="data/metro_data.js" type="module"></script>
     <script src="data/tram_data.js" type="module"></script>

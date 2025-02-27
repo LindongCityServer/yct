@@ -157,7 +157,7 @@ function loadNewsContent() {
     
     // 添加历史资讯切换按钮事件
     newToggleBtn.addEventListener('click', function(e) {
-        console.log('Toggle history button clicked'); // 添加调试日志
+        //console.log('Toggle history button clicked'); // 添加调试日志
         if (historyNews.length === 0) {
             showToast('暂无历史资讯');
             return;
@@ -614,8 +614,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // 添加乘车按钮事件监听
     document.querySelector('.header-apply-card-btn')?.addEventListener('click', handleApplyCard);
-    document.querySelector('.apply-card-btn')?.addEventListener('click', handleApplyCard);
-    
+    document.querySelector('.apply-card-btn')?.addEventListener('click', handleApplyCard);    
 });
 
 // 申请刷卡
@@ -1165,12 +1164,20 @@ document.addEventListener('DOMContentLoaded', () => {
     initServerStatus();
 });
 
+// 当按下permission-banner中的close-button或已经设置网页通知权限时，隐藏权限请求横幅
+if (Notification.permission === 'granted' || Notification.permission === 'denied') {
+    document.querySelector('.permission-banner').style.display = 'none';
+}
+document.querySelector('.permission-banner .close-button').addEventListener('click', () => {
+    document.querySelector('.permission-banner').style.display = 'none';
+});
+
 // 从localStorage获取行程信息
 function getTripsFromStorage() {
     try {
         // 确保正确读取数据
         const savedOrders = localStorage.getItem('orders');
-        console.log('Raw orders from localStorage:', savedOrders); // 调试日志
+        //console.log('Raw orders from localStorage:', savedOrders); // 调试日志
         
         let orders = [];
         try {
@@ -1185,7 +1192,7 @@ function getTripsFromStorage() {
             return [];
         }
         
-        console.log('所有订单数据:', orders);
+        //console.log('所有订单数据:', orders);
         
         // 按时间正序排序
         return orders.sort((a, b) => {
@@ -1445,35 +1452,35 @@ window.handleTripComplete = function(tripId) {
 window.handleTripDelete = function(tripId) {
     const savedOrders = localStorage.getItem('orders');
     if (!savedOrders) {
-        console.log('No orders found in localStorage');
+        //console.log('No orders found in localStorage');
         return;
     }
     
     try {
         const orders = JSON.parse(savedOrders);
-        console.log('Before deletion:', orders);
-        console.log('Deleting trip with ID:', tripId);
+        //console.log('Before deletion:', orders);
+        //console.log('Deleting trip with ID:', tripId);
         
         // 在删除前先确认是否存在该行程
         const tripExists = orders.some(order => order.id === tripId);
         if (!tripExists) {
-            console.log('Trip not found:', tripId);
+            //console.log('Trip not found:', tripId);
             showToast('删除失败：未找到行程');
             return;
         }
         
         // 确保使用严格相等进行比较
         const updatedOrders = orders.filter(order => order.id !== tripId);
-        console.log('After deletion:', updatedOrders);
+        //console.log('After deletion:', updatedOrders);
         
         if (orders.length === updatedOrders.length) {
-            console.log('No trip was deleted');
+            //console.log('No trip was deleted');
             showToast('删除失败：未能删除行程');
             return;
         }
         
         localStorage.setItem('orders', JSON.stringify(updatedOrders));
-        console.log('Successfully updated localStorage');
+        //console.log('Successfully updated localStorage');
         
         showToast('已删除行程');
         loadTripInfo(); // 重新加载行程信息
@@ -1497,7 +1504,7 @@ function loadTripInfo() {
     
     // 获取并记录行程数据
     const trips = getTripsFromStorage();
-    console.log('Loaded trips:', trips);
+    //console.log('Loaded trips:', trips);
     
     if (trips.length === 0) {
         // 隐藏整个行程信息模块
@@ -1929,6 +1936,7 @@ function initUserPanel() {
     // 获取登录按钮和通知设置按钮
     const loginBtn = document.querySelector('.login-btn');
     const notificationSettingsBtn = userPanel.querySelector('.notification-settings');
+    const notificationPermissionBtn = document.querySelector('.notification-permission');
     
     // 切换面板显示状态
     if (loginBtn) {
@@ -1941,6 +1949,14 @@ function initUserPanel() {
     // 点击通知设置
     if (notificationSettingsBtn) {
         notificationSettingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 阻止事件冒泡
+            userPanel.classList.remove('show');
+            notificationSettingsPanel.classList.add('show');
+            overlay.classList.add('show');
+        });
+    }
+    if (notificationPermissionBtn) {
+        notificationPermissionBtn.addEventListener('click', (e) => {
             e.stopPropagation(); // 阻止事件冒泡
             userPanel.classList.remove('show');
             notificationSettingsPanel.classList.add('show');
