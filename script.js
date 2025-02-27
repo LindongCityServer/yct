@@ -1295,7 +1295,7 @@ function renderTrip(trip, now) {
     if (trip.status === 'completed') {
         statusText = '已完成';
         statusClass = 'completed';
-    } else if (trip.type === 'metro') {
+    } else if (trip.type === 'metro' || trip.type === 'bus') {
         if (orderDateTime <= now || trip.status === 'ongoing') {
             statusText = trip.status === 'ongoing' ? '进行中' : '未出行';
             statusClass = 'ongoing';  // 地铁行程到时间或已进站就显示为ongoing
@@ -1321,7 +1321,7 @@ function renderTrip(trip, now) {
     
     // 根据状态和类型决定显示的按钮
     let actionButton;
-    if (trip.type === 'metro') {
+    if (trip.type === 'metro' || trip.type === 'bus') {
         // 地铁行程的特殊处理
         if (trip.status === 'completed') {
             actionButton = `
@@ -1392,7 +1392,7 @@ function renderTrip(trip, now) {
                     <span class="trip-line" title="${lineText}">${lineText}</span>
                 </div>
                 <div class="trip-company" title="临途出行·${trip.route.company}">
-                    ${trip.type !== 'metro' ? '临途出行·' : ''}${trip.route.company}
+                    ${!trip.type ? '临途出行·' : ''}${trip.route.company}
                 </div>
             </div>
         </div>
@@ -1409,7 +1409,7 @@ window.handleTripComplete = function(tripId) {
         const updatedOrders = orders.map(order => {
             if (order.id === tripId) {
                 // 如果是地铁行程，根据当前状态决定新状态
-                if (order.type === 'metro') {
+                if (order.type) {
                     const newStatus = order.status === 'upcoming' ? 'ongoing' : 
                                     order.status === 'ongoing' ? 'completed' : 
                                     order.status;
@@ -1425,7 +1425,7 @@ window.handleTripComplete = function(tripId) {
         
         // 根据行程类型和状态显示不同的提示
         const trip = updatedOrders.find(order => order.id === tripId);
-        if (trip && trip.type === 'metro') {
+        if (trip && trip.type) {
             const statusText = trip.status === 'ongoing' ? '已标记为进站' : 
                              trip.status === 'completed' ? '已标记为出站' : '';
             showToast(statusText);
@@ -1627,6 +1627,11 @@ function loadTripInfo() {
         updateTripDisplay();
     };
 }
+
+// 定时刷新loadTripInfo函数
+setInterval(loadTripInfo, 3000);
+setInterval(loadPendingCount, 3000);
+
 
 // 更新样式以包含完成按钮
 const tripStyle = document.createElement('style');
@@ -2044,64 +2049,67 @@ function initNotificationSettingsPanel() {
 }
 
 // 添加未完成订单圆点提示的样式
-const pendingStyle = document.createElement('style');
-pendingStyle.textContent = `
-    .pending-count {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background-color: var(--primary-color);
-        color: var(--white);
-        border-radius: 12px; 
-        font-size: 12px;
-        line-height: 16px;
-        margin-left: 4px;
-        font-weight: normal;
-        min-width: 20px;
-        height: 20px;
-    }
+function loadPendingCount() {
+    const pendingStyle = document.createElement('style');
+    pendingStyle.textContent = `
+        .pending-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-radius: 12px; 
+            font-size: 12px;
+            line-height: 16px;
+            margin-left: 4px;
+            font-weight: normal;
+            min-width: 20px;
+            height: 20px;
+        }
 
-    /* 添加文本溢出样式 */
-    .trip-station, .trip-line, .trip-company {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 200px;
-        display: inline-block;
-    }
+        /* 添加文本溢出样式 */
+        .trip-station, .trip-line, .trip-company {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            display: inline-block;
+        }
 
-    .trip-company {
-        max-width: 100%;
-        font-size: 14px;
-    }
+        .trip-company {
+            max-width: 100%;
+            font-size: 14px;
+        }
 
-    /* 添加状态标签样式 */
-    .trip-status {
-        font-size: 10px;
-        padding: 0 4px;
-        border-radius: 12px;
-        background-color: #f5f5f5;
-        color: #666;
-        text-align: center;
-        margin: 4px 0;
-    }
+        /* 添加状态标签样式 */
+        .trip-status {
+            font-size: 10px;
+            padding: 0 4px;
+            border-radius: 12px;
+            background-color: #f5f5f5;
+            color: #666;
+            text-align: center;
+            margin: 4px 0;
+        }
 
-    .trip-status.completed {
-        background-color: #e0e0e0;
-        color: #666;
-    }
+        .trip-status.completed {
+            background-color: #e0e0e0;
+            color: #666;
+        }
 
-    .trip-status.ongoing {
-        background-color: #00796b;
-        color: white;
-    }
+        .trip-status.ongoing {
+            background-color: #00796b;
+            color: white;
+        }
 
-    .trip-status.upcoming {
-        background-color: #e0f2f1;
-        color: #00796b;
-    }
-`;
-document.head.appendChild(pendingStyle);
+        .trip-status.upcoming {
+            background-color: #e0f2f1;
+            color: #00796b;
+        }
+    `;
+    document.head.appendChild(pendingStyle);
+}
+
 
 // 初始化按钮事件（只在页面加载时添加一次）
 function initServerButtons() {
@@ -2207,25 +2215,25 @@ function checkTripsForNotification() {
         
         // 提前指定时间通知
         if (timeUntilDeparture === settings.advanceTime) {
-            sendNotification('您关注的行程即将检票', {
-                body: `您关注的${trip.route.time}出发前往${trip.route.arrival}的${trip.route.id + '次车' || trip.route.line + '行程'}还有${settings.advanceTime}分钟发车，请前往${trip.route.departure}准备候车`,
-                icon: 'UI/res/bus_black.png'
+            sendNotification('行程预告', {
+                body: `您关注的${trip.route.time}出发前往${trip.route.arrival}的${trip.route.id ? trip.route.id + '次车' : trip.route.line + '行程'}离发车时间或最晚上车时间还有${settings.advanceTime}分钟，请前往${trip.route.departure}准备候车`,
+                icon: 'UI/res/agenda_notification.png'
             });
         }
         
         // 检票通知（提前15分钟）
         if (settings.checkInNotification && timeUntilDeparture === 15) {
-            sendNotification('您关注的行程已开始检票', {
-                body: `您关注的${trip.route.time}出发前往${trip.route.arrival}的${trip.route.id + '次车' || trip.route.line + '行程'}已经开始检票，请前往${trip.route.departure}准备候车`,
-                icon: 'UI/res/bus_black.png'
+            sendNotification('候车提醒', {
+                body: `您关注的${trip.route.time}出发前往${trip.route.arrival}的${trip.route.id ? trip.route.id + '次车已经开始检票' : trip.route.line + '行程离最晚上车时间还有15分钟'}，请前往${trip.route.departure}准备上车`,
+                icon: 'UI/res/waiting_notification.png'
             });
         }
         
         // 停止检票通知（提前5分钟）
         if (settings.checkInEndNotification && timeUntilDeparture === 5) {
-            sendNotification('检票即将结束', {
-                body: `您关注的${trip.route.time}出发前往${trip.route.arrival}的${trip.route.id + '次车' || trip.route.line + '行程'}即将停止检票`,
-                icon: 'UI/res/bus_black.png'
+            sendNotification('上车提醒', {
+                body: `您关注的${trip.route.time}出发前往${trip.route.arrival}的${trip.route.id ? trip.route.id + '次车即将停止检票' : trip.route.line + '行程离最晚上车时间仅剩5分钟'}。如您确认无法赶到${trip.route.departure}候车，请提前规划好备选行程。`,
+                icon: 'UI/res/boarding_notification.png'
             });
         }
     });

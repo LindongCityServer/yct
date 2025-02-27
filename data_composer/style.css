@@ -75,10 +75,13 @@ h1 {
     color: var(--text-color);
 }
 
-h2 {
-    color: var(--secondary-text);
-    margin-bottom: 6px;
+.section h2 {
+    color: var(--text-color);
     font-size: 18px;
+}
+
+.line-editor h2 {
+    margin-bottom: 6px;
 }
 
 /* Logo编辑器样式 */
@@ -379,14 +382,14 @@ button {
     padding: 8px 16px;
     border: none;
     border-radius: 24px;
-    background-color: #dbe0e1;
-    color: white;
+    background-color: var(--background-color);
+    color: var(--card-background);
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 button:hover {
-    background-color: #dbe0e1;
+    background-color: var(--hover-background);
 }
 
 .remove-line,
@@ -561,7 +564,7 @@ a:hover {
 .advanced-options {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 6px;
     min-width: 0;
     padding: 4px 0;
 }
@@ -607,7 +610,7 @@ a:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: var(--secondary-text);
     transition: .4s;
     border-radius: 18px;
 }
@@ -619,7 +622,7 @@ a:hover {
     width: 18px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
+    background-color: var(--white);
     transition: .4s;
     border-radius: 50%;
 }
@@ -642,7 +645,7 @@ input:checked + .slider:before {
 .line-name-text, .station-name-text {
     display: block;
     padding: 4px 8px;
-    color: #333;
+    color: var(--text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -659,8 +662,8 @@ input:checked + .slider:before {
 
 .line-name.editing, .station-name.editing {
     display: block;
-    background-color: white;
-    border: 1px solid #dbe0e1;
+    background-color: var(--card-background);
+    border: 1px solid var(--secondary-text);
     border-radius: 4px;
 }
 
@@ -684,7 +687,7 @@ body.dragging::after {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.7);
-    color: white;
+    color: var(--card-background);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1012,7 +1015,7 @@ body.show-advanced .advanced-field {
     position: relative;
     z-index: 1000;
     transform: translateZ(0);
-    background-color: white;
+    background-color: var(--card-background);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -1022,7 +1025,7 @@ body.show-advanced .advanced-field {
     position: relative;
     z-index: 1000;
     transform: translateZ(0);
-    background-color: #f7f8f8;
+    background-color: var(--background-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -1141,7 +1144,7 @@ body.show-advanced .advanced-field {
     bottom: 20px;
     left: 20px;
     display: none;
-    background: white;
+    background: var(--card-background);
     padding: 10px;
     border-radius: 40px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -1155,7 +1158,7 @@ body.show-advanced .advanced-field {
     left: 20px;
     width: min(360px, calc(100vw - 40px));
     height: min(360px, calc(100vh - 100px));
-    background: white;
+    background: var(--card-background);
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 1500;
@@ -1305,17 +1308,24 @@ body.show-advanced .advanced-field {
 
     .icon-button img {
         opacity: 0.8;
+        filter: invert(1);
+    }
+
+    .icon-button#back-to-home img {
+        opacity: 0.8;
+        filter: invert(0);
     }
 
     .icon-button:hover img {
         opacity: 1;
     }
 
-    .line-item {
-        background-color: var(--background-color);
+    .container img {
+        filter: invert(1);
+
     }
 
-    .station-item {
-        background-color: var(--white);
+    .line-item {
+        background-color: var(--background-color);
     }
 }

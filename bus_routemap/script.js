@@ -1354,6 +1354,15 @@ window.addTripReminder = function() {
     const steps = Array.from(routeElement.querySelectorAll('.route-step')).map(step => step.textContent.trim());
     const routeInfo = routeElement.querySelector('.route-info').textContent.trim();
     const estimatedTime = parseInt(routeElement.querySelector('.route-info').textContent.match(/预计 (\d+) 分钟/)[1]);
+    const lines = [];
+
+    // 将steps中偶数项空格之前的部分提取为lines
+    for (let i = 1; i < steps.length; i += 2) {
+        const line = steps[i].split(' ')[0];
+        if (line) {
+            lines.push(line);
+        }
+    }
     
     // 解析选择的时间
     const selectedTime = new Date(tripTime);
@@ -1370,28 +1379,26 @@ window.addTripReminder = function() {
     
     // 格式化行程信息
     const tripData = {
-        id: Date.now(), // 使用时间戳作为唯一ID
+        id: ('bus_' + Date.now()), // 使用时间戳作为唯一ID
         type: 'bus',
+        date: departureTime.toISOString().split('T')[0],
         status: 'upcoming',
-        departure: {
-            time: departureTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-            station: steps[0].replace(' 出发', '')
+        route:{
+            departure:steps[0].replace(' 出发', ''),
+            arrival: steps[steps.length - 1].replace('到达 ', ''),
+            time: departureTime.toTimeString().slice(0, 5),
+            arrivalTime: arrivalTime.toTimeString().slice(0, 5),
+            id: '',
+            line: lines.join('→'),
+            company: '公交换乘查询',
         },
-        arrival: {
-            time: arrivalTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-            station: steps[steps.length - 1].replace('到达 ', '')
-        },
-        route: routeElement.querySelector('h3').textContent.trim(),
-        date: departureTime.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' }),
-        estimatedTime: estimatedTime,
-        timestamp: departureTime.getTime(), // 用于排序
-        created: Date.now() // 创建时间
+        lines: window.location.hash.slice(1) || lines.join(',')
     };
     
     // 从 localStorage 获取现有行程
     let trips = [];
     try {
-        const storedTrips = localStorage.getItem('trips');
+        const storedTrips = localStorage.getItem('orders');
         if (storedTrips) {
             trips = JSON.parse(storedTrips);
         }
@@ -1407,7 +1414,7 @@ window.addTripReminder = function() {
     
     // 保存回 localStorage
     try {
-        localStorage.setItem('trips', JSON.stringify(trips));
+        localStorage.setItem('orders', JSON.stringify(trips));
         showToast('行程提醒添加成功');
     } catch (err) {
         console.error('保存行程数据失败:', err);

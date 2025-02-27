@@ -47,3 +47,8 @@ section {
         filter: invert(1);
     }
 }
+@media (max-width: 360px) { 
+    .header .toolbar {
+        display: block;
+    }
+}

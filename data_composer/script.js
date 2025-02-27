@@ -1,7 +1,3 @@
-// 强制使用浅色模式
-document.documentElement.setAttribute('data-force-theme', 'light');
-document.documentElement.style.colorScheme = 'light';
-
 // 全局变量
 let lines = [];
 let stationDetails = [];
