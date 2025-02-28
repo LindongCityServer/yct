@@ -445,6 +445,7 @@ main {
 
 .transfer-inputs {
     display: flex;
+    align-items: center;
     gap: 8px;
 }
 
@@ -461,9 +462,9 @@ main {
 }
 
 .transfer-input-group input {
-    padding: 8px;
+    padding: 8px 12px;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 24px;
     font-size: 14px;
 }
 
@@ -483,6 +484,10 @@ main {
     font-size: 14px;
     cursor: pointer;
     font-weight: bold;
+}
+
+.transfer-button:hover {
+    background: var(--primary-color-hover);
 }
 
 .transfer-button.secondary {
@@ -1096,6 +1101,7 @@ main {
     align-items: center;
     justify-content: center;
     gap: 4px;
+    margin: 0;
 }
 
 .action-button:hover {

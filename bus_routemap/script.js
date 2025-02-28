@@ -594,6 +594,68 @@ function setEndStation(stationName) {
     hideAllStationActions(); // 设置后隐藏操作按钮
 }
 
+// 初始化datalist元素
+function initDatalist(type) {
+    const searchInput = document.getElementById(`${type}-station`);
+    if (!searchInput) {
+        console.warn(`${type}-station元素未找到`);
+        return;
+    }
+
+    // 设置input的list属性
+    searchInput.setAttribute('list', `${type}-stations`);
+
+    const datalist = document.createElement("datalist");
+    datalist.id = `${type}-stations`;
+    searchInput.parentNode.insertBefore(datalist, searchInput.nextSibling);
+}
+
+// 为start-station和end-station提供输入建议
+function filterStations(query, type) {
+    query = query.toLowerCase();
+    const filteredStations = getAllStations().filter(stationName => stationName.toLowerCase().includes(query));
+    console.log(`过滤后的站点列表 (${type}):`, filteredStations); // 调试信息
+
+    const datalist = document.getElementById(`${type}-stations`);
+    if (!datalist) {
+        console.warn(`${type}-stations元素未找到`);
+        return;
+    }
+
+    // 清空现有选项
+    while (datalist.firstChild) {
+        datalist.removeChild(datalist.firstChild);
+    }
+
+    filteredStations.forEach(stationName => {
+        const option = document.createElement("option");
+        option.value = stationName;
+        datalist.appendChild(option);
+    });
+}
+
+// 监听start-station和end-station的输入事件，并实时更新datalist
+document.getElementById('start-station').addEventListener('input', () => {
+    const value = document.getElementById('start-station').value;
+    console.log('start-station 输入值:', value); // 调试信息
+    filterStations(value, 'start');
+});
+document.getElementById('mobile-start-station').addEventListener('input', () => {
+    const value = document.getElementById('mobile-start-station').value;
+    console.log('mobile-start-station 输入值:', value); // 调试信息
+    filterStations(value, 'mobile-start');
+});
+document.getElementById('end-station').addEventListener('input', () => {
+    const value = document.getElementById('end-station').value;
+    console.log('end-station 输入值:', value); // 调试信息
+    filterStations(value, 'end');
+});
+document.getElementById('mobile-end-station').addEventListener('input', () => {
+    const value = document.getElementById('mobile-end-station').value;
+    console.log('mobile-end-station 输入值:', value); // 调试信息
+    filterStations(value, 'mobile-end');
+});
+
 // 查找站点所在的线路
 function findStationRoutes(stationName) {
     const routes = [];
@@ -1285,9 +1347,14 @@ window.saveRouteImage = async function(routeIndex) {
             scale: 2,
             useCORS: true
         });
-        
+
+        // 获取起点和终点名称
+        const steps = Array.from(routeElement.querySelectorAll('.route-step'));
+        const startStation = steps[0].querySelector('.station-link').textContent.trim().replace(' 出发', '');
+        const endStation = steps[steps.length - 1].querySelector('.station-link').textContent.trim().replace('到达 ', '');
+
         const link = document.createElement('a');
-        link.download = '换乘方案.png';
+        link.download = `${startStation}→${endStation} 方案${routeIndex + 1}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
         showToast('图片已保存');
@@ -1437,6 +1504,12 @@ function getAllStations() {
 
 // 监听搜索面板
 document.addEventListener('DOMContentLoaded', () => {
+    // 初始化datalist元素
+    initDatalist('start');
+    initDatalist('end');
+    initDatalist('mobile-start');
+    initDatalist('mobile-end');
+
     // 添加事件委托以处理动态生成的 .route-link 点击事件
     document.body.addEventListener('click', (event) => {
         const routeLink = event.target.closest('.route-link');

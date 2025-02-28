@@ -573,8 +573,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadTransportData();
     
     initFeatureIcons();
-    initCarousel();
-    loadNewsContent();
     
     const wechatImage = document.getElementById('wechat-image');
     const newsSection = document.querySelector('.news');
@@ -731,8 +729,6 @@ function initCarousel() {
                     scrollToNewsItem(newsItem);
                 }
             }
-        } else if (banner.link.startsWith('http')) {
-            window.open(banner.link, '_blank');
         } else {
             window.open(banner.link, '_blank');
         }
