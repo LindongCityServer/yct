@@ -111,9 +111,11 @@ function renderBusRoute(routeId) {
     const isCircular = route.stations[0].name === route.stations[route.stations.length - 1].name &&
         route.stations[0].oneWay === route.stations[route.stations.length - 1].oneWay;
 
+    let directionTabs; // 提升 directionTabs 变量的作用域
+
     if (isCircular) {
         // 环线显示方向
-        const directionTabs = document.createElement('div');
+        directionTabs = document.createElement('div'); // 初始化 directionTabs
         directionTabs.className = 'direction-tabs';
         const isClockwise = route.circularDirection === 'clockwise';
         
@@ -189,7 +191,7 @@ function renderBusRoute(routeId) {
         const downwardTerminal = downwardStations[0].name;
 
         // 创建方向切换tabs
-        const directionTabs = document.createElement('div');
+        directionTabs = document.createElement('div'); // 初始化 directionTabs
         directionTabs.className = 'direction-tabs';
         
         // 为环路特殊处理方向名称
@@ -252,6 +254,11 @@ function renderBusRoute(routeId) {
     }
 
     routeSection.appendChild(stationList);
+
+    // 添加调试信息
+    console.log('Rendered route:', route.name);
+    console.log('Route stations:', route.stations);
+    console.log('Direction tabs:', directionTabs.innerHTML);
 }
 
 // 渲染站点列表区域
@@ -958,7 +965,10 @@ function mergeTransferRoutes(routes) {
 // 获取路线方向描述
 function getRouteDirection(routeId, fromStation, toStation) {
     const route = busRoutes[routeId];
-    if (!route) return '';
+    if (!route) {
+        console.warn('Route not found for routeId:', routeId);
+        return '';
+    }
 
     // 获取上下行方向的站点
     const upwardStations = route.stations.filter(s => !s.oneWay || s.oneWay === 'down');
@@ -1004,6 +1014,7 @@ function getRouteDirection(routeId, fromStation, toStation) {
         return ` ${downwardStations[0].name}方向`;
     }
     
+    console.warn('Direction could not be determined for routeId:', routeId, 'fromStation:', fromStation, 'toStation:', toStation);
     return '';
 }
 
@@ -1023,7 +1034,8 @@ function renderTransferResults(routes, resultsContainer) {
     // 按总用时排序所有合并后的路线
     mergedRoutes.sort((a, b) => a.totalTime - b.totalTime);
 
-    const routesHtml = mergedRoutes.map((route, index) => {
+    let routeIndex = 0; // 初始化方案编号
+    const routesHtml = mergedRoutes.map((route) => {
         const operationWarning = route.operationStatus && route.operationStatus.length > 0 
             ? `<div class="operation-warning">${route.operationStatus.join('，')}</div>` 
             : '';
@@ -1033,9 +1045,16 @@ function renderTransferResults(routes, resultsContainer) {
             const stationCount = Math.abs(route.stations[1].index - route.stations[0].index);
             const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === route.route);
             const direction = getRouteDirection(routeId, route.stations[0].name, route.stations[1].name);
+            
+            // 检查方向信息是否存在
+            if (!direction) {
+                return ''; // 跳过该直达路线
+            }
+
+            routeIndex++; // 增加方案编号
             return `
-                <div class="transfer-route ${route.operationStatus && route.operationStatus.length > 0 ? 'not-operating' : ''}" data-route-index="${index}">
-                    <h3>方案 ${index + 1}：${route.route}</h3>
+                <div class="transfer-route ${route.operationStatus && route.operationStatus.length > 0 ? 'not-operating' : ''}" data-route-index="${routeIndex}">
+                    <h3>方案 ${routeIndex}：${route.route}</h3>
                     ${operationWarning}
                     <div class="route-info">
                         <span>预计 ${stationCount + 1} 分钟</span>
@@ -1053,15 +1072,15 @@ function renderTransferResults(routes, resultsContainer) {
                         </li>
                     </ul>
                     <div class="route-actions">
-                        <button class="action-button" onclick="copyRouteText(${index})">
+                        <button class="action-button" onclick="copyRouteText(${routeIndex})">
                             <img src="../UI/res/copy_black.png" alt="复制" width="16" height="16">
                             复制文本
                         </button>
-                        <button class="action-button" onclick="saveRouteImage(${index})">
+                        <button class="action-button" onclick="saveRouteImage(${routeIndex})">
                             <img src="../UI/res/image_black.png" alt="保存" width="16" height="16">
                             保存图片
                         </button>
-                        <button class="action-button" onclick="showAddTripDialog(${index})">
+                        <button class="action-button" onclick="showAddTripDialog(${routeIndex})">
                             <img src="../UI/res/agenda_black.png" alt="提醒" width="16" height="16">
                             添加提醒
                         </button>
@@ -1072,7 +1091,8 @@ function renderTransferResults(routes, resultsContainer) {
             // 换乘路线
             let routeSteps = '';
             let routeTitle = '';
-            
+            let hasInvalidRouteLink = false; // 标记是否存在无效的 route-link
+
             if (route.alternativeRoutes) {
                 // 渲染有多个可选线路的方案
                 routeTitle = route.alternativeRoutes.map(segment => 
@@ -1095,15 +1115,21 @@ function renderTransferResults(routes, resultsContainer) {
                         return getRouteDirection(routeId, segment.from, segment.to);
                     });
                     const routeWithDirections = segment.routes.map((r, i) => `${r}${directions[i]}`).join('/');
-                    
+
+                    // 检查方向信息是否存在
+                    if (directions.some(direction => !direction)) {
+                        hasInvalidRouteLink = true; // 标记存在无效的 route-link
+                        return ''; // 跳过该路线
+                    }
+
                     if (segmentIndex === 0) {
                         return `
                             <li class="route-step start">
                                 <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from} 出发</a>
                             </li>
                             <li class="route-step">
-                                ${routeWithDirections.split('/').map(route => `
-                                    <a href="#" class="route-link" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}</a>
+                                ${segment.routes.map(route => `
+                                    <a href="#" class="route-link" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
                                 `).join(' / ')} 乘坐${stationCount}站
                             </li>
                         `;
@@ -1113,8 +1139,8 @@ function renderTransferResults(routes, resultsContainer) {
                                 <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from}</a> 换乘
                             </li>
                             <li class="route-step">
-                                ${routeWithDirections.split('/').map(route => `
-                                    <a href="#" class="route-link" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}</a>
+                                ${segment.routes.map(route => `
+                                    <a href="#" class="route-link" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
                                 `).join(' / ')} 乘坐${stationCount}站
                             </li>
                             <li class="route-step end">
@@ -1127,8 +1153,8 @@ function renderTransferResults(routes, resultsContainer) {
                                 <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from}</a> 换乘
                             </li>
                             <li class="route-step">
-                                ${routeWithDirections.split('/').map(route => `
-                                    <a href="#" class="route-link" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}</a>
+                                ${segment.routes.map(route => `
+                                    <a href="#" class="route-link" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
                                 `).join(' / ')} 乘坐${stationCount}站
                             </li>
                         `;
@@ -1157,7 +1183,11 @@ function renderTransferResults(routes, resultsContainer) {
                     const direction = getRouteDirection(routeId, route.routes[segmentIndex].from, route.routes[segmentIndex].to);
 
                     let transferText = '';
-                    if (transferOptions.length > 1) {
+                    // 检查方向信息是否存在
+                    if (!direction) {
+                        hasInvalidRouteLink = true; // 标记存在无效的 route-link
+                        return ''; // 跳过该路线
+                    } else if (transferOptions.length > 1) {
                         transferText = `
                             <li class="route-step transfer">
                                 ${transferOptions.map(station => `
@@ -1206,9 +1236,32 @@ function renderTransferResults(routes, resultsContainer) {
             const transferCount = route.routes.length - 1;
             const fare = 2 + transferCount * 2;
 
+            // 检查每个 route-link 是否包含方向信息
+            const routeStepsArray = routeSteps.split('</li>');
+            const validRouteSteps = routeStepsArray.filter(step => {
+                const routeLink = step.match(/<a href="#" class="route-link" data-route="([^"]+)" onclick="handleRouteStepClick\(event, this\)">([^<]+)/);
+                if (routeLink) {
+                    const routeName = routeLink[1];
+                    const stationName = routeLink[2].split(' ')[0]; // 假设方向信息在名称后面
+                    const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === routeName);
+                    const direction = getRouteDirection(routeId, stationName, routeName);
+                    if (routeLink[1] === routeLink[2]) {
+                        hasInvalidRouteLink = true; // 标记存在无效的 route-link
+                    }
+                    return direction || routeLink[1] !== routeLink[2]; // 如果有方向信息或route-link和route文字内容不同则保留该步骤
+                }
+                return true; // 如果不是 route-link 则保留该步骤
+            }).join('</li>');
+
+            // 如果所有步骤都无效或存在无效的 route-link，则跳过该换乘方案
+            if (!validRouteSteps || hasInvalidRouteLink) {
+                return '';
+            }
+
+            routeIndex++; // 增加方案编号
             return `
-                <div class="transfer-route ${route.operationStatus && route.operationStatus.length > 0 ? 'not-operating' : ''}" data-route-index="${index}">
-                    <h3>方案 ${index + 1}：${routeTitle}</h3>
+                <div class="transfer-route ${route.operationStatus && route.operationStatus.length > 0 ? 'not-operating' : ''}" data-route-index="${routeIndex}">
+                    <h3>方案 ${routeIndex}：${routeTitle}</h3>
                     ${operationWarning}
                     <div class="route-info">
                         <span>预计 ${route.totalTime} 分钟</span>
@@ -1216,18 +1269,18 @@ function renderTransferResults(routes, resultsContainer) {
                         <span>换乘 ${transferCount} 次</span>
                     </div>
                     <ul class="route-steps">
-                        ${routeSteps}
+                        ${validRouteSteps}
                     </ul>
                     <div class="route-actions">
-                        <button class="action-button" onclick="copyRouteText(${index})">
+                        <button class="action-button" onclick="copyRouteText(${routeIndex})">
                             <img src="../UI/res/copy_black.png" alt="复制" width="16" height="16">
                             复制文本
                         </button>
-                        <button class="action-button" onclick="saveRouteImage(${index})">
+                        <button class="action-button" onclick="saveRouteImage(${routeIndex})">
                             <img src="../UI/res/image_black.png" alt="保存" width="16" height="16">
                             保存图片
                         </button>
-                        <button class="action-button" onclick="showAddTripDialog(${index})">
+                        <button class="action-button" onclick="showAddTripDialog(${routeIndex})">
                             <img src="../UI/res/agenda_black.png" alt="提醒" width="16" height="16">
                             添加提醒
                         </button>
@@ -1235,7 +1288,7 @@ function renderTransferResults(routes, resultsContainer) {
                 </div>
             `;
         }
-    }).join('');
+    }).filter(html => html.trim() !== '').join('');
 
     resultsContainer.innerHTML = routesHtml;
 }
@@ -1245,32 +1298,90 @@ window.handleRouteStepClick = function(event, element) {
 
     // 获取 route-section 元素
     const routeSection = document.querySelector('.route-section');
+    console.log('routeSection:', routeSection);
 
     // 滚动到 route-section 的顶部
     routeSection.scrollIntoView({ behavior: 'smooth' });
+    console.log('Scrolled to route-section');
 
     const elementType = element.className.includes('station-link') ? 'station' : 'route';
     const name = element.getAttribute(`data-${elementType}`);
+    console.log('ElementType:', elementType, 'Name:', name);
 
     if (elementType === 'station') {
         // 站名点击事件
+        console.log('Station clicked:', name);
         showStationDetails(name);
     } else if (elementType === 'route') {
         // 线路名点击事件
         const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === name);
+        console.log('RouteId:', routeId);
+
         if (routeId) {
             renderBusRoute(routeId);
+            console.log('Rendered bus route:', routeId);
+
             // 尝试切换到对应方向
             const direction = getRouteDirection(routeId, element.getAttribute('data-station'), name);
+            console.log('Direction:', direction);
+
             if (direction) {
-                const directionTabs = document.querySelector('.direction-tabs');
+                const directionTabs = routeSection.querySelector('.direction-tabs');
+                console.log('DirectionTabs:', directionTabs);
+
                 if (directionTabs) {
+                    // 根据方向名称找到对应的tab按钮
                     const tabButton = directionTabs.querySelector(`.tab-button[data-direction="${direction.toLowerCase()}"]`);
+                    console.log('TabButton:', tabButton);
+
                     if (tabButton) {
                         tabButton.click();
+                        console.log('Clicked tab button for direction:', direction);
+                    } else {
+                        console.warn('Tab button not found for direction:', direction);
                     }
+                } else {
+                    console.warn('Direction tabs not found');
                 }
+            } else {
+                console.warn('Direction not determined');
             }
+
+            // 滚动到特定车站的位置
+            const routeSteps = Array.from(routeSection.querySelectorAll('.route-step'));
+            console.log('RouteSteps:', routeSteps);
+
+            const clickedStepIndex = routeSteps.findIndex(step => step.contains(element));
+            console.log('ClickedStepIndex:', clickedStepIndex);
+
+            if (clickedStepIndex > 0) {
+                const targetStep = routeSteps[clickedStepIndex - 1];
+                console.log('TargetStep:', targetStep);
+
+                const stationLink = targetStep.querySelector('.station-link');
+                console.log('StationLink:', stationLink);
+
+                if (stationLink) {
+                    const stationName = stationLink.getAttribute('data-station');
+                    console.log('StationName:', stationName);
+
+                    const stationElement = routeSection.querySelector(`.station-item[data-station="${stationName}"]`);
+                    console.log('StationElement:', stationElement);
+
+                    if (stationElement) {
+                        stationElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        console.log('Scrolled to station:', stationName);
+                    } else {
+                        console.warn('Station element not found for station:', stationName);
+                    }
+                } else {
+                    console.warn('Station link not found in target step');
+                }
+            } else {
+                console.warn('Clicked step index is not valid:', clickedStepIndex);
+            }
+        } else {
+            console.warn('Route ID not found for route name:', name);
         }
     }
 };
@@ -1343,7 +1454,7 @@ window.saveRouteImage = async function(routeIndex) {
     
     try {
         const canvas = await html2canvas(container, {
-            backgroundColor: '#ffffff',
+            backgroundColor: 'transparent',
             scale: 2,
             useCORS: true
         });
@@ -1353,8 +1464,11 @@ window.saveRouteImage = async function(routeIndex) {
         const startStation = steps[0].querySelector('.station-link').textContent.trim().replace(' 出发', '');
         const endStation = steps[steps.length - 1].querySelector('.station-link').textContent.trim().replace('到达 ', '');
 
+        // 获取实际的方案编号（而不是 routeIndex）
+        const actualRouteIndex = parseInt(routeElement.getAttribute('data-route-index'));
+
         const link = document.createElement('a');
-        link.download = `${startStation}→${endStation} 方案${routeIndex + 1}.png`;
+        link.download = `${startStation}→${endStation} 方案${actualRouteIndex}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
         showToast('图片已保存');
@@ -1726,6 +1840,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 加载地铁数据并显示默认路线
     loadMetroData().then(() => {
-        renderBusRoute('101');
+        renderBusRoute('环路');
     });
 });
