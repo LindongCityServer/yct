@@ -1377,7 +1377,7 @@ function saveAsImage() {
     imageFooter.style.display = 'block';
     
     html2canvas(routeResult, {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: 'transparent',
         scale: 2, // 使用2倍缩放以获得更清晰的图片
         useCORS: true,
         logging: false,
