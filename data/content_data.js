@@ -150,7 +150,7 @@ const contentData = [
         date: '2025-02-19',
         summary: '“翡翠池“公交站更名为“水镜未来馆”，涉及152路、155路。目前站名更改工作正在进行，乘客可访问“公交线路图”页面查询具体信息。',
         category: '运营信息',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '临铁海峡.外运轮渡停运半年',
@@ -170,8 +170,27 @@ const contentData = [
         expireDate: '2025-03-31',
         summary: '为方便广大乘客候车，现公布3月临东临北巴士155路和181路发车时刻表以供参考。日常运营中会根据实际运营情况临时调点，推荐广大乘客提前5-10分钟候车！！！',
         category: '运营信息',
+        showInBanner: false
+    },
+    {
+        title: '183路、K881路开通运营',
+        image: '../data/content_banner/五间房公交枢纽.png',
+        link: '',
+        releaseTime: '2025-03-09 6:30',
+        date: '2025-03-09',
+        summary: '五间房公交枢纽 3月9日盛大启航，183路 K881路 双线齐发',
+        category: '运营信息',
         showInBanner: true
-    }
+    },
+    {
+        title: '综合保税区及碧湖新城部分公交车站更名',
+        image: '../data/content_banner/综合保税区部分公交站更名.png',
+        link: '',
+        date: '2025-03-03',
+        summary: '为适应最新城市规划并配合市政道路更名，现对综合保税区（千池山街道）和碧湖新城境内部分公交车站更名，涉及线路：287路、K801路。目前站名更改工作正在进行，乘客可打开“公交线路图”页面查询具体信息。如有问题，请及时联系服务器管理员反馈。',
+        category: '运营信息',
+        showInBanner: true
+    },
 ];
 
 // 导出数据
