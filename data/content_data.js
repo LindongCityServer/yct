@@ -174,11 +174,11 @@ const contentData = [
     },
     {
         title: '183路、K881路开通运营',
-        image: '../data/content_banner/五间房公交枢纽.png',
+        image: '../data/content_banner/五间房公交枢纽.jpg',
         link: '',
         releaseTime: '2025-03-09 6:30',
         date: '2025-03-09',
-        summary: '五间房公交枢纽 3月9日盛大启航，183路 K881路 双线齐发',
+        summary: '五间房公交枢纽，3月9日盛大启航，183路 K881路 双线齐发',
         category: '运营信息',
         showInBanner: true
     },
