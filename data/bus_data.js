@@ -1,4 +1,4 @@
-const busRoutes = {
+export const busRoutes = {
     "101": {
         name: "101路",
         operator: "临东客运集团丰河公共汽车分公司",
@@ -388,6 +388,29 @@ const busRoutes = {
             {name: "公交仁德站"}
         ]
     },
+    "156": {
+        name: "156路",
+        operator: "临东客运集团丰河公共汽车分公司",
+        firstLastBus: {
+            first: "06:00",
+            last: "22:45"
+        },
+        fare: "2元",
+        stations: [
+            {name: "宋家庄"},
+            {name: "地铁凤凰新城"},
+            {name: "拉布尼隧道西"},
+            {name: "临东交通大学"},
+            {name: "大学里"},
+            {name: "临东大学西门"},
+            {name: "冰林道口"},
+            {name: "雪乡农贸市场"},
+            {name: "叠彩人家"},
+            {name: "雪乡科技馆"},
+            {name: "临东汽配城"},
+            {name: "平山客运站"},
+        ]
+    },
     "171": {
         name: "171路",
         operator: "临东客运集团通运巴士运营管理服务中心",
@@ -545,12 +568,15 @@ const busRoutes = {
         stations: [
             {name: "五间房"},
             {name: "碧湖南山"},
+            {name: "城海客运站"},
+            {name: "城海区医院"},
+            {name: "碧湖大桥北"},
             {name: "临港大街曙光路"},
             {name: "万安街道办事处"},
             {name: "碧湖枢纽西"},
             {name: "西部沙滩"},
             {name: "团山村"},
-            {name: "农和庄"},
+            {name: "安和庄"},
             {name: "向山镇"},
             {name: "林西路口"},
             {name: "保税区"},
@@ -870,18 +896,17 @@ const busRoutes = {
             {name: "花圃村"},
             {name: "保税区"},
             {name: "林西路口"},
-            {name: "红树街曙光路"},
+            {name: "红树街南"},
             {name: "红树街一号站"},
             {name: "红树街二号站"},
             {name: "新港路红树街"},
             {name: "新港桥"},
             {name: "新港路新兴街"},
             {name: "碧湖印园"},
-            {name: "新港路观澜街"},
-            {name: "新港路临港大街"},
-            {name: "临港大街金山路"},
+            {name: "卑磷山公园"},
+            {name: "财富商厦"},
+            {name: "壁滩"},
             {name: "碧湖中心"},
-            {name: "尚瑞集团"},
             {name: "碧湖新城管委会"}
         ]
     },
@@ -1030,6 +1055,38 @@ const busRoutes = {
             {name: "CT中心"}
         ]
     },
+    "386": {
+        name: "386路",
+        operator: "临东客运集团顺鑫巴士公司",
+        firstLastBus: {
+            first: "06:00",
+            last: "21:00"
+        },
+        fare: "分段计价2-5元",
+        stations: [
+            {name: "李家坎客运站"},
+            {name: "忌城街道"},
+            {name: "新阳小区"},
+            {name: "水庙"},
+            {name: "新才中学"},
+            {name: "出生点"},
+            {name: "大学城地铁站"},
+            {name: "大学里"},
+            {name: "临东大学西门"},
+            {name: "平山隧道南"},
+            {name: "魔仙乐园西"},
+            {name: "小魔仙乐园"},
+            {name: "魔仙乐园东"},
+            {name: "临东汽配城"},
+            {name: "平山客运站"},
+            {name: "鱼岭"},
+            {name: "樱花山"},
+            {name: "南关道口"},
+            {name: "南关镇政府"},
+            {name: "南关镇南"},
+            {name: "高台子村委会"},
+        ]
+    },
     "387": {
         name: "387路",
         operator: "临东客运集团顺鑫巴士公司",
@@ -1072,7 +1129,7 @@ const busRoutes = {
             {name: "福佑车库"},
             {name: "宣庆区政府"},
             {name: "临医二院"},
-            {name: "曙光路观澜街"},
+            {name: "曙光路莲池街"},
             {name: "尚瑞集团"},
             {name: "城海客运站"}
         ]
@@ -1080,25 +1137,25 @@ const busRoutes = {
     "K881": {
         name: "K881路",
         operator: "氷峰客运公司",
-        note: "五间房6:30、9:00、16:30发，SB客运站7:30、10:00、17:30发。基础票价2元，五间房-机场高速口北段加收3元。过分段点后需再次刷卡或投币!本线响应式停靠，招手上车，下车请提前告知司机！",
+        note: "五间房6:30、9:00、16:30发，SB客运站7:30、10:00、17:30发。过分段点后需再次刷卡或投币!本线响应式停靠，招手上车，下车请提前告知司机！",
         firstLastBus: {
-            first: "06:00",
+            first: "06:30",
             last: "17:30"
         },
-        fare: "2-5元",
+        fare: "2-5元，五间房-机场高速口北段加收3元",
         stations: [
             {name: "五间房"},
+            {name: "东升立交"},
             {name: "樱花山"},
-            {name: "鱼嘴村"},
+            {name: "鱼岭"},
             {name: "平山客运站"},
             {name: "魔仙乐园西"},
-            {name: "机场高速口北"},
+            {name: "远航路青年大街"},
             {name: "航洋城"},
             {name: "新阳路地铁站"},
-            {name: "市府广场南"},
-            {name: "百鸟公园南"},
-            {name: "振工街北三路"},
-            {name: "兴工街北三路"},
+            {name: "百鸟公园"},
+            {name: "兴工街小北三路"},
+            {name: "临东站北"},
             {name: "SB客运站南门"},
         ]
     },
@@ -1128,6 +1185,28 @@ const busRoutes = {
             {name: "临北路地铁站"},
             {name: "临北路青年大街"},
             {name: "环北家园"}
+        ]
+    },
+    "V108": {
+        name: "V108路",
+        operator: "嘎联巴士（临东）有限公司",
+        firstLastBus: {
+            first: "06:30",
+            last: "23:00"
+        },
+        fare: "1元",
+        circularDirection: "counterclockwise",
+        stations: [
+            {name: "临东站西公交枢纽", oneWay: "down"},
+            {name: "兴龙苑", oneWay: "down"},
+            {name: "兴工街小北三路", oneWay: "down"},
+            {name: "兴工街建设大路", oneWay: "down"},
+            {name: "建设大路兴工街", oneWay: "down"},
+            {name: "云峰街建设大路", oneWay: "down"},
+            {name: "临湖路地铁站", oneWay: "down"},
+            {name: "云峰街临新路", oneWay: "down"},
+            {name: "铁西广场南", oneWay: "down"},
+            {name: "临东站西公交枢纽", oneWay: "down"},
         ]
     },
     "临东站东西专线": {

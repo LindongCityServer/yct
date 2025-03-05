@@ -90,7 +90,7 @@ window.stationDetail = [
                 layers: [
                     { floor: "B1", type: "concourse", },
                     { floor: "B2", type: "platform", },
-                    { floor: "B3", type: "transfer", },
+                    { floor: "B3", type: "passageway", },
                 ],
                 facilities: [
                     { type: "toilet", location: 0, },
@@ -128,7 +128,7 @@ window.stationDetail = [
                 layers: [
                     { floor: "B1", type: "concourse", },
                     { floor: "B2", type: "platform", },
-                    { floor: "B3", type: "transfer", },
+                    { floor: "B3", type: "passageway", },
                 ],
                 facilities: [
                     { type: "toilet", location: 0, },
