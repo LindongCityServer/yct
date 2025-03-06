@@ -70,7 +70,7 @@ export const busRoutes = {
             {name: "新才中学"},
             {name: "出生点"},
             {name: "海港桥北"},
-            {name: "大学城地铁站"},
+            {name: "观景台西"},
             {name: "观景台南停车场"}
         ]
     },
@@ -241,7 +241,7 @@ export const busRoutes = {
             {name: "文化街新阳路"},
             {name: "出生点"},
             {name: "忌城路地铁站"},
-            {name: "大学城地铁站"},
+            {name: "观景台西"},
             {name: "观景台南停车场"}
         ]
     },
@@ -416,7 +416,7 @@ export const busRoutes = {
         operator: "临东地铁公共交通有限公司A区",
         firstLastBus: {
             first: "06:00",
-            last: "22:45"
+            last: "21:00"
         },
         fare: "2元",
         stations: [
@@ -825,7 +825,7 @@ export const busRoutes = {
             {name: "观景台街道办"},
             {name: "沙海绿洲"},
             {name: "临东交通大学"},
-            {name: "大学城地铁站"},
+            {name: "观景台西"},
             {name: "疏港公园"},
             {name: "疏港公园北"},
             {name: "滨海立交南"},
@@ -892,7 +892,7 @@ export const busRoutes = {
             {name: "滨海立交南"},
             {name: "疏港公园北"},
             {name: "疏港公园"},
-            {name: "大学城地铁站"},
+            {name: "观景台西"},
             {name: "观景台南停车场"}
         ]
     },
@@ -1020,7 +1020,7 @@ export const busRoutes = {
             {name: "文化街新阳路"},
             {name: "出生点"},
             {name: "忌城路地铁站"},
-            {name: "大学城地铁站", oneWay: "down", note: "清客"},
+            {name: "观景台西", oneWay: "down", note: "清客"},
             {name: "观景台南停车场"}
         ]
     },
@@ -1096,7 +1096,7 @@ export const busRoutes = {
             {name: "水庙"},
             {name: "新才中学"},
             {name: "出生点"},
-            {name: "大学城地铁站"},
+            {name: "观景台西"},
             {name: "大学里"},
             {name: "临东大学西门"},
             {name: "平山隧道南"},

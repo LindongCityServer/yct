@@ -1453,6 +1453,10 @@ window.saveRouteImage = async function(routeIndex) {
     document.body.appendChild(container);
     
     try {
+        // 设置固定宽度
+        container.style.width = '480px';
+        container.style.overflow = 'hidden'; // 防止内容溢出
+        
         const canvas = await html2canvas(container, {
             backgroundColor: 'transparent',
             scale: 2,
@@ -1476,6 +1480,7 @@ window.saveRouteImage = async function(routeIndex) {
         console.error('保存图片失败:', err);
         showToast('保存图片失败');
     } finally {
+        // 移除临时容器
         document.body.removeChild(container);
     }
 }

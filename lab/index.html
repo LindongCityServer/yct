@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雨城通实验室</title>
+    <link rel="icon" href="../UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../mainpage.css">
+    <link rel="stylesheet" href="../UI/toast.css">
+    <link rel="stylesheet" href="../data_composer/style.css">
+    <link rel="stylesheet" href="../product_gallery/style.css">
+    <link rel="stylesheet" href="style.css"></link>
+</head>
+<body>
+    <!-- 标题栏 -->
+    <header class="header">
+        <button class="icon-button" id="back-to-home" onclick="window.location.href='../'" title="雨城通首页">
+            <img src="../UI/res/雨城通logo绿.png" alt="雨城通首页">
+        </button>
+        <h1>实验室</h1>
+        <div class="toolbar">
+            <button class="icon-button" id="search-button" title="搜索">
+                <img src="../UI/res/search_black.png" alt="搜索">
+            </button>
+        </div>
+    </header>
+
+    <!-- 按瀑布流展示不同批次的周边 -->
+    <div class="product-gallery">
+        <div class="product-item" onclick="window.open('../dynamic_routemap')">
+            <!--<img src="./res/雨城通卡/第三版雨城通卡面.png" alt="雨城通卡">-->
+            <h3>动态线路图</h3>
+            <p>提供一个沈阳地铁风格的动态线路图，支持导入数据编辑器生成的文件</p>
+        </div> 
+        <div class="product-item" onclick="window.open('../data_composer/')">
+            <!--<img src="./res/雨城通卡/第三版雨城通卡面.png" alt="雨城通卡">-->
+            <h3>数据编辑器</h3>
+            <p>可为“动态线路图”页面生成一个自定义线网数据</p>
+        </div> 
+        <!--<div class="product-item" onclick="window.open('../generator/bus_stop.html')">
+            <h3>公交站牌生成器</h3>
+            <p>配合服务器材质包，在Minecraft告示牌的基础上生成一个沈阳公交风格的站牌</p>
+        </div>
+        <div class="product-item" onclick="window.open('../generator/road_sign.html')">
+            <h3>路牌生成器</h3>
+            <p>生成一个沈阳风格的路牌图片，可保存成图片后转换为地图画应用到服务器上</p>
+        </div>-->
+        <div class="caption-section"></div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div class="toast-overlay">
+        <p class="toast-text"></p>
+    </div>
+    
+    <!-- 搜索框 -->
+    <div class="search-overlay">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="搜索线路或车站...">
+            <div class="search-navigation">
+                <button class="icon-button" id="prev-result" title="上一个结果" disabled>
+                    <img src="../UI/res/arrow_upward_black.png" alt="上一个">
+                </button>
+                <span class="search-count">0/0</span>
+                <button class="icon-button" id="next-result" title="下一个结果" disabled>
+                    <img src="../UI/res/arrow_downward_black.png" alt="下一个">
+                </button>
+            </div>
+            <button class="icon-button" id="close-search">
+                <img src="../UI/res/close_black.png" alt="关闭">
+            </button>
+        </div>
+    </div>  
+
+    <script src="../UI/toast.js"></script>
+    <script src="script.js" type="module"></script>
+    <script src="../UI/footer.js"></script>
+</body>
+</html>

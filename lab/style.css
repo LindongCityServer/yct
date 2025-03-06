@@ -1,0 +1,39 @@
+/* 默认样式，单列布局 */
+.product-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+}
+
+.product-item {
+    height: max-content;
+}
+
+/* 大屏模式下的两列布局 */
+@media (min-width: 640px) {
+    .product-gallery {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .product-item, .caption-section {
+        width: calc(50% - 24px); /* 两列布局，减去间距 */
+        margin-bottom: 12px;
+        height: max-content;
+    }
+}
+
+/* 更大的屏幕，三列布局 */
+@media (min-width: 720px) {
+    .product-item, .caption-section {
+        width: calc(33.33% - 24px); /* 三列布局，减去间距 */
+    }
+}
+
+@media (min-width: 1024px) {
+    .product-item, .caption-section {
+        width: calc(25% - 24px); /* 三列布局，减去间距 */
+    }
+}

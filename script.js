@@ -248,7 +248,7 @@ const featureIcons = [
     { id: 'wiki', name: '服务器wiki', icon: 'UI/res/book_black.png', link: 'https://wiki.shangxiaoguan.top' },
     { id: 'faq', name: '常见问题', icon: 'UI/res/question_black.png', link: 'https://wiki.shangxiaoguan.top/雨城通常见问题' },
     { id: 'poi', name: '周边图鉴', icon: 'UI/res/gift_black.png', link: '/product_gallery' },
-    { id: 'lab', name: '实验室', icon: 'UI/res/lab_black.png', link: '/data_composer' }
+    { id: 'lab', name: '实验室', icon: 'UI/res/lab_black.png', link: '/lab' }
 ];
 
 // DOM元素
