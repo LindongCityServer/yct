@@ -86,7 +86,7 @@ export const busRoutes = {
             {name: "临东站西公交枢纽"},
             {name: "临新东路振工街"},
             {name: "胜利大街凌州大道"},
-            {name: "临东站南（南一马路）"},
+            {name: "临东站南(南一马路)"},
             {name: "临东站"},
             {name: "中华路临中大街"},
             {name: "中华路青年大街"},
@@ -254,7 +254,7 @@ export const busRoutes = {
         },
         fare: "2元",
         stations: [
-            {name: "临东站南（南一马路）"},
+            {name: "临东站南(南一马路)"},
             {name: "临东站北"},
             {name: "胜利大街建设大路"},
             {name: "南运河北路12号"},
@@ -287,7 +287,7 @@ export const busRoutes = {
             {name: "两孔桥"},
             {name: "胜利大街建设大路"},
             {name: "临东站北"},
-            {name: "临东站南（南一马路）"},
+            {name: "临东站南(南一马路)"},
             {name: "市府大路胜利大街"},
             {name: "市府大路临中大街"},
             {name: "市政府西门"},
@@ -353,7 +353,7 @@ export const busRoutes = {
             {name: "公交仁德站"}
         ]
     },
-    "155K": {
+    "155区": {
         name: "155路区间",
         operator: "临东临北巴士有限责任公司",
         firstLastBus: {
@@ -511,7 +511,7 @@ export const busRoutes = {
             {name: "雪乡东站特色街"}
         ]
     },
-    "178S": {
+    "178支": {
         name: "178路支线",
         operator: "临东玖通客运有限公司",
         firstLastBus: {
@@ -554,12 +554,12 @@ export const busRoutes = {
             {name: "城海客运站"}
         ]
     },
-    "181S": {
+    "181支": {
         name: "181路支线",
         operator: "临东临北巴士有限责任公司",
         firstLastBus: {
             first: "定点班车",
-            last: "定点班车"
+            last: ""
         },
         fare: "2元",
         stations: [
@@ -772,7 +772,7 @@ export const busRoutes = {
             {name: "临东站西公交枢纽"},
             {name: "临新东路振工街"},
             {name: "胜利大街凌州大道", status: "已取消"},
-            {name: "临东站南（南一马路）"},
+            {name: "临东站南(南一马路)"},
             {name: "临东站北"},
             {name: "胜利大街建设大路"},
             {name: "南运河北路12号"},
@@ -996,7 +996,7 @@ export const busRoutes = {
             {name: "海港桥北"}
         ]
     },
-    "310S": {
+    "310支": {
         name: "310路支线",
         operator: "临东客运集团顺鑫巴士公司",
         firstLastBus: {
@@ -1059,7 +1059,7 @@ export const busRoutes = {
             {name: "临东体育场西门"}
         ]
     },
-    "323K": {
+    "323区": {
         name: "323路区间",
         operator: "临东客运集团丰河公共汽车分公司",
         firstLastBus: {
@@ -1243,7 +1243,7 @@ export const busRoutes = {
             {name: "临东站西公交枢纽", oneWay: "down"},
         ]
     },
-    "临东站东西专线": {
+    "临站": {
         name: "临东站东西专线",
         operator: "临东客运集团通运巴士运营管理服务中心",
         firstLastBus: {
@@ -1257,7 +1257,7 @@ export const busRoutes = {
             {name: "临东站西公交枢纽", oneWay: "down"},
             {name: "临东站北", oneWay: "down"},
             {name: "临东站", oneWay: "down"},
-            {name: "临东站南（南一马路）", oneWay: "down"},
+            {name: "临东站南(南一马路)", oneWay: "down"},
             {name: "临东站西公交枢纽", oneWay: "down"}
         ]
     },
@@ -1270,7 +1270,7 @@ export const busRoutes = {
         },
         fare: "2元",
         stations: [
-            {name: "临东站南（南一马路）"},
+            {name: "临东站南(南一马路)"},
             {name: "胜利大街凌州大道"},
             {name: "百鸟公园"},
             {name: "西丘办事处"},
@@ -1410,7 +1410,7 @@ export const busRoutes = {
             {name: "汽车城停车场"},
         ]
     },
-    "观光一线": {
+    "观1": {
         name: "观光一线",
         operator: "临东客运集团丰河公共汽车分公司",
         firstLastBus: {

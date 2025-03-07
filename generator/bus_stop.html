@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公交站牌生成器 - 雨城通实验室</title>
+    <link rel="icon" href="../UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="../mainpage.css" />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../data_composer/style.css" />
+    <link rel="stylesheet" href="../dynamic_routemap/style.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../UI/toast.css" />
+    <link rel="stylesheet" href="bus_stop.css" />
+</head>
+<body>
+    <!-- 头部导航栏 -->
+    <header class="header">
+        <button class="icon-button" id="back-to-lab" onclick="window.location.href='../lab'" title="实验室">
+            <img src="../UI/res/arrow_back_black.png" alt="返回">
+        </button>
+        <h1>公交站牌生成器</h1>
+        <div class="toolbar">            
+            <button class="icon-button" id="copy" onclick="" title="复制链接">
+                <img src="../UI/res/link_black.png" alt="复制链接">
+            </button>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <div class="content-container">
+        <!--从../data/bus_data.js读取的busRoutes数据中选择线路、方向和站点-->
+        <div class="data-selector">
+            <div class="line-container">
+                <label for="line">线路：</label>
+                <select id="line">
+                    <option value="">线路</option>
+                    <!-- 动态生成线路选项 -->
+                </select>
+            </div>
+            <div class="direction-container">
+                <label for="direction">方向：</label>
+                <select id="direction">
+                    <option value="">请选择方向</option>
+                    <!-- 动态生成方向选项 -->
+                </select>
+            </div>
+            
+            <div class="station-container">
+                <label for="station">站点：</label>
+                <select id="station">
+                    <!-- 动态生成站点选项 -->
+                </select>
+            </div>
+        </div>
+        <!-- 预览窗口 -->
+        <div class="preview-container" style="width: fit-content;height: fit-content;line-height: 1;">
+            <!--文字图层-->
+            <div class="text-layer">
+            </div>
+            <!--背景图片-->
+            <img style="width: 12em;" src="../UI/res/sign_crimson.png" alt="背景图片" id="bg-image"></img>
+        </div>
+        <div class="button-container">
+            <button class="action-button" id="copy-action">
+                复制并跳转
+            </button>
+            <button id="copy-content">复制内容</button>
+            <button id="download-button">下载图片</button>
+        </div>
+    </div>
+    </div>
+    <div class="toast-overlay"></div>
+    <div class="caption-section" style="padding: 0 24px;"></div>
+
+    <!-- 引入 bus_stop.js 文件 -->
+    <script type="module" src="bus_stop.js"></script>
+    <!-- 引入其他必要的脚本文件 -->
+    <script type="module" src="../UI/toast.js"></script>
+    <script type="module" src="../UI/footer.js"></script>
+    <script type="module" src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+/*导入unifont字体*/
+@font-face {
+    font-family: 'unifont';
+    src: url('../UI/fonts/unifont-16.0.02.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.data-selector {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.data-selector #line {
+    width: 8em;
+}
+
+.data-selector #direction {
+    width: 16em;
+}
+
+.data-selector .station-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.data-selector .station-container #station {
+    width: calc(100% - 6em);
+}
+
+.text-layer {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: fit-content;
+    top: 0.6rem;
+}
+
+.text-layer span, .text-layer p {
+    font-family: 'unifont', monospace !important;
+    line-height: 1.25;
+    white-space: pre; /* 或者 pre-wrap */
+}
+
+/* 新增颜色类 */
+.text-layer .schedule-time, .text-layer .route-id {
+    color: var(--text-color-f);
+}
+
+.text-layer .route-id {
+    text-shadow: 0.06em 0 var(--text-color-f);
+}
+
+.text-layer .direction-text {
+    color: var(--text-color-1);
+}
+
+/* 箭头颜色处理 */
+.text-layer .arrow, .text-layer .next-station {
+    color: var(--text-color-4);
+}
+
+/* 修复箭头显示 */
+.text-layer .direction-text {
+    position: relative;
+}
+
+button {
+    padding: 6px 12px;
+    margin: 0;
+}

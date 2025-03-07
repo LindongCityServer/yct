@@ -241,8 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const containerCount = Math.floor(availableWidth / 256);
         const width = containerCount * 256;
 
-        if (signboardContainers.length * 256 <= availableWidth) {
-            previewContainer.style.width = 'fit-content';
+        if (( signboardContainers.length + 1 ) * 256 <= availableWidth) {
+            previewContainer.style.width = signboardContainers.length * 256;
         } else {
             previewContainer.style.width = `${width}px`;
         }
