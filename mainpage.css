@@ -287,6 +287,9 @@ main {
     line-height: 1.2;
     opacity: 1;
     transform: translateX(0);
+    word-break: keep-all; /* 保持东亚文字完整 */
+    -webkit-hyphens: auto;
+    hyphens: auto;
 }
 
 .carousel-slide::before {
@@ -1377,7 +1380,7 @@ input[type="color"]::-moz-color-swatch {
     }
 
     main {
-        max-width: 1200px;
+        max-width: 1024px;
         margin: 0 auto;
         padding: 16px;
         height: calc(100vh - 56px);
@@ -1472,7 +1475,7 @@ input[type="color"]::-moz-color-swatch {
 
     /* 调整发起乘车按钮样式 */
     .apply-card-btn {
-        max-width: 1200px;
+        max-width: 1024px;
         margin: 0 auto;
     }
 }

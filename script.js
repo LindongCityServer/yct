@@ -124,8 +124,9 @@ function loadNewsContent() {
         
         // 设置标题和链接
         const titleLink = newsItem.querySelector('.news-title a');
-        titleLink.textContent = news.title;
-        titleLink.title = news.title;
+        const titleText = news.title.replace(/\|/g, '');
+        titleLink.textContent = titleText;
+        titleLink.title = titleText;
         if (news.link) {
             titleLink.href = news.link;
             titleLink.classList.remove('no-link');
@@ -700,16 +701,19 @@ function initCarousel() {
         const isColorCode = hasImage && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(banner.image);
         const isCssVariable = hasImage && /^--[\w-]+$/.test(banner.image); // 检查是否为CSS变量
         
+        //将banner.title中的特殊字符进行转义，并替换为<wbr>标签
+        const sanitizedTitle = banner.title.replace(/\|/g, '<wbr>')
+
         return `
             <div class="carousel-slide${(!hasImage || isColorCode || isCssVariable) ? ' no-image' : ''}" 
                  data-index="${index}"
                  ${isColorCode ? `style="background-color: ${banner.image};"` : ''}
                  ${isCssVariable ? `style="background-color: var(${banner.image});"` : ''}>
                 ${hasImage && !isColorCode && !isCssVariable ? `
-                    <img src="${banner.image}" alt="${banner.title}" onerror="this.parentElement.classList.add('no-image')">
-                    <div class="carousel-title">${banner.title}</div>
+                    <img src="${banner.image}" alt="${sanitizedTitle}" onerror="this.parentElement.classList.add('no-image')">
+                    <div class="carousel-title">${sanitizedTitle}</div>
                 ` : `
-                    <div class="carousel-title">${banner.title}</div>
+                    <div class="carousel-title">${sanitizedTitle}</div>
                 `}
             </div>
         `;
