@@ -569,6 +569,10 @@ function adjustColor(color, opacity) {
 
 // 添加事件监听
 document.addEventListener('DOMContentLoaded', async () => {
+    // 添加乘车按钮事件监听
+    document.querySelector('.header-apply-card-btn').addEventListener('click', handleApplyCard);
+    document.querySelector('.apply-card-btn').addEventListener('click', handleApplyCard);    
+
     // 首先加载交通数据
     await loadTransportData();
     
@@ -611,20 +615,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     // 添加乘车按钮事件监听
-    document.querySelector('.header-apply-card-btn')?.addEventListener('click', handleApplyCard);
-    document.querySelector('.apply-card-btn')?.addEventListener('click', handleApplyCard);    
+    //document.querySelector('.header-apply-card-btn')?.addEventListener('click', handleApplyCard);
+    //document.querySelector('.apply-card-btn')?.addEventListener('click', handleApplyCard);    
 });
 
-// 申请刷卡
-function handleApplyCard() {
-    navigator.clipboard.writeText('/tag @s add yct-ready')
-        .then(() => {
-            showToast('已复制指令到剪贴板，请在服务器中粘贴');
-        })
-        .catch(err => {
-            console.error('复制失败:', err);
-            showToast('复制失败，请到服务器手动输入指令：/tag @s add yct-ready');
-        });
+// 新增旧版复制方法
+function fallbackCopy(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed'; // 隐藏输入框
+  textarea.style.opacity = 0;
+  document.body.appendChild(textarea);
+  textarea.select();
+  textarea.setSelectionRange(0, 99999); // 移动端兼容
+  const success = document.execCommand('copy');
+  document.body.removeChild(textarea);
+  return success;
+}
+
+async function handleApplyCard() {
+  try {
+    // 优先使用现代API
+    await navigator.clipboard.writeText('/tag @s add yct-ready');
+    showToast('已复制指令到剪贴板，请在服务器中粘贴');
+  } catch (err) {
+    console.error('复制失败:', err);
+    let message = '';
+    
+    if (err.name === 'SecurityError') {
+      message = '请在 HTTPS 环境下使用复制功能';
+    } else if (err.name === 'NotAllowedError') {
+      message = '浏览器阻止了剪贴板操作，请检查权限';
+    } else {
+      // 尝试旧版回退方法
+      const success = fallbackCopy('/tag @s add yct-ready');
+      message = success 
+        ? '已通过旧版方法复制'
+        : '复制失败，请手动输入指令：/tag @s add yct-ready';
+    }
+    
+    showToast(message);
+  }
 }
 
 // 显示Toast提示
@@ -1160,12 +1191,30 @@ document.addEventListener('DOMContentLoaded', () => {
     initServerStatus();
 });
 
-// 当按下permission-banner中的close-button或已经设置网页通知权限时，隐藏权限请求横幅
-if (Notification.permission === 'granted' || Notification.permission === 'denied') {
-    document.querySelector('.permission-banner').style.display = 'none';
-}
-document.querySelector('.permission-banner .close-button').addEventListener('click', () => {
-    document.querySelector('.permission-banner').style.display = 'none';
+document.addEventListener('DOMContentLoaded', () => {
+  const permissionBanner = document.querySelector('.permission-banner');
+  
+  if ('Notification' in window) {
+    switch (Notification.permission) {
+      case 'granted':
+        permissionBanner.style.display = 'none'; // 已允许，隐藏提示
+        break;
+      case 'denied':
+        permissionBanner.querySelector('.expired-tag').textContent = '已拒绝';
+        break;
+      default:
+        // 显示提示并请求权限
+        permissionBanner.querySelector('.notification-permission').addEventListener('click', () => {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              permissionBanner.style.display = 'none';
+            }
+          });
+        });
+    }
+  } else {
+    permissionBanner.style.display = 'none';
+  }
 });
 
 // 从localStorage获取行程信息

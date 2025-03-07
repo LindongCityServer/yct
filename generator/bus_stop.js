@@ -281,16 +281,32 @@ function generateBusStop() {
 }
 
 // 新增copyContent函数
-function copyContent() {
-    if (window.copyText) {
-        navigator.clipboard.writeText(window.copyText).then(() => {
-            showToast('内容已复制到剪贴板');
-        }).catch(err => {
-            console.error('复制失败', err);
-        });
-    } else {
-        console.warn('未生成可复制的内容');
+async function copyContent() {
+    //showToast('正在复制内容...');
+    if (!window.copyText) {
+        showToast('无内容可复制');
+        return;
     }
+
+    try {
+        await navigator.clipboard.writeText(window.copyText);
+        showToast('内容已复制到剪贴板');
+    } catch (err) {
+        console.error('现代API失败:', err);
+        // 尝试降级方案
+        fallbackCopy(window.copyText);
+        showToast('内容已复制（备用方案）');
+    }
+}
+
+// 降级方案函数
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
 }
 
 // 因不存在对应指令，改为复制并跳转到下一站功能
@@ -343,4 +359,5 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('copy-content').addEventListener('click', copyContent);
     document.getElementById('copy-action').addEventListener('click', copyCommand);
     document.getElementById('download-button').addEventListener('click', downloadImage);
+    //navigator.clipboard.writeText('测试').then(() => showToast('浏览器支持剪贴板功能'), () => showToast('浏览器不支持剪贴板功能'));
 });
