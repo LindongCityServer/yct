@@ -235,7 +235,7 @@ function generateBusStop() {
         const currentLength = routeIdWidth + nextStationWidth;
 
         // 空格计算
-        const totalWidth = 22;
+        const totalWidth = 20;
         const totalSpaces = Math.max(0, totalWidth - currentLength); // 防止负数
         const spacesOdd = '&nbsp;'.repeat(Math.floor(totalSpaces / 2));
         const spacesEven = '&nbsp;'.repeat(Math.ceil(totalSpaces / 2));
@@ -264,7 +264,7 @@ function generateBusStop() {
         ];
 
         // 更新复制文本
-        const line2 = `§f首末车时间: ${firstTime}-${lastTime}`;
+        const line2 = `§f首末车时间:${firstTime}-${lastTime}`;
         const line1 = `§f§l${routeId}§r${spacesEven.replace(/&nbsp;/g, ' ')}§4${nextStationName}${spacesOdd.replace(/&nbsp;/g, ' ')}`;
         const line3 = `§1${stations[1].textContent}§4 →`;
         const line4 = `§1${stations[stations.length - 1].textContent}`;
