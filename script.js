@@ -1060,7 +1060,7 @@ async function updateServerStatus() {
         return;
     }
 
-    const SERVER_ADDRESS = 'ld.cmsy.xyz';
+    const SERVER_ADDRESS = 'router.cmsy.xyz';
     const SERVER_PORT = '19132';
     const API_URL = 'https://wiki.shangxiaoguan.top/api.php';
 

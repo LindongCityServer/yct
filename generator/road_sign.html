@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>路牌生成器 - 雨城通实验室</title>
+    <link rel="icon" href="../UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="../mainpage.css" />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../data_composer/style.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="road_sign.css" />
+    <link rel="stylesheet" href="../UI/toast.css" />
+</head>
+<body>
+    <!-- 头部导航栏 -->
+    <header class="header">
+        <button class="icon-button" id="back-to-lab" onclick="window.location.href='../lab'" title="实验室">
+            <img src="../UI/res/arrow_back_black.png" alt="返回">
+        </button>
+        <h1>路牌生成器</h1>
+        <div class="toolbar">            
+            <button class="icon-button" id="copy" onclick="" title="复制链接">
+                <img src="../UI/res/link_black.png" alt="复制链接">
+            </button>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <div class="content-container">
+        <div class="preview-container">
+            <div class="signboard-container">
+                <div class="signboard road-sign">
+                    <div class="top-section">
+                        <div class="arrow arrow-left">
+                            <div class="arrow-head"><p class="top-direction-left">西</p></div>
+                        </div>        
+                        <span class="road-sign-name">示 例 路 名</span>    
+                        <div class="arrow">
+                            <div class="arrow-head"><p class="top-direction-right">东</p></div>
+                        </div>
+                    </div>
+                    <div class="bottom-section">
+                        <span class="bottom-direction-left">W</span>
+                        <span class="road-sign-name-en">SHILI LUMING</span>
+                        <span class="bottom-direction-right">E</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="data-list">
+            <!-- 数据项将在这里动态添加 -->
+        </div>
+    </div>
+    <div class="toast-overlay">
+    </div>
+    <div class="caption" style="padding: 0 24px;">
+        网页部分代码由AI生成，仅供学习参考，切勿用于非法用途。本站不对用户输入的内容做任何担保。部分图标来自<a href="https://www.icons8.com/">Icons8</a>
+    </div>
+
+    <!-- 浮动面板 -->
+    <div class="floating-panel">
+        <button class="icon-button" id="back-to-top" alt="回到顶部">
+            <img src="../UI/res/arrow_upward_black.png" alt="回到顶部"></img>
+        </button>
+        <button class="icon-button" id="add" alt="添加路牌">
+            <img src="../UI/res/add_black.png" alt="添加"></img>
+        </button>
+        <button class="icon-button" id="download-button" alt="下载图片">
+            <img src="../UI/res/image_black.png" alt="下载"></img>
+        </button>
+    </div>
+
+    <script type="module" src="road_sign.js"></script>
+    <!-- 引入其他必要的脚本文件 -->
+    <script type="module" src="../UI/toast.js"></script>
+    <!--<script type="module" src="../UI/footer.js"></script>-->
+    <script type="module" src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</body>
+</html>
