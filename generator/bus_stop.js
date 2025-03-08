@@ -251,9 +251,13 @@ function generateBusStop() {
             lastTime = operationTime.upward?.last || selectedRoute.firstLastBus.last;
         }
 
+        // 应客户要求将首末车时间改回计算前的数据
+        firstTime = selectedRoute.firstLastBus.first;
+        lastTime = selectedRoute.firstLastBus.last;
+
         // 调试输出
-        console.log('计算后的时间:', firstTime, lastTime);
-        console.log('原始时间:', selectedRoute.firstLastBus.first, selectedRoute.firstLastBus.last);
+        //console.log('计算后的时间:', firstTime, lastTime);
+        //console.log('原始时间:', selectedRoute.firstLastBus.first, selectedRoute.firstLastBus.last);
 
         // 更新显示内容
         const lines = [
