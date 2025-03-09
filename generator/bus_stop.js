@@ -344,7 +344,6 @@ function copyCommand() {
 // 保存图片按钮功能
 function downloadImage() {
     const previewContainer = document.querySelector('.preview-container');
-    previewContainer.style.background = 'transparent';
     const now = new Date();
     const year = String(now.getFullYear()).slice(-2); // 获取两位年份
     const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份补零
@@ -352,7 +351,10 @@ function downloadImage() {
     const hours = String(now.getHours()).padStart(2, '0'); // 小时补零
     const minutes = String(now.getMinutes()).padStart(2, '0'); // 分钟补零
     const formattedTimeDate = `${year}${month}${day}_${hours}${minutes}`;
-    html2canvas(previewContainer).then(canvas => {
+    html2canvas(previewContainer, {
+        backgroundColor: 'transparent',
+        lineHeight: 1,
+    }).then(canvas => {        
         const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = imgData;
