@@ -344,6 +344,7 @@ function copyCommand() {
 // 保存图片按钮功能
 function downloadImage() {
     const previewContainer = document.querySelector('.preview-container');
+    previewContainer.style.background = 'transparent';
     const now = new Date();
     const year = String(now.getFullYear()).slice(-2); // 获取两位年份
     const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份补零

@@ -1556,7 +1556,7 @@ export const busRoutes = {
         stations: [
             {name: "花城广场"},
             {name: "来又来"},
-            {name: "铁西汽车城管委会"},
+            {name: "车城大厦"},
             {name: "汽车城停车场"},
         ]
     },

@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let hasInitialSignboard = initialSignboardContainer !== null;
 
     // 添加路牌
-    addBtn.addEventListener('click', () => {
+    addBtn.addEventListener('click', handleAddBtnClick);
+    function handleAddBtnClick() {
         const dataItem = document.createElement('div');
         dataItem.className = 'data-item';
 
@@ -34,10 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="direction-input">
                     <label for="direction">方向：</label>
                     <select class="direction">
-                        <option value="ns">北南</option>
-                        <option value="sn">南北</option>
                         <option value="we">西东</option>
                         <option value="ew">东西</option>
+                        <option value="ns">北南</option>
+                        <option value="sn">南北</option>
                     </select>
                 </div>
                 <button class="icon-button remove" style="color: red;">
@@ -84,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 调整 preview-container 的宽度
         adjustPreviewContainerWidth();
-    });
+    }
 
     // 下载路牌图片
     downloadBtn.addEventListener('click', () => {
@@ -96,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const date = new Date();
             const formattedDate = `${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
             const formattedTime = `${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}`;
-            const fileName = `路牌_${formattedDate}_${formattedTime}_${Math.ceil(width / 128)}x${Math.ceil(height / 128)}.png`;
+            const fileName = `路牌_${formattedDate}_${formattedTime}_${Math.ceil(width / 256)}x${Math.ceil(height / 256)}.png`;
 
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/png');
@@ -237,20 +238,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // 调整 preview-container 的宽度
     function adjustPreviewContainerWidth() {
         const signboardContainers = previewContainer.querySelectorAll('.signboard-container');
-        const availableWidth = previewContainer.clientWidth;
-        const containerCount = Math.floor(availableWidth / 256);
-        const width = containerCount * 256;
+        const containerCount = signboardContainers.length;
+        const containerWidth = 256;
+        const gap = 8; // 与CSS中gap一致
+        const totalWidth = containerCount * containerWidth;
 
-        if (( signboardContainers.length + 1 ) * 256 <= availableWidth) {
-            previewContainer.style.width = signboardContainers.length * 256;
+        // 获取父容器的可用宽度（假设父容器为 .content-container）
+        const parentWidth = previewContainer.parentElement.offsetWidth;
+
+        if (totalWidth <= parentWidth) {
+            // 当容器总宽度 ≤ 父容器宽度时，设置为总宽度
+            previewContainer.style.width = `${totalWidth}px`;
         } else {
-            previewContainer.style.width = `${width}px`;
+            // 超过父容器宽度时，允许换行并重置宽度
+            previewContainer.style.width = 'auto';
         }
 
-        // 如果没有 signboard-container，则显示初始的占位 signboard-container
+        // 处理初始占位容器
         if (signboardContainers.length === 0 && hasInitialSignboard) {
             initialSignboardContainer.style.display = 'block';
+        } else {
+            initialSignboardContainer.style.display = 'none';
         }
+    }
+
+    // 在DOMContentLoaded事件中添加：
+    if (initialSignboardContainer && hasInitialSignboard) {
+        initialSignboardContainer.remove();
+        hasInitialSignboard = false;
     }
 
     // 自动填充上一个路牌的信息
@@ -272,6 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始调整 preview-container 的宽度
     adjustPreviewContainerWidth();
+
+    handleAddBtnClick();
 
     // 监听窗口大小变化，调整 preview-container 的宽度
     window.addEventListener('resize', adjustPreviewContainerWidth);
