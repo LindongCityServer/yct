@@ -173,11 +173,14 @@ function calculateStationOperationTime(routeId, stationName) {
     const downwardIndex = downwardStations.findIndex(s => s.name === stationName);
 
     const { first, last } = route.firstLastBus;
+    const { first: firstUpwards, last: lastUpwards } = route.firstLastBusUpwards ? route.firstLastBusUpwards : route.firstLastBus;
+    console.log('读取首末班车时间数据：\n下行：', first, '-', last, '\n上行：', firstUpwards, '-', lastUpwards, '\n');
 
     // 计算上行方向时间（假设每站2分钟）
     let upwardTime = null;
     if (upwardIndex !== -1) {
-        const timeOffset = upwardIndex * 2;
+        const timeOffset = 0;
+        // timeOffset = upwardIndex * 2;
         upwardTime = {
             first: addMinutes(first, timeOffset),
             last: addMinutes(last, timeOffset)
@@ -187,10 +190,11 @@ function calculateStationOperationTime(routeId, stationName) {
     // 计算下行方向时间（从终点站倒推）
     let downwardTime = null;
     if (downwardIndex !== -1) {
-        const timeFromEnd = (downwardStations.length - 1 - downwardIndex) * 2;
+        const timeFromEnd = 0;
+        // timeFromEnd = (downwardStations.length - 1 - downwardIndex) * 2;
         downwardTime = {
-            first: addMinutes(first, timeFromEnd),
-            last: addMinutes(last, timeFromEnd)
+            first: addMinutes(firstUpwards, timeFromEnd),
+            last: addMinutes(lastUpwards, timeFromEnd)
         };
     }
 
@@ -225,8 +229,20 @@ function generateBusStop() {
         const selectedStationIndex = stations.findIndex(s => s.value === selectedStationId); // 通过value匹配
         const nextStation = stations[selectedStationIndex + 1] || { textContent: '终　点' }; // 使用textContent获取显示名称
 
+        // 处理起点方向文本
+        const startStation = stations[1].textContent;
+        const isStartMatch = startStation === selectedStationId;
+        const line3Class = isStartMatch ? 'direction-text selected' : 'direction-text';
+        const line3ColorCode = isStartMatch ? '§4' : '§1';
+
+        // 处理终点方向文本
+        const endStation = stations[stations.length - 1].textContent;
+        const isEndMatch = endStation === selectedStationId;
+        const line4Class = isEndMatch ? 'direction-text selected' : 'direction-text';
+        const line4ColorCode = isEndMatch ? '§4' : '§1';
+
         // 后续使用时应取textContent：
-        const nextStationName = nextStation.textContent || '终　点';
+        const nextStationName = nextStation.textContent || '终　　　点';
 
         // 计算字符宽度
         const routeId = selectedLineId;
@@ -244,16 +260,12 @@ function generateBusStop() {
         const operationTime = calculateStationOperationTime(selectedLineId, selectedStationId);
         let firstTime, lastTime;
         if (selectedDirection === 'down') {
-            firstTime = operationTime.downward?.first || selectedRoute.firstLastBus.first;
-            lastTime = operationTime.downward?.last || selectedRoute.firstLastBus.last;
+            firstTime = operationTime.downward?.first || selectedRoute.firstLastBusUpwards.first;
+            lastTime = operationTime.downward?.last || selectedRoute.firstLastBusUpwards.last;
         } else {
             firstTime = operationTime.upward?.first || selectedRoute.firstLastBus.first;
             lastTime = operationTime.upward?.last || selectedRoute.firstLastBus.last;
         }
-
-        // 应客户要求将首末车时间改回计算前的数据
-        firstTime = selectedRoute.firstLastBus.first;
-        lastTime = selectedRoute.firstLastBus.last;
 
         // 调试输出
         //console.log('计算后的时间:', firstTime, lastTime);
@@ -263,15 +275,15 @@ function generateBusStop() {
         const lines = [
             `<span class="route-id">${routeId}</span>${spacesEven}<span class="next-station">${nextStationName}</span>${spacesOdd}`,
             `<span class="schedule-time">首末车时间:${firstTime}-${lastTime}</span>`,
-            `<span class="direction-text">${stations[1].textContent}<span class="arrow"> →</span></span>`,
-            `<span class="direction-text">${stations[stations.length - 1].textContent}</span>`
+            `<span class="${line3Class}">${startStation}<span class="arrow"> →</span></span>`,
+            `<span class="${line4Class}">${endStation}</span>`
         ];
 
         // 更新复制文本
         const line2 = `§f首末车时间:${firstTime}-${lastTime}`;
         const line1 = `§f§l${routeId}§r${spacesEven.replace(/&nbsp;/g, ' ')}§4${nextStationName}${spacesOdd.replace(/&nbsp;/g, ' ')}`;
-        const line3 = `§1${stations[1].textContent}§4 →`;
-        const line4 = `§1${stations[stations.length - 1].textContent}`;
+        const line3 = `${line3ColorCode}${startStation}§4 →`;
+        const line4 = `${line4ColorCode}${endStation}`;
         window.copyText = [line1, line2, line3, line4].join('\n');
 
         // 渲染文本层

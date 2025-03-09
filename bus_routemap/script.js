@@ -83,9 +83,43 @@ function renderBusRoute(routeId) {
     const routeSection = document.querySelector('.route-section');
     routeSection.innerHTML = '';
 
+    // 提前声明并初始化 isCircular
+    const isCircular =
+        route.stations[0].name === route.stations[route.stations.length - 1].name &&
+        route.stations[0].oneWay === route.stations[route.stations.length - 1].oneWay;
+
     // 创建线路信息头部
     const routeHeader = document.createElement('div');
     routeHeader.className = 'route-header';
+
+    // 计算方向名称
+    let upwardDirectionName, downwardDirectionName;
+    if (isCircular) {
+        const isClockwise = route.circularDirection === 'clockwise';
+        upwardDirectionName = isClockwise ? '内环' : '外环';
+        downwardDirectionName = isClockwise ? '外环' : '内环';
+    } else {
+        const upwardStations = route.stations.filter(station => !station.oneWay || station.oneWay === 'down');
+        const downwardStations = route.stations.filter(station => !station.oneWay || station.oneWay === 'up');
+        const upwardTerminal = upwardStations[upwardStations.length - 1].name;
+        const downwardTerminal = downwardStations[0].name;
+
+        upwardDirectionName = `${upwardTerminal}方向`;
+        downwardDirectionName = `${downwardTerminal}方向`;
+    }
+
+    // 构造route-info内容
+    const routeInfoContent = `
+        <div class="route-info">
+            <p>首末车时间：${route.firstLastBusUpwards ? '</p><p>　　' + upwardDirectionName + '：' : ''}${route.firstLastBus.first}-${route.firstLastBus.last}</p>
+            ${route.firstLastBusUpwards ? `<p>　　${downwardDirectionName}：${route.firstLastBusUpwards.first}-${route.firstLastBusUpwards.last}</p>` : ''}
+            <p>票价：${route.fare} 元</p>
+            <p>运营单位：${route.operator}</p>
+            ${route.note ? `<p>备注：${route.note}</p>` : ''}
+            ${route.circularDirection ? `<p>运行方向：${route.circularDirection === 'clockwise' ? '内环' : '外环'}</p>` : ''}
+        </div>
+    `;
+
     routeHeader.innerHTML = `
         <div class="route-title">
             <h2>${route.name}</h2>
@@ -93,13 +127,7 @@ function renderBusRoute(routeId) {
                 <img src="../UI/res/info_black.png" alt="详情" class="theme-aware-icon">
             </button>
         </div>
-        <div class="route-info">
-            <p>首末班：${route.firstLastBus.first} - ${route.firstLastBus.last}</p>
-            <p>票价：${route.fare}</p>
-            <p>运营单位：${route.operator}</p>
-            ${route.note ? `<p>备注：${route.note}</p>` : ''}
-            ${route.circularDirection ? `<p>运行方向：${route.circularDirection === 'clockwise' ? '内环' : '外环'}</p>` : ''}
-        </div>
+        ${routeInfoContent}
     `;
     routeSection.appendChild(routeHeader);
 
@@ -108,8 +136,8 @@ function renderBusRoute(routeId) {
     stationList.className = 'station-list';
 
     // 检查是否为环线
-    const isCircular = route.stations[0].name === route.stations[route.stations.length - 1].name &&
-        route.stations[0].oneWay === route.stations[route.stations.length - 1].oneWay;
+    /*const isCircular = route.stations[0].name === route.stations[route.stations.length - 1].name &&
+        route.stations[0].oneWay === route.stations[route.stations.length - 1].oneWay;*/
 
     let directionTabs; // 提升 directionTabs 变量的作用域
 
@@ -253,6 +281,21 @@ function renderBusRoute(routeId) {
         stationList.appendChild(stationContent);
     }
 
+    const routeInfo = document.getElementsByClassName('route-info');
+    if (routeInfo.firstLastBusUpwards) {
+        routeInfo.innerHTML = `
+            <div class="route-info">
+                <p>首末车时间：</p>
+                <p>${downwardDirectionName}：${route.firstLastBus.first}-${route.firstLastBus.last}</p>
+                <p>${upwardDirectionName}：${route.firstLastBusUpwards.first}-${route.firstLastBusUpwards.last}</p>
+                <p>票价：${route.fare} 元</p>
+                <p>运营单位：${route.operator}</p>
+                ${route.note ? `<p>备注：${route.note}</p>` : ''}
+                ${route.circularDirection ? `<p>运行方向：${route.circularDirection === 'clockwise' ? '内环' : '外环'}</p>` : ''}
+            </div>
+        `;
+    }
+
     routeSection.appendChild(stationList);
 
     // 添加调试信息
@@ -361,6 +404,20 @@ function renderStationSection(stations, container) {
     });
 }
 
+function validateRouteData(route) {
+    if (!route.firstLastBus || !route.firstLastBus.first || !route.firstLastBus.last) {
+        console.error('Invalid route data:', route);
+        return false;
+    }
+    return true;
+}
+
+Object.values(busRoutes).forEach(route => {
+    if (!validateRouteData(route)) {
+        console.warn(`Route ${route.name} has missing or invalid firstLastBus data`);
+    }
+});
+
 // 计算站点在特定路线上的运营时间
 function calculateStationOperationTime(routeId, stationName) {
     const route = busRoutes[routeId];
@@ -381,6 +438,8 @@ function calculateStationOperationTime(routeId, stationName) {
     // 解析首末班车时间
     const [firstHour, firstMinute] = route.firstLastBus.first.split(':').map(Number);
     const [lastHour, lastMinute] = route.firstLastBus.last.split(':').map(Number);
+    const [firstHourUpwards, firstMinuteUpwards] = route.firstLastBusUpwards ? route.firstLastBusUpwards.first.split(':').map(Number) : [firstHour, firstMinute];
+    const [lastHourUpwards, lastMinuteUpwards] = route.firstLastBusUpwards ? route.firstLastBusUpwards.last.split(':').map(Number) : [lastHour, lastMinute];
 
     // 计算上行方向时间
     let upwardTime = null;
@@ -407,10 +466,10 @@ function calculateStationOperationTime(routeId, stationName) {
         const timeFromEnd = (downwardStations.length - 1 - downwardIndex) * 2;
         
         const firstTimeDown = new Date();
-        firstTimeDown.setHours(firstHour, firstMinute + timeFromEnd, 0);
+        firstTimeDown.setHours(firstHourUpwards, firstMinuteUpwards + timeFromEnd, 0);
         
         const lastTimeDown = new Date();
-        lastTimeDown.setHours(lastHour, lastMinute + timeFromEnd, 0);
+        lastTimeDown.setHours(lastHourUpwards, lastMinuteUpwards + timeFromEnd, 0);
 
         downwardTime = {
             first: `${String(firstTimeDown.getHours()).padStart(2, '0')}:${String(firstTimeDown.getMinutes()).padStart(2, '0')}`,
@@ -456,6 +515,11 @@ function showStationDetails(stationName) {
     const routes = findStationRoutes(stationName);
     routes.forEach(route => {
         const operationTime = calculateStationOperationTime(route.routeId, stationName);
+        if (!operationTime) {
+            console.warn(`Could not calculate operation time for station ${stationName} on route ${route.routeName}`);
+            return; // 跳过无法计算的站点
+        }
+
         // 检查任一方向是否在运营时间内
         const isOperating = (operationTime.upward && 
             isStationOperatingInDirection(route.routeId, stationName, true)) || 
@@ -676,6 +740,7 @@ function findStationRoutes(stationName) {
             routes.push({
                 routeId,
                 routeName: route.name,
+                fare: route.fare,
                 stationIndex,
                 stations: stations
             });
@@ -738,6 +803,7 @@ function findAllPossibleTransferRoutes(startStation, endStation, maxTransfers = 
                         routes.push({
                             type: 'direct',
                             route: route.routeName,
+                            fare: route.fare,
                             stations: [
                                 { name: startStation, index: currentIndex },
                                 { name: endStation, index: endStationIndex }
@@ -808,17 +874,32 @@ function findTransferRoutes(startStation, endStation) {
             return r.transferStations.length;
         };
 
+        // 修改后的 getTravelTime 函数
         const getTravelTime = r => {
             if (r.type === 'direct') {
-                return Math.abs(r.stations[1].index - r.stations[0].index);
+                // 获取起点和终点在路线中的索引
+                const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === r.route);
+                const routeData = busRoutes[routeId];
+                const startIndex = routeData.stations.findIndex(s => s.name === r.stations[0].name);
+                const endIndex = routeData.stations.findIndex(s => s.name === r.stations[1].name);
+                
+                // 计算总行驶时间
+                return routeData.stations.slice(startIndex, endIndex)
+                    .reduce((sum, station) => sum + (station.travelTime || 2), 0); // 默认2分钟/站
             }
+
             let total = 0;
-            r.routes.forEach((segment, index) => {
-                const routeData = findStationRoutes(segment.from).find(rt => rt.routeName === segment.name);
+            r.routes.forEach(segment => {
+                const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === segment.name);
+                const routeData = busRoutes[routeId];
                 const startIndex = routeData.stations.findIndex(s => s.name === segment.from);
                 const endIndex = routeData.stations.findIndex(s => s.name === segment.to);
-                total += Math.abs(endIndex - startIndex);
+                
+                // 累加该路段所有站点的travelTime
+                total += routeData.stations.slice(startIndex, endIndex)
+                    .reduce((sum, station) => sum + (station.travelTime || 2), 0);
             });
+
             return total;
         };
 
@@ -1014,7 +1095,7 @@ function getRouteDirection(routeId, fromStation, toStation) {
         return ` ${downwardStations[0].name}方向`;
     }
     
-    console.warn('Direction could not be determined for routeId:', routeId, 'fromStation:', fromStation, 'toStation:', toStation);
+    //console.warn('Direction could not be determined for routeId:', routeId, 'fromStation:', fromStation, 'toStation:', toStation);
     return '';
 }
 
@@ -1052,13 +1133,14 @@ function renderTransferResults(routes, resultsContainer) {
             }
 
             routeIndex++; // 增加方案编号
+            console.log('直达路线原始数据：', route);
             return `
                 <div class="transfer-route ${route.operationStatus && route.operationStatus.length > 0 ? 'not-operating' : ''}" data-route-index="${routeIndex}">
                     <h3>方案 ${routeIndex}：${route.route}</h3>
                     ${operationWarning}
                     <div class="route-info">
-                        <span>预计 ${stationCount + 1} 分钟</span>
-                        <span>票价 2 元</span>
+                        <span>预计 ${route.totalTime} 分钟</span>
+                        <span>票价 ${route.fare} 元</span>
                     </div>
                     <ul class="route-steps">
                         <li class="route-step start">
@@ -1092,6 +1174,25 @@ function renderTransferResults(routes, resultsContainer) {
             let routeSteps = '';
             let routeTitle = '';
             let hasInvalidRouteLink = false; // 标记是否存在无效的 route-link
+
+            const transferCount = route.routes.length - 1;
+
+            //将每一段线路的票价相加行程最终票价，如果某一段线路没有记录票价则默认这一段线路2元
+            const fare = Math.round(
+                route.routes.reduce((acc, cur) => {
+                    const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === cur.name);
+                    if (routeId) {
+                        const routeFare = busRoutes[routeId].fare;
+                        if (routeFare) {
+                            return acc + routeFare;
+                        } else {
+                            return acc + 2;
+                        }
+                    } else {
+                        return acc + 2;
+                    }
+                }, 0)
+            );
 
             if (route.alternativeRoutes) {
                 // 渲染有多个可选线路的方案
@@ -1231,10 +1332,7 @@ function renderTransferResults(routes, resultsContainer) {
                         `;
                     }
                 }).join('');
-            }
-
-            const transferCount = route.routes.length - 1;
-            const fare = 2 + transferCount * 2;
+            }            
 
             // 检查每个 route-link 是否包含方向信息
             const routeStepsArray = routeSteps.split('</li>');
@@ -1538,7 +1636,7 @@ window.addTripReminder = function() {
     
     // 获取路线信息
     const steps = Array.from(routeElement.querySelectorAll('.route-step')).map(step => step.textContent.trim());
-    const routeInfo = routeElement.querySelector('.route-info').textContent.trim();
+    const fare = parseInt(routeElement.querySelector('.route-info').textContent.match(/票价 (\d+) 元/)[1]);
     const estimatedTime = parseInt(routeElement.querySelector('.route-info').textContent.match(/预计 (\d+) 分钟/)[1]);
     const lines = [];
 
@@ -1576,9 +1674,10 @@ window.addTripReminder = function() {
             arrivalTime: arrivalTime.toTimeString().slice(0, 5),
             id: '',
             line: lines.join('→'),
+            price: fare,
             company: '公交换乘查询',
         },
-        lines: window.location.hash.slice(1) || lines.join(',')
+        lines: window.location.hash.slice(1) || lines.join(','),
     };
     
     // 从 localStorage 获取现有行程

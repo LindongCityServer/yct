@@ -71,6 +71,11 @@
     position: relative;
 }
 
+/* 在 bus_stop.css 中添加 */
+.text-layer .direction-text.selected {
+    color: var(--text-color-4); /* 使用用户定义的颜色变量 */
+}
+
 button {
     padding: 6px 12px;
     margin: 0;

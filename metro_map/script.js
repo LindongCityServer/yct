@@ -967,12 +967,12 @@ function displayRoute(routeInfo) {
 
     // 显示票价和行程信息
     const fareZoneSummary = document.getElementById('fare-zone-summary');
-    let fareText = `<p class="clickable-info" onclick="showFareDetail(${routeInfo.fare.base}, ${routeInfo.fare.additional}, ${routeInfo.fare.airport}, ${routeInfo.fare.total})">票价：${routeInfo.fare.total}元</p>`;
+    let fareText = `<p class="clickable-info" onclick="showFareDetail(${routeInfo.fare.base}, ${routeInfo.fare.additional}, ${routeInfo.fare.airport}, ${routeInfo.fare.total})">票价 ${routeInfo.fare.total} 元</p>`;
     
     fareZoneSummary.innerHTML = `
         ${fareText}
-        <p class="clickable-info" onclick="showTimeDetail(${Math.ceil(actualRunningTime)}, ${totalWaitingTime})">总用时：${Math.ceil(actualRunningTime + totalWaitingTime)}分钟</p>
-        <p>换乘次数：${totalTransfers}次</p>
+        <p class="clickable-info" onclick="showTimeDetail(${Math.ceil(actualRunningTime)}, ${totalWaitingTime})">预计 ${Math.ceil(actualRunningTime + totalWaitingTime)} 分钟</p>
+        <p>换乘 ${totalTransfers} 次</p>
     `;
 
     // 添加鼠标样式
@@ -1466,10 +1466,11 @@ function addTripReminder() {
         }
     });
     
-    // 从fareZoneSummary中提取总用时信息
+    // 从fareZoneSummary中提取总用时信息和票价信息
     const timeInfo = fareZoneSummary.textContent;
-    const totalTimeMatch = timeInfo.match(/总用时：(\d+)分钟/);
+    const totalTimeMatch = timeInfo.match(/总用时 (\d+) 分钟/);
     const totalJourneyTime = totalTimeMatch ? parseInt(totalTimeMatch[1]) : 0;
+    const fare = fareZoneSummary.textContent.match(/票价 (\d+) 元/)[1];
     
     if (!departure || !arrival) {
         alert('无效的路线信息');
@@ -1505,7 +1506,8 @@ function addTripReminder() {
             arrivalTime: arrivalTime.toTimeString().slice(0, 5), // 添加预计到达时间
             id: '',
             line: lines.join('→'),
-            company: `地铁换乘查询·${routeType}`
+            company: `地铁换乘查询·${routeType}`,
+            price: fare
         },
         lines: window.location.hash.slice(1) || lines.join(',')
     };

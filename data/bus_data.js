@@ -6,7 +6,7 @@ export const busRoutes = {
             first: "05:30",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站"},
             {name: "中华路临中大街"},
@@ -41,7 +41,7 @@ export const busRoutes = {
             first: "05:30",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临铁湖畔五星花园", status: "暂未启用"},
             {name: "水岸华庭"},
@@ -81,7 +81,7 @@ export const busRoutes = {
             first: "05:30",
             last: "22:30"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站西公交枢纽"},
             {name: "临新东路振工街"},
@@ -109,7 +109,7 @@ export const busRoutes = {
             first: "06:00",
             last: "23:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站"},
             {name: "临东站北", oneWay: "down"},
@@ -137,7 +137,7 @@ export const busRoutes = {
             first: "05:30",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "出生点"},
             {name: "滨海立交北"},
@@ -162,7 +162,7 @@ export const busRoutes = {
             first: "06:00",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "度假基地接待中心"},
             {name: "一高中北"},
@@ -191,7 +191,7 @@ export const busRoutes = {
             first: "05:30",
             last: "23:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站西公交枢纽"},
             {name: "临新东路振工街"},
@@ -212,7 +212,7 @@ export const busRoutes = {
             first: "06:30",
             last: "22:30"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站"},
             {name: "中华路临中大街", oneWay:"down"},
@@ -252,7 +252,7 @@ export const busRoutes = {
             first: "05:30",
             last: "22:30"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站南(南一马路)"},
             {name: "临东站北"},
@@ -272,7 +272,7 @@ export const busRoutes = {
             first: "05:30",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "市第一高中"},
             {name: "兰家车辆段"},
@@ -309,10 +309,35 @@ export const busRoutes = {
         operator: "临东临北巴士有限责任公司",
         firstLastBus: {
             first: "06:00",
+            last: "20:05"
+        },
+        firstLastBusUpwards: {
+            first: "05:30",
             last: "21:00"
         },
+        schedule: {
+            upwards: {
+                "5": {departures: ["30"]},
+                "6": {departures: ["05","15","30","40","50"]},
+                "7": {departures: ["00","08","15","25","28","36","44","52"]},
+                "8": {departures: ["00","08","16","22","32","42","52"]},
+                "9": {departures: ["00","10","22","32","42","52"]},
+                "10": {departures: ["02"], approxDepartures: ["12", "56"]},
+                "11": {approxDepartures: ["08", "48"]},
+                "12": {approxDepartures: ["00", "50"]},
+                "13": {approxDepartures: ["10", "52"]},
+                "14": {approxDepartures: ["12", "50"]},
+                "15": {approxDepartures: ["06", "58"]},
+                "16": {approxDepartures: ["06", "52"]},
+                "17": {approxDepartures: ["00", "54"]},
+                "18": {approxDepartures: ["04", "58"]},
+                "19": {departures: ["10"], approxDepartures: ["30", "50"]},
+                "20": {departures: ["10", "30"]},
+                "21": {departures: ["10", "30"]}
+            }
+        },
         note: "临东北站始发（公交仁德站方向）实际首末班时间6:00-20:05",
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东北站"},
             {name: "北站路迎宾街"},
@@ -361,7 +386,7 @@ export const busRoutes = {
             last: "20:30"
         },
         note: "公交仁德站始发班次：5:30 6:15 6:50 7:08 7:28 11:38 12:15 13:18 14:36 15:30 16:06 16:28 18:14 18:32 18:48 19:30 20:30",
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "人杰湖公园"},
             {name: "九二八商场"},
@@ -392,10 +417,50 @@ export const busRoutes = {
         name: "156路",
         operator: "临东客运集团丰河公共汽车分公司",
         firstLastBus: {
-            first: "06:00",
+            first: "05:00",
             last: "22:45"
         },
-        fare: "2元",
+        schedule: {
+            upwards: {
+                "5": {departures: ["00"]},
+                "6": {departures: ["00"]},
+                "8": {departures: ["00"]},
+                "9": {departures: ["00"]},
+                "10": {departures: ["00"]},
+                "11": {departures: ["00"]},
+                "12": {departures: ["00"]},
+                "13": {departures: ["30"]},
+                "14": {departures: ["30"]},
+                "15": {departures: ["30"]},
+                "16": {departures: ["30"]},
+                "17": {departures: ["30"]},
+                "18": {departures: ["30"]},
+                "19": {departures: ["30"]},
+                "20": {departures: ["30"]},
+                "21": {departures: ["45"]},
+                "22": {departures: ["45"]},
+            },
+            downwards: {
+                "5": {departures: ["00"]},
+                "6": {departures: ["00"]},
+                "8": {departures: ["00"]},
+                "9": {departures: ["00"]},
+                "10": {departures: ["00"]},
+                "11": {departures: ["00"]},
+                "12": {departures: ["00"]},
+                "13": {departures: ["30"]},
+                "14": {departures: ["30"]},
+                "15": {departures: ["30"]},
+                "16": {departures: ["30"]},
+                "17": {departures: ["30"]},
+                "18": {departures: ["30"]},
+                "19": {departures: ["30"]},
+                "20": {departures: ["30"]},
+                "21": {departures: ["45"]},
+                "22": {departures: ["45"]},
+            }
+        },
+        fare: 2,
         stations: [
             {name: "宋家庄"},
             {name: "地铁凤凰新城"},
@@ -418,7 +483,7 @@ export const busRoutes = {
             first: "06:00",
             last: "21:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "地铁凤凰新城"},
             {name: "宋家庄"},
@@ -444,7 +509,7 @@ export const busRoutes = {
             first: "04:30",
             last: "23:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "正阳街临东路"},
             {name: "金银桥南"},
@@ -475,7 +540,7 @@ export const busRoutes = {
             first: "05:30",
             last: "23:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "宣庆实验中学"},
             {name: "沙井村"},
@@ -499,7 +564,7 @@ export const busRoutes = {
             first: "06:00",
             last: "18:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "雪乡驾校"},
             {name: "彩虹小学"},
@@ -518,7 +583,7 @@ export const busRoutes = {
             first: "06:30",
             last: "17:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "雪乡驾校"},
             {name: "彩虹小学"},
@@ -532,10 +597,33 @@ export const busRoutes = {
         name: "181路",
         operator: "临东临北巴士有限责任公司",
         firstLastBus: {
-            first: "06:00",
+            first: "06:06",
             last: "20:00"
         },
-        fare: "2元",
+        firstLastBusUpwards: {
+            first: "05:50",
+            last: "19:00"
+        },
+        schedule: {
+            downwards: {
+                "6": {departures: ["06","30"]},
+                "7": {departures: ["00","15","25","40","55"]},
+                "8": {departures: ["05","15","25","35","45"]},
+                "9": {departures: ["00","15","30","45"]},
+                "10": {departures: ["00","15","30","45"]},
+                "11": {departures: ["00", "20", "40"]},
+                "12": {departures: ["00", "20", "40"]},
+                "13": {departures: ["00", "30"]},
+                "14": {departures: ["00", "30"]},
+                "15": {departures: ["00", "20", "40"]},
+                "16": {departures: ["00","15","30","45","55"]},
+                "17": {departures: ["10","20","30","45"]},
+                "18": {departures: ["00", "20", "45"]},
+                "19": {departures: ["10", "30"]},
+                "20": {departures: ["05"]}
+            }
+        },
+        fare: 2,
         stations: [
             {name: "青咀子"},
             {name: "碧湖实验小学"},
@@ -558,10 +646,14 @@ export const busRoutes = {
         name: "181路支线",
         operator: "临东临北巴士有限责任公司",
         firstLastBus: {
-            first: "定点班车",
-            last: ""
+            first: "07:00",
+            last: "17:40"
         },
-        fare: "2元",
+        firstLastBusUpwards: {
+            first: "07:30",
+            last: "17:10"
+        },
+        fare: 2,
         stations: [
             {name: "青咀子"},
             {name: "碧湖实验小学"},
@@ -585,26 +677,31 @@ export const busRoutes = {
     "183": {
         name: "183路",
         operator: "临东临北巴士有限责任公司",
-        note: "五间房8:30、13:32、15:18、18:30发，裕隆山公园9:00、14:28、15:50、19:00发。本线响应式停靠，招手上车，下车请提前告知司机。",
+        note: "五间房8:30、13:32、15:18、18:30发，裕隆山公园9:00、14:28、15:50、19:00发。保税区站为票价分段站。本线响应式停靠，招手上车，下车请提前告知司机。",
         firstLastBus: {
             first: "08:30",
+            last: "18:30"
+        },
+        firstLastBusUpwards: {
+            first: "09:00",
             last: "19:00"
         },
-        fare: "2元，保税区—裕隆山公园段加收1元",
+        fare: 2,
+        fareOffset: 1,
         stations: [
-            {name: "五间房"},
-            {name: "碧湖南山"},
-            {name: "城海客运站"},
-            {name: "城海区医院"},
-            {name: "碧湖大桥北"},
-            {name: "临港大街曙光路"},
-            {name: "万安街道办事处"},
-            {name: "碧湖枢纽西"},
-            {name: "西部沙滩"},
-            {name: "团山村"},
-            {name: "安和庄"},
-            {name: "向山镇"},
-            {name: "林西路口"},
+            {name: "五间房", fareZone: "碧湖"},
+            {name: "碧湖南山", fareZone: "碧湖"},
+            {name: "城海客运站", fareZone: "碧湖"},
+            {name: "城海区医院", fareZone: "碧湖"},
+            {name: "碧湖大桥北", fareZone: "碧湖"},
+            {name: "临港大街曙光路", fareZone: "碧湖"},
+            {name: "万安街道办事处", fareZone: "碧湖"},
+            {name: "碧湖枢纽西", fareZone: "碧湖"},
+            {name: "西部沙滩", fareZone: "碧湖"},
+            {name: "团山村", fareZone: "碧湖"},
+            {name: "安和庄", fareZone: "碧湖"},
+            {name: "向山镇", fareZone: "碧湖"},
+            {name: "林西路口", fareZone: "碧湖"},
             {name: "保税区"},
             {name: "花圃村"},
             {name: "双塔堡"},
@@ -624,7 +721,7 @@ export const busRoutes = {
             first: "06:30",
             last: "22:24"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "花城广场"},
             {name: "会展中心", oneWay: "up"},
@@ -658,7 +755,7 @@ export const busRoutes = {
             first: "05:30",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "北站北广场", status: "暂未启用"},
             {name: "临东北站"},
@@ -704,7 +801,7 @@ export const busRoutes = {
             first: "04:30",
             last: "22:30"
         },
-        fare: "2元",
+        fare: 2,
         status: "规划",
         stations: [
             {name: "临东北站"},
@@ -742,7 +839,7 @@ export const busRoutes = {
             first: "06:00",
             last: "21:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站北"},
             {name: "启航小区西门"},
@@ -767,11 +864,11 @@ export const busRoutes = {
             first: "05:30",
             last: "21:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站西公交枢纽"},
             {name: "临新东路振工街"},
-            {name: "胜利大街凌州大道", status: "已取消"},
+            {name: "胜利大街凌州大道"},
             {name: "临东站南(南一马路)"},
             {name: "临东站北"},
             {name: "胜利大街建设大路"},
@@ -795,7 +892,7 @@ export const busRoutes = {
             first: "05:30",
             last: "22:24"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "人杰湖公园"},
             {name: "莲池"},
@@ -820,7 +917,7 @@ export const busRoutes = {
             first: "06:00",
             last: "23:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "观景台街道办"},
             {name: "沙海绿洲"},
@@ -872,7 +969,7 @@ export const busRoutes = {
             first: "06:00",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "花城广场"},
             {name: "建业街草仓路"},
@@ -903,7 +1000,7 @@ export const busRoutes = {
             first: "06:00",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站"},
             {name: "中华路临中大街"},
@@ -943,7 +1040,7 @@ export const busRoutes = {
             first: "06:30",
             last: "22:30"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "国际度假基地"},
             {name: "市第一高中"},
@@ -976,7 +1073,7 @@ export const busRoutes = {
             first: "05:30",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "怒江街一巷新阳路"},
             {name: "宣实后门", oneWay: "down"},
@@ -1004,7 +1101,7 @@ export const busRoutes = {
             last: "22:00"
         },
         note: "每天7:00、13:00、22:00发车",
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "怒江街一巷新阳路"},
             {name: "宣实后门", oneWay: "down"},
@@ -1031,7 +1128,7 @@ export const busRoutes = {
             first: "06:30",
             last: "21:30"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "环北家园"},
             {name: "临北路青年大街"},
@@ -1066,7 +1163,7 @@ export const busRoutes = {
             first: "06:30",
             last: "21:30"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "环北家园"},
             {name: "临北路青年大街"},
@@ -1084,11 +1181,12 @@ export const busRoutes = {
     "386": {
         name: "386路",
         operator: "临东客运集团顺鑫巴士公司",
+        note: "分段计价2-5元",
         firstLastBus: {
             first: "06:00",
             last: "21:00"
         },
-        fare: "分段计价2-5元",
+        fare: 2,
         stations: [
             {name: "李家坎客运站"},
             {name: "忌城街道"},
@@ -1120,7 +1218,7 @@ export const busRoutes = {
             first: "07:00",
             last: "19:00"
         },
-        fare: "2元",
+        fare: 2,
         status: "规划",
         note: "将于2024年8月开通",
         stations: [
@@ -1143,11 +1241,13 @@ export const busRoutes = {
     "K801": {
         name: "K801路",
         operator: "临东雨城客运有限公司",
+        note: "分段计价2-4元(以工农桥为界)",
         firstLastBus: {
             first: "06:00",
             last: "20:00"
         },
-        fare: "分段计价2-4元(以工农桥为界)",
+        fare: 2,
+        fareOffset: 2,
         note: "前身为K601路",
         stations: [
             {name: "SB客运站南门"},
@@ -1155,9 +1255,9 @@ export const busRoutes = {
             {name: "福佑车库"},
             {name: "宣庆区政府"},
             {name: "临医二院"},
-            {name: "曙光路莲池街"},
-            {name: "尚瑞集团"},
-            {name: "城海客运站"}
+            {name: "曙光路莲池街", fareZone: "碧湖"},
+            {name: "尚瑞集团", fareZone: "碧湖"},
+            {name: "城海客运站", fareZone: "碧湖"}
         ]
     },
     "K881": {
@@ -1166,16 +1266,21 @@ export const busRoutes = {
         note: "五间房6:30、9:00、16:30发，SB客运站7:30、10:00、17:30发。过分段点（远航路青年大街站）后需再次刷卡或投币!本线响应式停靠，招手上车，下车请提前告知司机！",
         firstLastBus: {
             first: "06:30",
+            last: "16:30"
+        },
+        firstLastBusUpwards: {
+            first: "07:30",
             last: "17:30"
         },
-        fare: "2-5元",
+        fare: 2,
+        fareOffset: 3,
         stations: [
-            {name: "五间房"},
-            {name: "东升立交"},
-            {name: "樱花山"},
-            {name: "鱼岭"},
-            {name: "平山客运站"},
-            {name: "魔仙乐园西"},
+            {name: "五间房", fareZone: "雪乡"},
+            {name: "东升立交", fareZone: "雪乡"},
+            {name: "樱花山", fareZone: "雪乡"},
+            {name: "鱼岭", fareZone: "雪乡"},
+            {name: "平山客运站", fareZone: "雪乡"},
+            {name: "魔仙乐园西", fareZone: "雪乡"},
             {name: "远航路青年大街"},
             {name: "航洋城"},
             {name: "新阳路地铁站"},
@@ -1189,10 +1294,48 @@ export const busRoutes = {
         name: "V101路",
         operator: "临东客运集团通运巴士运营管理服务中心",
         firstLastBus: {
-            first: "07:00",
-            last: "20:00"
+            first: "05:00",
+            last: "20:45"
         },
-        fare: "2元",
+        schedule: {
+            upwards: {
+                "5": {departures: ["00","15","30","45"]},
+                "6": {departures: ["00","15","30","45"]},
+                "7": {departures: ["00","15","30","45"]},
+                "8": {departures: ["00","15","30","45"]},
+                "9": {departures: ["00","15","30","45"]},
+                "10": {departures: ["00","15","30","45"]},
+                "11": {departures: ["00","15","30","45"]},
+                "12": {departures: ["00","15","30","45"]},
+                "13": {departures: ["00","15","30","45"]},
+                "14": {departures: ["00","15","30","45"]},
+                "15": {departures: ["00","15","30","45"]},
+                "16": {departures: ["00","15","30","45"]},
+                "17": {departures: ["00","15","30","45"]},
+                "18": {departures: ["00","15","30","45"]},
+                "19": {departures: ["00","15","30","45"]},
+                "20": {departures: ["00","15","30","45"]},
+            },
+            downwards: {
+                "5": {departures: ["00","15","30","45"]},
+                "6": {departures: ["00","15","30","45"]},
+                "7": {departures: ["00","15","30","45"]},
+                "8": {departures: ["00","15","30","45"]},
+                "9": {departures: ["00","15","30","45"]},
+                "10": {departures: ["00","15","30","45"]},
+                "11": {departures: ["00","15","30","45"]},
+                "12": {departures: ["00","15","30","45"]},
+                "13": {departures: ["00","15","30","45"]},
+                "14": {departures: ["00","15","30","45"]},
+                "15": {departures: ["00","15","30","45"]},
+                "16": {departures: ["00","15","30","45"]},
+                "17": {departures: ["00","15","30","45"]},
+                "18": {departures: ["00","15","30","45"]},
+                "19": {departures: ["00","15","30","45"]},
+                "20": {departures: ["00","15","30","45"]},
+            }
+        },
+        fare: 2,
         stations: [
             {name: "临东大学地铁站"},
             {name: "大学里"},
@@ -1213,7 +1356,7 @@ export const busRoutes = {
             first: "05:30",
             last: "20:30"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "水关庄"},
             {name: "临北路地铁站"},
@@ -1228,7 +1371,7 @@ export const busRoutes = {
             first: "06:30",
             last: "23:00"
         },
-        fare: "1元",
+        fare: 1,
         circularDirection: "counterclockwise",
         stations: [
             {name: "临东站西公交枢纽", oneWay: "down"},
@@ -1250,7 +1393,7 @@ export const busRoutes = {
             first: "06:00",
             last: "22:30"
         },
-        fare: "2元",
+        fare: 2,
         note: "单向环线运行",
         circularDirection: "clockwise",
         stations: [
@@ -1268,7 +1411,7 @@ export const busRoutes = {
             first: "07:00",
             last: "19:00"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "临东站南(南一马路)"},
             {name: "胜利大街凌州大道"},
@@ -1315,7 +1458,7 @@ export const busRoutes = {
             first: "05:40",
             last: "22:40"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "花城广场"},
             {name: "会展中心"},
@@ -1333,7 +1476,7 @@ export const busRoutes = {
             first: "05:05",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         circularDirection: "counterclockwise",
         stations: [
             {name: "花城广场"},
@@ -1363,7 +1506,7 @@ export const busRoutes = {
             first: "05:05",
             last: "22:00"
         },
-        fare: "2元",
+        fare: 2,
         circularDirection: "counterclockwise",
         stations: [
             {name: "花城广场"},
@@ -1402,7 +1545,7 @@ export const busRoutes = {
             first: "05:15",
             last: "22:55"
         },
-        fare: "2元",
+        fare: 2,
         stations: [
             {name: "花城广场"},
             {name: "来又来"},
@@ -1417,7 +1560,7 @@ export const busRoutes = {
             first: "07:00",
             last: "21:30"
         },
-        fare: "5元",
+        fare: 5,
         circularDirection: "clockwise",
         stations: [
             {name: "李家坎客运站", oneWay: "down"},
