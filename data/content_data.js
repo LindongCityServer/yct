@@ -11,6 +11,15 @@ const contentData = [
         showInBanner: false
     },
     {
+        title: '服管会|呼吁|共同维护|线路|运营秩序',
+        image: '../data/content_banner/服管会呼吁共同维护线路运营秩序.png',
+        link: 'https://pd.qq.com/s/2b9byqcxs',
+        date: '2025-03-08',
+        summary: '本月新任轮值管理段冰峰就公交站牌规范化问题在群内发起讨论，引发玩家广泛热议。各方就站牌制作标准达成共识，共同推动公交线路规范化运营。',
+        category: '网站公告',
+        showInBanner: true
+    },
+    {
         title: '临东|推出|首枚|文化|纪念印章',
         image: '../data/content_banner/主题纪念章海报.png',
         link: 'https://pd.qq.com/g/58ocn0s744/post/B_e092aa67439105001441152186775804310X60',
@@ -160,7 +169,7 @@ const contentData = [
         expireDate: '2025-07-31',
         summary: '临铁海峡.外运轮渡决定于2025年2月至7月期间停运半年，进行旧有轮船的升级改造。给您带来的不便，敬请谅解。',
         category: '运营信息',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '临北巴士公布3月时刻表',
@@ -188,6 +197,16 @@ const contentData = [
         link: '',
         date: '2025-03-03',
         summary: '为适应最新城市规划并配合市政道路更名，现对综合保税区（千池山街道）和碧湖新城境内部分公交车站更名，涉及线路：287路、K801路。目前站名更改工作正在进行，乘客可打开“公交线路图”页面或查阅服务器Wiki查询具体信息。如有问题，请及时联系服务器管理员反馈。',
+        category: '运营信息',
+        showInBanner: true
+    },
+    {
+        title: '310路|支线|即将|暂停运营',
+        image: '--bus-color',
+        link: 'https://pd.qq.com/s/2q9tiutrn',
+        date: '2025-03-08',
+        expireDate: '2025-04-01',
+        summary: '因受大环境及线路周转效率低下与客流较低等因素影响，公共汽车310支线将于2025年3月31日暂停运营，不便之处敬请谅解。顺鑫公司310车队',
         category: '运营信息',
         showInBanner: true
     },
