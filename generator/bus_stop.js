@@ -227,7 +227,7 @@ function generateBusStop() {
         let stations = Array.from(document.getElementById('station').options); // 转换为数组
         const selectedStationId = document.getElementById('station').value; // 获取当前选中值
         const selectedStationIndex = stations.findIndex(s => s.value === selectedStationId); // 通过value匹配
-        const nextStation = stations[selectedStationIndex + 1] || { textContent: '终　点' }; // 使用textContent获取显示名称
+        const nextStation = stations[selectedStationIndex + 1] || { textContent: '终    点' }; // 使用textContent获取显示名称
 
         // 处理起点方向文本
         const startStation = stations[1].textContent;
@@ -242,7 +242,7 @@ function generateBusStop() {
         const line4ColorCode = isEndMatch ? '§4' : '§1';
 
         // 后续使用时应取textContent：
-        const nextStationName = nextStation.textContent || '终　　　点';
+        const nextStationName = nextStation.textContent || '终    点';
 
         // 计算字符宽度
         const routeId = selectedLineId;

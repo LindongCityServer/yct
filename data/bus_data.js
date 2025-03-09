@@ -687,6 +687,10 @@ export const busRoutes = {
             last: "19:00"
         },
         fare: 2,
+        faresForZone: {
+            "碧湖": 2,
+            "保税区": 1,
+        },
         fareOffset: 1,
         stations: [
             {name: "五间房", fareZone: "碧湖"},
@@ -702,16 +706,16 @@ export const busRoutes = {
             {name: "安和庄", fareZone: "碧湖"},
             {name: "向山镇", fareZone: "碧湖"},
             {name: "林西路口", fareZone: "碧湖"},
-            {name: "保税区"},
-            {name: "花圃村"},
-            {name: "双塔堡"},
-            {name: "山前路口"},
-            {name: "山前镇"},
-            {name: "罗亚尔港"},
-            {name: "裕隆池"},
-            {name: "玫瑰草地"},
-            {name: "月光草地"},
-            {name: "裕隆山公园"}
+            {name: "保税区", fareZone: "保税区"},
+            {name: "花圃村", fareZone: "保税区"},
+            {name: "双塔堡", fareZone: "保税区"},
+            {name: "山前路口", fareZone: "保税区"},
+            {name: "山前镇", fareZone: "保税区"},
+            {name: "罗亚尔港", fareZone: "保税区"},
+            {name: "裕隆池", fareZone: "保税区"},
+            {name: "玫瑰草地", fareZone: "保税区"},
+            {name: "月光草地", fareZone: "保税区"},
+            {name: "裕隆山公园", fareZone: "保税区"}
         ]
     },
     "191": {
@@ -1273,7 +1277,10 @@ export const busRoutes = {
             last: "17:30"
         },
         fare: 2,
-        fareOffset: 3,
+        faresForZone: {
+            "市区": 2,
+            "雪乡": 3,
+        },
         stations: [
             {name: "五间房", fareZone: "雪乡"},
             {name: "东升立交", fareZone: "雪乡"},
