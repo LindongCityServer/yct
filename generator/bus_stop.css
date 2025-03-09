@@ -31,6 +31,18 @@
     width: calc(100% - 6em);
 }
 
+.preview-container {
+    flex: none;
+    width: 192px;
+    height: 192px;
+}
+
+.preview-container img {
+    position: absolute;
+    margin: 45px 0;
+    z-index: 0;
+}
+
 .text-layer {
     position: absolute;
     display: flex;
@@ -38,8 +50,8 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: fit-content;
-    top: 0.6rem;
+    height: 100%;
+    z-index: 1;
 }
 
 .text-layer span, .text-layer p {

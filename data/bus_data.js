@@ -86,7 +86,7 @@ export const busRoutes = {
             {name: "临东站西公交枢纽"},
             {name: "临新东路振工街"},
             {name: "胜利大街凌州大道"},
-            {name: "临东站南(南一马路)"},
+            {name: "临东站南"},
             {name: "临东站"},
             {name: "中华路临中大街"},
             {name: "中华路青年大街"},
@@ -254,7 +254,7 @@ export const busRoutes = {
         },
         fare: 2,
         stations: [
-            {name: "临东站南(南一马路)"},
+            {name: "临东站南"},
             {name: "临东站北"},
             {name: "胜利大街建设大路"},
             {name: "南运河北路12号"},
@@ -287,7 +287,7 @@ export const busRoutes = {
             {name: "两孔桥"},
             {name: "胜利大街建设大路"},
             {name: "临东站北"},
-            {name: "临东站南(南一马路)"},
+            {name: "临东站南"},
             {name: "市府大路胜利大街"},
             {name: "市府大路临中大街"},
             {name: "市政府西门"},
@@ -830,7 +830,7 @@ export const busRoutes = {
             {name: "两孔桥"},
             {name: "胜利大街建设大路"},
             {name: "临东站北"},
-            {name: "临东站南(南一马路)"},
+            {name: "临东站南"},
             {name: "凌州大道振工街"},
             {name: "凌州大道兴工街"},
             {name: "凌州大道锦工街"}
@@ -873,7 +873,7 @@ export const busRoutes = {
             {name: "临东站西公交枢纽"},
             {name: "临新东路振工街"},
             {name: "胜利大街凌州大道"},
-            {name: "临东站南(南一马路)"},
+            {name: "临东站南"},
             {name: "临东站北"},
             {name: "胜利大街建设大路"},
             {name: "南运河北路12号"},
@@ -1407,11 +1407,11 @@ export const busRoutes = {
             {name: "临东站西公交枢纽", oneWay: "down"},
             {name: "临东站北", oneWay: "down"},
             {name: "临东站", oneWay: "down"},
-            {name: "临东站南(南一马路)", oneWay: "down"},
+            {name: "临东站南", oneWay: "down"},
             {name: "临东站西公交枢纽", oneWay: "down"}
         ]
     },
-    "环路": {
+    " 环": {
         name: "环路",
         operator: "临东地铁公共交通有限公司A区",
         firstLastBus: {
@@ -1420,7 +1420,7 @@ export const busRoutes = {
         },
         fare: 2,
         stations: [
-            {name: "临东站南(南一马路)"},
+            {name: "临东站南"},
             {name: "胜利大街凌州大道"},
             {name: "百鸟公园"},
             {name: "西丘办事处"},
@@ -1556,7 +1556,7 @@ export const busRoutes = {
         stations: [
             {name: "花城广场"},
             {name: "来又来"},
-            {name: "铁西汽车城管理委员会"},
+            {name: "铁西汽车城管委会"},
             {name: "汽车城停车场"},
         ]
     },
