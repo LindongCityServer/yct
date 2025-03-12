@@ -1340,14 +1340,22 @@ function renderTrip(trip, now) {
         // 地铁行程的特殊处理
         if (trip.status === 'completed') {
             actionButton = `
-                <button class="view-code-btn delete-btn" onclick="event.stopPropagation(); handleTripDelete('${tripId}')">
+                ${trip.type === 'metro' ? `<button class="view-code-btn route-btn" onclick="if('${trip.type}' === 'metro') { localStorage.setItem('metroTransferQuery', '${tripId}'); window.location.href='/metro_map'; }">
+                    <img src="UI/res/route_black.png" alt="路线">
+                    路线
+                </button>
+                ` : ''}<button class="view-code-btn delete-btn" onclick="event.stopPropagation(); handleTripDelete('${tripId}')">
                     <img src="UI/res/delete_black.png" alt="删除行程">
                     删除
                 </button>
             `;
         } else if (trip.status === 'ongoing') {
             actionButton = `
-                <button class="view-code-btn complete-btn" onclick="event.stopPropagation(); handleTripComplete('${tripId}')">
+                ${trip.type === 'metro' ? `<button class="view-code-btn route-btn" onclick="if('${trip.type}' === 'metro') { localStorage.setItem('metroTransferQuery', '${tripId}'); window.location.href='/metro_map'; }">
+                    <img src="UI/res/route_black.png" alt="路线">
+                    路线
+                </button>
+                ` : ''}<button class="view-code-btn complete-btn" onclick="event.stopPropagation(); handleTripComplete('${tripId}')">
                     <img src="UI/res/logout_black.png" alt="标记出站">
                     标记出站
                 </button>
@@ -1358,7 +1366,11 @@ function renderTrip(trip, now) {
             `;
         } else {
             actionButton = `
-                <button class="view-code-btn complete-btn" onclick="event.stopPropagation(); handleTripComplete('${tripId}')">
+                ${trip.type === 'metro' ? `<button class="view-code-btn route-btn" onclick="if('${trip.type}' === 'metro') { localStorage.setItem('metroTransferQuery', '${tripId}'); window.location.href='/metro_map'; }">
+                    <img src="UI/res/route_black.png" alt="路线">
+                    路线
+                </button>
+                ` : ''}<button class="view-code-btn complete-btn" onclick="event.stopPropagation(); handleTripComplete('${tripId}')">
                     <img src="UI/res/enter_black.png" alt="标记进站">
                     标记进站
                 </button>
