@@ -1342,23 +1342,29 @@ function renderTrip(trip, now) {
             actionButton = `
                 <button class="view-code-btn delete-btn" onclick="event.stopPropagation(); handleTripDelete('${tripId}')">
                     <img src="UI/res/delete_black.png" alt="删除行程">
-                    <span>删除</span>
+                    删除
                 </button>
             `;
         } else if (trip.status === 'ongoing') {
             actionButton = `
                 <button class="view-code-btn complete-btn" onclick="event.stopPropagation(); handleTripComplete('${tripId}')">
                     <img src="UI/res/logout_black.png" alt="标记出站">
-                    <span>标记</span>
-                    <span>出站</span>
+                    标记出站
+                </button>
+                <button class="view-code-btn delete-btn" onclick="event.stopPropagation(); handleTripDelete('${tripId}')">
+                    <img src="UI/res/delete_black.png" alt="删除行程">
+                    删除
                 </button>
             `;
         } else {
             actionButton = `
                 <button class="view-code-btn complete-btn" onclick="event.stopPropagation(); handleTripComplete('${tripId}')">
                     <img src="UI/res/enter_black.png" alt="标记进站">
-                    <span>标记</span>
-                    <span>进站</span>
+                    标记进站
+                </button>
+                <button class="view-code-btn delete-btn" onclick="event.stopPropagation(); handleTripDelete('${tripId}')">
+                    <img src="UI/res/delete_black.png" alt="删除行程">
+                    删除
                 </button>
             `;
         }
@@ -1368,22 +1374,29 @@ function renderTrip(trip, now) {
             actionButton = `
                 <button class="view-code-btn complete-btn" onclick="event.stopPropagation(); handleTripComplete('${tripId}')">
                     <img src="UI/res/check_black.png" alt="标记完成">
-                    <span>标记</span>
-                    <span>完成</span>
+                    标记完成
+                </button>
+                <button class="view-code-btn delete-btn" onclick="event.stopPropagation(); handleTripDelete('${tripId}')">
+                    <img src="UI/res/delete_black.png" alt="删除行程">
+                    删除
                 </button>
             `;
         } else if (statusClass === 'completed') {
             actionButton = `
                 <button class="view-code-btn delete-btn" onclick="event.stopPropagation(); handleTripDelete('${tripId}')">
                     <img src="UI/res/delete_black.png" alt="删除行程">
-                    <span>删除</span>
+                    删除
                 </button>
             `;
         } else {
             actionButton = `
                 <button class="view-code-btn" onclick="event.stopPropagation(); window.open('https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${trip.lines}', '_blank')">
                     <img src="UI/res/qr_code_black.png" alt="查看乘车码">
-                    <span>乘车码</span>
+                    乘车码
+                </button>
+                <button class="view-code-btn delete-btn" onclick="event.stopPropagation(); handleTripDelete('${tripId}')">
+                    <img src="UI/res/delete_black.png" alt="删除行程">
+                    删除
                 </button>
             `;
         }
@@ -1391,10 +1404,10 @@ function renderTrip(trip, now) {
     
     return `
         <div class="trip-item ${statusClass}" data-type="${trip.type}" onclick="if('${trip.type}' === 'metro') { localStorage.setItem('metroTransferQuery', '${tripId}'); window.location.href='/metro_map'; } else { window.location.href='/ltcx#${trip.lines}' }">
-            <div class="trip-left">
+            <div class="trip-item-header">
                 <img src="${getTransportIcon(trip.type)}" alt="交通工具" class="trip-icon">
+                <span class="trip-time">${formatTime(trip.date, trip.route.time)}</span>
                 <span class="trip-status ${statusClass}">${statusText}</span>
-                ${actionButton}
             </div>
             <div class="trip-details">
                 <div class="trip-route">
@@ -1403,12 +1416,15 @@ function renderTrip(trip, now) {
                     <span class="trip-station" title="${trip.route.arrival}">${trip.route.arrival}</span>
                 </div>
                 <div class="trip-info-row">
-                    <span class="trip-time">${formatTime(trip.date, trip.route.time)}</span>
                     <span class="trip-line" title="${lineText}">${lineText}</span>
+                    <span class="trip-company" title="临途出行·${trip.route.company}">
+                        ${!trip.type ? '临途出行·' : ''}${trip.route.company}
+                    </span>
                 </div>
-                <div class="trip-company" title="临途出行·${trip.route.company}">
-                    ${!trip.type ? '临途出行·' : ''}${trip.route.company}
-                </div>
+            </div>            
+            <div class="trip-actions">
+                <!--标记进站（出站）按钮、乘车码按钮、删除按钮-->                
+                ${actionButton}
             </div>
         </div>
     `;
@@ -1650,182 +1666,6 @@ setInterval(loadPendingCount, 3000);
 
 // 更新样式以包含完成按钮
 const tripStyle = document.createElement('style');
-tripStyle.textContent = `
-    .trip-info {
-        background: var(--card-background);
-        border-radius: 12px;
-        padding: 16px;
-        margin: 16px 0;    
-        display: flex;
-        gap: 12px;
-        flex-direction: column;
-    }
-    
-    .trip-item {
-        display: flex;
-        gap: 12px;
-        border-left: 4px solid transparent;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        padding: 12px;
-    }
-    
-    .trip-item:hover {
-        background-color: var(--hover-background);
-    }
-    
-    .trip-item.completed {
-        opacity: 0.8;
-        border-left-color: var(--secondary-text);
-    }
-    
-    .trip-item.completed .trip-time,
-    .trip-item.completed .trip-line,
-    .trip-item.completed .trip-company,
-    .trip-item.completed .trip-station,
-    .trip-item.completed .trip-arrow {
-        color: var(--secondary-text);
-    }
-    
-    .trip-item.upcoming {
-        border-left-color: #2c9678;
-    }
-    
-    .trip-item.ongoing {
-        border-left-color: #185b49;
-        background-color: var(--hover-background);
-    }
-    
-    .trip-item.ongoing .trip-time,
-    .trip-item.ongoing .trip-line,
-    .trip-item.ongoing .trip-company {
-        color: var(--primary-color);
-    }
-
-    /* 添加地铁行程的特殊样式 */
-    .trip-item[data-type="metro"].ongoing {
-        border-left-color: #005cb2;
-        background-color: var(--hover-background);
-    }
-    
-    .trip-item[data-type="metro"].ongoing .trip-time,
-    .trip-item[data-type="metro"].ongoing .trip-line,
-    .trip-item[data-type="metro"].ongoing .trip-company {
-        color: var(--primary-color);
-    }
-    
-    .trip-item[data-type="metro"].ongoing .trip-status {
-        background-color: var(--primary-color);
-        color: var(--white);
-    }
-    
-    .trip-item[data-type="metro"].upcoming {
-        border-left-color: var(--primary-color);
-    }
-    
-    .trip-item[data-type="metro"].upcoming .trip-status {
-        background-color: var(--hover-background);
-        color: var(--primary-color);
-    }
-    
-    .trip-item[data-type="metro"] .complete-btn {
-        color: var(--primary-color);
-    }
-    
-    .trip-item[data-type="metro"] .complete-btn:hover {
-        background-color: var(--hover-background);
-    }
-    
-    .trip-left {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0;
-        width: 48px;
-    }
-    
-    .trip-icon {
-        width: 24px;
-        height: 24px;
-        opacity: 0.7;
-    }
-    
-    .view-code-btn {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: none;
-        border: none;
-        padding: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        color: var(--secondary-text);
-        border-radius: 4px;
-        transition: background-color 0.2s;
-        width: 100%;
-    }
-    
-    .view-code-btn:hover {
-        background-color: var(--hover-background);
-    }
-    
-    .view-code-btn img {
-        width: 20px;
-        height: 20px;
-        opacity: 0.7;
-    }
-    
-    .complete-btn {
-        color: #00796b;
-    }
-    
-    .complete-btn:hover {
-        background-color: rgba(0, 121, 107, 0.05);
-    }
-    
-    .trip-details {
-        flex: 1;
-        min-width: 0;
-    }
-    
-    .trip-status {
-        font-size: 10px;
-        padding: 0 4px;
-        border-radius: 12px;
-        background-color: var(--hover-background);
-        color: var(--secondary-text);
-        text-align: center;
-        margin: 4px 0;
-    }
-    
-    .trip-status.completed {
-        background-color: var(--hover-background);
-        color: var(--secondary-text);
-    }
-    
-    .trip-status.ongoing {
-        background-color: #00796b;
-        color: white;
-    }
-    
-    .trip-status.upcoming {
-        background-color: #e0f2f1;
-        color: #00796b;
-    }
-    
-    .delete-btn {
-        color: var(--secondary-text);
-    }
-    
-    .delete-btn:hover {
-        background-color: var(--hover-background);
-    }
-    
-    .delete-btn img {
-        opacity: 0.4;
-    }
-`;
 document.head.appendChild(tripStyle);
 
 // 清理过期行程

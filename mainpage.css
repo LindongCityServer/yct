@@ -1694,63 +1694,6 @@ input[type="color"]::-moz-color-swatch {
     gap: 12px;
 }
 
-.trip-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    background: var(--hover-background);
-    border-radius: 8px;
-    transition: background-color 0.2s;
-    cursor: pointer;
-}
-
-.trip-item:hover {
-    background: var(--background-color);
-}
-
-.trip-icon {
-    width: 24px;
-    height: 24px;
-}
-
-.trip-details {
-    flex: 1;
-}
-
-.trip-route {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    margin-bottom: 4px;
-}
-
-.trip-station {
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-.trip-arrow {
-    color: var(--tertiary-text);
-    font-size: 0.9em;
-}
-
-.trip-info-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    color: var(--secondary-text);
-    font-size: 0.9em;
-}
-
-.trip-time {
-    color: var(--primary-color);
-    font-weight: 500;
-}
-
-.trip-number {
-    color: var(--secondary-text);
-}
-
 /* 响应式设计 */
 @media (max-width: 639px) {    
     .trip-route {
@@ -1928,14 +1871,6 @@ input[type="color"]::-moz-color-swatch {
         color: var(--secondary-text);
     }
 
-    .trip-item {
-        background: var(--hover-background);
-    }
-
-    .trip-item:hover {
-        background: var(--background-color);
-    }
-
     .trip-station {
         color: var(--text-color);
     }
@@ -1971,6 +1906,16 @@ input[type="color"]::-moz-color-swatch {
         background-color: var(--primary-color);
         color: var(--secondary-text);
     }
+}
+
+.trip-info {
+    background: var(--card-background);
+    border-radius: 16px;
+    padding: 16px;
+    margin: 16px 0;    
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
 }
 
 /* 未完成订单圆点提示样式 */
@@ -2024,6 +1969,17 @@ input[type="color"]::-moz-color-swatch {
     color: white;
 }
 
+.trip-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.trip-actions button {
+    width: fit-content;
+}
+
 /* Dark mode specific adjustments */
 @media (prefers-color-scheme: dark) {
     #back-to-home img {
@@ -2047,117 +2003,212 @@ input[type="color"]::-moz-color-swatch {
     }
 }
 
-/* 地铁行程样式 - 增加优先级 */
-.trip-item[data-type="metro"] {
-    border-left-color: var(--metro-color) !important;
+/* 行程项容器 */
+.trip-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: column;
+    padding: 6px 12px;
+    background-color: var(--background-color);
+    border-radius: 8px;
+    transition: background-color 0.3s;
+    cursor: pointer;
+    border-left: 4px solid var(--primary-color);
 }
 
-.trip-item[data-type="metro"] .trip-time,
-.trip-item[data-type="metro"] .trip-line,
-.trip-item[data-type="metro"] .trip-company {
-    color: var(--metro-color) !important;
+.trip-item[data-type="metro"] {
+    border-left: 4px solid var(--metro-color);
+}
+
+.trip-item[data-type="bus"] {
+    border-left: 4px solid var(--bus-color);
+}
+
+.trip-item:hover {
+    background-color: var(--background-color);
+}
+
+/* 左侧信息 */
+.trip-item-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+
+.trip-icon {
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+}
+
+.trip-time {
+    color: var(--text-color);
+    font-size: 14px;
+    flex: 1;
+}
+
+/* 状态标签 */
+.trip-status {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 12px;
+    background-color: rgba(0, 121, 107, 0.05);
+    color: var(--primary-color);
+    text-align: center;
+}
+
+/* 行程详情 */
+.trip-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    line-height: 1.2;
+}
+
+.trip-route {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: bold;
+}
+
+.trip-station {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.trip-arrow {
+    color: var(--tertiary-text);
+    font-size: 14px;
+}
+
+.trip-info-row {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: var(--secondary-text);
+    white-space: wrap;
+}
+
+.trip-line {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.trip-item[data-type="metro"] .trip-line {
+    color: var(--metro-color);
 }
 
 .trip-item[data-type="metro"] .trip-status {
-    background-color: rgba(0, 138, 237, 0.1) !important;
-    color: var(--metro-color) !important;
+    color: var(--metro-color);
+    background-color: rgba(0, 138, 237, 0.05);
+}
+
+.trip-item[data-type="bus"] .trip-line{
+    color: var(--bus-color);
+}
+
+.trip-item[data-type="bus"] .trip-status{
+    color: var(--bus-color);
+    background-color: rgba(249, 125, 28, 0.05);
+}
+
+/* 进行中状态 */
+.trip-item.ongoing {
+    background-color: rgba(0, 121, 107, 0.05);
+}
+
+.trip-item.ongoing .trip-status {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* 已完成状态 */
+.trip-item.completed {
+    opacity: 0.7;
+    border-left: 4px solid var(--secondary-text);
+}
+
+.trip-item.completed .trip-status,
+.trip-item.completed .trip-time,
+.trip-item.completed .trip-station,
+.trip-item.completed .trip-arrow,
+.trip-item.completed .trip-company,
+.trip-item.completed .trip-line {
+    color: var(--secondary-text);
+}
+
+.trip-item.completed .trip-status {
+    background-color: #e0e0e0;
+}
+
+/* 地铁行程 */
+.trip-item[data-type="metro"].upcoming .trip-icon, .trip-item[data-type="metro"].ongoing .trip-icon {
+    filter: invert(28%) sepia(95%) saturate(1946%) hue-rotate(185deg) brightness(92%) contrast(101%);
 }
 
 .trip-item[data-type="metro"].ongoing {
-    border-left-color: var(--metro-color) !important;
-    background-color: rgba(0, 138, 237, 0.05) !important;
+    border-left-color: var(--metro-color);
+    background-color: rgba(0, 138, 237, 0.05);
 }
 
 .trip-item[data-type="metro"].ongoing .trip-status {
-    background-color: var(--metro-color) !important;
-    color: var(--white) !important;
+    background-color: var(--metro-color);
+    color: white;
 }
 
-/* 临途出行行程样式 - 增加优先级 */
-.trip-item:not([data-type]) {
-    border-left-color: var(--primary-color) !important;
-}
-
-.trip-item:not([data-type]) .trip-time,
-.trip-item:not([data-type]) .trip-line,
-.trip-item:not([data-type]) .trip-company {
-    color: var(--primary-color) !important;
-}
-
-.trip-item:not([data-type]) .trip-status {
-    background-color: rgba(0, 121, 107, 0.1) !important;
-    color: var(--primary-color) !important;
-}
-
-.trip-item:not([data-type]).ongoing {
-    border-left-color: var(--primary-color) !important;
-    background-color: rgba(0, 121, 107, 0.05) !important;
-}
-
-.trip-item:not([data-type]).ongoing .trip-status {
-    background-color: var(--primary-color) !important;
-    color: var(--white) !important;
-}
-
-/* 地铁行程样式 - 增加优先级 */
-.trip-item[data-type="bus"] {
-    border-left-color: var(--bus-color) !important;
-}
-
-.trip-item[data-type="bus"] .trip-time,
-.trip-item[data-type="bus"] .trip-line,
-.trip-item[data-type="bus"] .trip-company {
-    color: var(--bus-color) !important;
-}
-
-.trip-item[data-type="bus"] .trip-status {
-    background-color: rgba(0, 138, 237, 0.1) !important;
-    color: var(--bus-color) !important;
+/* 公交行程 */
+.trip-item[data-type="bus"].upcoming .trip-icon, .trip-item[data-type="bus"].ongoing .trip-icon {
+    filter: invert(28%) sepia(95%) saturate(2000%) hue-rotate(25deg) brightness(92%) contrast(101%);
 }
 
 .trip-item[data-type="bus"].ongoing {
-    border-left-color: var(--bus-color) !important;
-    background-color: rgba(237, 107, 0, 0.05) !important;
+    border-left-color: var(--bus-color);
+    background-color: rgba(249, 125, 28, 0.05);
 }
 
 .trip-item[data-type="bus"].ongoing .trip-status {
-    background-color: var(--bus-color) !important;
-    color: var(--white) !important;
+    background-color: var(--bus-color);
+    color: white;
 }
 
-/* 已完成行程的统一样式 - 保持最高优先级 */
-.trip-item.completed {
-    border-left-color: var(--secondary-text) !important;
-    opacity: 0.8 !important;
+/* 临途出行 */
+.trip-item:not([data-type]).upcoming .trip-icon, .trip-item:not([data-type]).ongoing .trip-icon {
+    filter: invert(28%) sepia(95%) saturate(1946%) hue-rotate(155deg) brightness(92%) contrast(101%);
 }
 
-.trip-item.completed .trip-time,
-.trip-item.completed .trip-line,
-.trip-item.completed .trip-company,
-.trip-item.completed .trip-station,
-.trip-item.completed .trip-arrow,
-.trip-item.completed .trip-status {
-    color: var(--secondary-text) !important;
+.trip-item:not([data-type]).ongoing {
+    border-left-color: var(--primary-color);
+    background-color: rgba(44, 150, 120, 0.05);
 }
 
-.trip-item.completed .trip-status {
-    background-color: var(--hover-background) !important;
+.trip-item:not([data-type]).ongoing .trip-status {
+    background-color: var(--primary-color);
+    color: white;
 }
 
-/* 按钮基础样式 */
+/* 操作按钮 */
 .view-code-btn {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    font-size: 12px;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 24px;
     color: var(--secondary-text);
-    border-radius: 4px;
+    background-color: transparent;
     transition: background-color 0.2s;
     width: 100%;
+    font-size: 12px;
 }
 
 .view-code-btn:hover {
@@ -2165,98 +2216,18 @@ input[type="color"]::-moz-color-swatch {
 }
 
 .view-code-btn img {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     opacity: 0.7;
 }
 
-.view-code-btn:hover img {
-    opacity: 1;
-}
-
-/* 地铁行程按钮样式 */
-.trip-item[data-type="metro"] .complete-btn {
-    color: var(--metro-color) !important;
-}
-
-.trip-item[data-type="metro"] .complete-btn:hover {
-    background-color: rgba(0, 138, 237, 0.05) !important;
-}
-
-/* 公交行程按钮样式 */
-.trip-item[data-type="bus"] .complete-btn {
-    color: var(--bus-color) !important;
-}
-
-.trip-item[data-type="bus"] .complete-btn:hover {
-    background-color: rgba(0, 138, 237, 0.05) !important;
-}
-
-/* 临途出行行程按钮样式 */
-.trip-item:not([data-type]) .complete-btn {
-    color: var(--primary-color) !important;
-}
-
-.trip-item:not([data-type]) .complete-btn:hover {
-    background-color: rgba(0, 121, 107, 0.05) !important;
-}
-
-/* 删除按钮样式 */
+/* 删除按钮 */
 .delete-btn {
-    color: var(--secondary-text) !important;
+    color: var(--secondary-text);
 }
 
-.delete-btn:hover {
-    background-color: var(--hover-background) !important;
-}
-
-/* 深色模式适配 */
-@media (prefers-color-scheme: dark) {
-    /* 基础按钮样式调整 */
-    .view-code-btn {
-        color: var(--text-color);
-    }
-
-    .view-code-btn img {
-        filter: invert(1);
-        opacity: 0.8;
-    }
-
-    .view-code-btn:hover img {
-        opacity: 1;
-    }
-
-    /* 地铁行程按钮深色模式 */
-    .trip-item[data-type="metro"] .complete-btn {
-        color: var(--secondary-text) !important;
-    }
-
-    .trip-item[data-type="metro"] .complete-btn img {
-        filter: invert(1);
-    }
-
-    /* 临途出行行程按钮深色模式 */
-    .trip-item:not([data-type="metro"]) .complete-btn {
-        color: var(--secondary-text) !important;
-    }
-
-    .trip-item:not([data-type="metro"]) .complete-btn img {
-        filter: invert(1);
-    }
-
-    /* 删除按钮深色模式 */
-    .delete-btn {
-        color: var(--text-color) !important;
-    }
-
-    .delete-btn img {
-        filter: invert(1);
-        opacity: 0.6;
-    }
-
-    .delete-btn:hover img {
-        opacity: 0.8;
-    }
+.delete-btn img {
+    opacity: 0.4;
 }
 
 .caption-section .beian{    
