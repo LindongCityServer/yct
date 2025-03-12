@@ -100,47 +100,6 @@ function loadNewsContent() {
         }
     });
     
-    // 创建新闻项元素的函数
-    function createNewsItem(news) {
-        const template = newsTemplate.content.cloneNode(true);
-        const newsItem = template.querySelector('.news-item');
-        const isExpired = news.expireDate && new Date(news.expireDate) < new Date();
-        
-        if (isExpired) {
-            newsItem.classList.add('expired');
-        }
-        
-        // 设置新闻类别和日期
-        newsItem.querySelector('.news-category').textContent = news.category;
-        newsItem.querySelector('.news-date').textContent = news.date;
-        
-        // 设置过期标签
-        const expiredTag = newsItem.querySelector('.expired-tag');
-        if (isExpired) {
-            expiredTag.style.display = 'inline';
-        } else {
-            expiredTag.style.display = 'none';
-        }
-        
-        // 设置标题和链接
-        const titleLink = newsItem.querySelector('.news-title a');
-        const titleText = news.title.replace(/\|/g, '');
-        titleLink.textContent = titleText;
-        titleLink.title = titleText;
-        if (news.link) {
-            titleLink.href = news.link;
-            titleLink.classList.remove('no-link');
-        } else {
-            titleLink.href = '#';
-            titleLink.classList.add('no-link');
-        }
-        
-        // 设置摘要
-        newsItem.querySelector('.news-summary').textContent = news.summary;
-        
-        return newsItem;
-    }
-    
     // 更新最近新闻内容
     const recentContainer = document.createElement('div');
     recentContainer.className = 'filtered-news-content';
@@ -149,7 +108,7 @@ function loadNewsContent() {
     });
     newsContent.innerHTML = '';
     newsContent.appendChild(recentContainer);
-    
+
     // 更新历史新闻内容
     historyNewsContent.innerHTML = '';
     historyNews.forEach(news => {
@@ -2417,4 +2376,107 @@ document.addEventListener('DOMContentLoaded', () => {
     checkTripsForNotification();
 });
 
-// ... rest of the code ... 
+// 在script.js中添加筛选初始化和事件处理
+document.addEventListener('DOMContentLoaded', () => {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const category = btn.dataset.filter;
+            filterNews(category);
+            toggleActiveFilter(btn);
+        });
+    });
+});
+
+function toggleActiveFilter(currentBtn) {
+    document.querySelector('.filter-btn.active')
+        ?.classList.remove('active');
+    currentBtn.classList.add('active');
+}
+
+function filterNews(category) {
+    // 根据分类过滤所有新闻
+    const filteredByCategory = filteredContentData.filter(news => 
+        category === 'all' || news.category === category
+    );
+
+    // 获取当前时间
+    const currentDate = new Date();
+    const twoMonthsAgo = new Date();
+    twoMonthsAgo.setMonth(currentDate.getMonth() - 2);
+
+    // 重新分割为 recent 和 history
+    const filteredRecent = [];
+    const filteredHistory = [];
+    filteredByCategory.forEach(news => {
+        const newsDate = new Date(news.date);
+        const expireDate = news.expireDate ? new Date(news.expireDate) : null;
+
+        if (newsDate < twoMonthsAgo || (expireDate && expireDate < currentDate)) {
+            filteredHistory.push(news);
+        } else {
+            filteredRecent.push(news);
+        }
+    });
+
+    // 更新「最近资讯」区域
+    const recentContainer = document.querySelector('.filtered-news-content');
+    recentContainer.innerHTML = '';
+    filteredRecent.forEach(news => {
+        recentContainer.appendChild(createNewsItem(news));
+    });
+
+    // 更新「历史资讯」区域
+    const historyContainer = document.querySelector('.history-news-content');
+    historyContainer.innerHTML = '';
+    filteredHistory.forEach(news => {
+        historyContainer.appendChild(createNewsItem(news));
+    });
+
+    // 如果历史区域无内容，隐藏展开按钮的提示
+    const historyNewsLength = filteredHistory.length;
+    if (historyContainer.classList.contains('hidden')) {
+        const toggleBtn = document.querySelector('.toggle-history-btn');
+        toggleBtn.textContent = historyNewsLength ? '历史资讯' : '暂无历史资讯';
+    }
+}
+
+// 在 script.js 的全局作用域中定义 createNewsItem
+function createNewsItem(news) {
+    const newsTemplate = document.getElementById('news-item-template');
+    const template = newsTemplate.content.cloneNode(true);
+    const newsItem = template.querySelector('.news-item');
+    
+    // 原函数的剩余代码（保持与片段1、片段3中的逻辑一致）
+    const isExpired = news.expireDate && new Date(news.expireDate) < new Date();
+    if (isExpired) {
+        newsItem.classList.add('expired');
+    }
+    
+    newsItem.dataset.category = news.category;
+    
+    const categoryClass = {
+        '通知公告': 'notice',
+        '公交运营': 'bus',
+        '地铁运营': 'metro',
+        '有轨运营': 'tram',
+        '铁路运营': 'local',
+    }[news.category] || 'default';
+    
+    newsItem.querySelector('.news-category').classList.add(categoryClass);
+    newsItem.querySelector('.news-category').textContent = news.category;
+    newsItem.querySelector('.news-date').textContent = news.date;
+    
+    const expiredTag = newsItem.querySelector('.expired-tag');
+    expiredTag.style.display = isExpired ? 'inline' : 'none';
+    
+    const titleLink = newsItem.querySelector('.news-title a');
+    titleLink.textContent = news.title.replace(/\|/g, '');
+    titleLink.title = news.title;
+    titleLink.href = news.link || '#';
+    titleLink.classList.toggle('no-link', !news.link);
+    
+    newsItem.querySelector('.news-summary').textContent = news.summary;
+    
+    return newsItem;
+}

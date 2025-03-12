@@ -82,6 +82,8 @@
         --primary-color-hover: #1f7e63;
         --metro-color: #29B6F6;
         --bus-color: #ff8f39;
+        --tram-color: #e52757;
+        --local-railway-color: #af4513;
         --text-color: #e0e0e0;
         --background-color: #121212;
         --white: #ffffff;
@@ -233,13 +235,14 @@ main {
     position: static;
     padding: 0 16px;
     text-align: left;
-    font-size: 28px;
+    font-size: 30px;
     line-height: 1.4;
     max-width: 80%;
     margin: 0;
     text-shadow: none;
     opacity: 1;
     transform: none;
+    font-weight: bold;
 }
 
 .carousel-slide img {
@@ -591,6 +594,54 @@ main {
     border-bottom: 1px solid var(--border-color);
 }
 
+/* 在mainpage.css中添加筛选按钮样式 */
+.news-filters {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-btn {
+    padding: 4px 12px;
+    background-color: var(--background-color);
+    color: var(--secondary-text);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: normal;
+    width: fit-content;
+    text-wrap: nowrap;
+}
+
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-weight: bold;
+}
+
+/* 各分类按钮颜色绑定 */
+.filter-btn[data-filter="公交运营"].active { 
+    background-color: var(--bus-color);
+}
+.filter-btn[data-filter="地铁运营"].active { 
+    background-color: var(--metro-color);
+}
+.filter-btn[data-filter="有轨运营"].active { 
+    background-color: var(--tram-color);
+}
+.filter-btn[data-filter="铁路运营"].active { 
+    background-color: var(--local-railway-color);
+}
+.filter-btn[data-filter="all"].active,
+.filter-btn[data-filter="运营信息"].active { 
+    background-color: var(--primary-color);
+}
+
 .history-news-header {
     padding: 16px;
     border-bottom: 1px solid var(--border-color);
@@ -661,13 +712,12 @@ main {
     transition: background-color 0.3s;
 }
 
-.expired-tag {
+.expired-tag, .news-item.expired .news-category {
     font-size: 12px;
     color: #999;
     background-color: #f5f5f5;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 12px;
 }
 
 .news-item.expired .news-title a {
@@ -686,15 +736,23 @@ main {
     display: flex;
     gap: 12px;
     margin-bottom: 8px;
+    align-items: center;
 }
 
 .news-category {
     color: var(--primary-color);
     font-size: 12px;
-    padding: 2px 8px;
     background-color: rgba(0, 121, 107, 0.1);
+    padding: 2px 8px;
     border-radius: 12px;
 }
+
+/* 在mainpage.css中新增分类色配置 */
+.news-category.bus { color: var(--bus-color); background-color: #f97d1c21; }
+.news-category.metro { color: var(--metro-color); background-color: #008aed14; }
+.news-category.tram { color: var(--tram-color); background-color: #e2023a14; }
+.news-category.local { color: var(--local-railway-color); background-color: #a0522d14;}
+.news-category.default { color: var(--primary-color); }
 
 .news-date {
     color: #666;

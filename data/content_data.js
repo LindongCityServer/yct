@@ -7,7 +7,7 @@ const contentData = [
         date: '2025-01-21',
         expireDate: '2025-02-12',
         summary: '临东市服务器管理委员会祝各位玩家朋友新年快乐，身体健康，万事如意！',
-        category: '网站公告',
+        category: '通知公告',
         showInBanner: false
     },
     {
@@ -16,7 +16,7 @@ const contentData = [
         link: 'https://pd.qq.com/s/2b9byqcxs',
         date: '2025-03-08',
         summary: '本月新任轮值管理段冰峰就公交站牌规范化问题在群内发起讨论，引发玩家广泛热议。各方就站牌制作标准达成共识，共同推动公交线路规范化运营。',
-        category: '网站公告',
+        category: '通知公告',
         showInBanner: true
     },
     {
@@ -25,7 +25,7 @@ const contentData = [
         link: 'https://pd.qq.com/g/58ocn0s744/post/B_e092aa67439105001441152186775804310X60',
         date: '2025-02-11',
         summary: '2月12日起，临东将正式推出首枚「文化纪念印章」，以记录每位玩家与服务器共同创造的回忆，现诚邀您参与这场跨越虚拟与现实的仪式！',
-        category: '网站公告',
+        category: '通知公告',
         showInBanner: true
     },
     {
@@ -34,7 +34,7 @@ const contentData = [
         link: '../content/250221松山湖有轨电车公布改造计划.html',
         date: '2025-02-21',
         summary: '松山湖有轨电车全面升级：运力翻倍、混跑提速、色彩缤纷、标准统一、调度强大……点击查看全图，了解更多详情！',
-        category: '运营信息',
+        category: '有轨运营',
         showInBanner: true
     },
     {
@@ -43,7 +43,7 @@ const contentData = [
         link: '',
         date: '2025-02-18',
         summary: '为了合理利用资源，现决定松山湖有轨电车停止对外服务，园区穿梭巴士行车间隔由20分钟一班压缩至10分钟一班，至有轨电车松山湖线整改完成后恢复正常间隔。',
-        category: '运营信息',
+        category: '有轨运营',
         showInBanner: false
     },
     {
@@ -53,7 +53,7 @@ const contentData = [
         date: '2025-01-27',
         releaseTime: '2025-01-27 19:30',
         summary: '乙巳新年到来之际，临东市市长上官通过临东广播电视台和互联网发表了临东市服务器2025年新年献词',
-        category: '网站公告',
+        category: '通知公告',
         showInBanner: false
     },
     {
@@ -63,7 +63,7 @@ const contentData = [
         date: '2025-01-26',
         expireDate: '2025-01-28',
         summary: '临东市市长上官将于27日晚19时30分通过临东广播电视台和互联网发表服务器2025年新年献词',
-        category: '网站公告',
+        category: '通知公告',
         showInBanner: false
     },
     {
@@ -140,7 +140,7 @@ const contentData = [
         date: '2025-01-26',
         expireDate: '2025-02-13',
         summary: '花城广场运营有限公司将在2025年1月27日至2025年2月12日期间调整穿梭巴士和有轨电车的发车间隔：松山湖园区穿梭巴士发车间隔增加5分钟，松山湖有轨电车发车间隔增加100%，由原来3min一班车延长至6min',
-        category: '运营信息',
+        category: '有轨运营',
         showInBanner: false
     },
     {
@@ -149,7 +149,7 @@ const contentData = [
         link: 'https://pd.qq.com/g/58ocn0s744/post/B_cdfea167758606001441152186805331340X60',
         date: '2025-02-04',
         summary: '为提高公交站名的周边关联度，“忌临大道地铁站” 站位名称更改为 “新阳小区北门”，涉及线路：环路、138 路。目前站名更改工作已经完成，乘客可登录“临东市服务器 Wiki”或“公交线路图”页面查询具体信息。',
-        category: '运营信息',
+        category: '公交运营',
         showInBanner: false
     },
     {
@@ -158,7 +158,7 @@ const contentData = [
         link: '',
         date: '2025-02-19',
         summary: '“翡翠池“公交站更名为“水镜未来馆”，涉及152路、155路。目前站名更改工作正在进行，乘客可访问“公交线路图”页面查询具体信息。',
-        category: '运营信息',
+        category: '公交运营',
         showInBanner: false
     },
     {
@@ -168,7 +168,7 @@ const contentData = [
         date: '2025-02-19',
         expireDate: '2025-07-31',
         summary: '临铁海峡.外运轮渡决定于2025年2月至7月期间停运半年，进行旧有轮船的升级改造。给您带来的不便，敬请谅解。',
-        category: '运营信息',
+        category: '通知公告',
         showInBanner: false
     },
     {
@@ -178,7 +178,7 @@ const contentData = [
         date: '2025-02-25',
         expireDate: '2025-03-31',
         summary: '为方便广大乘客候车，现公布3月临东临北巴士155路和181路发车时刻表以供参考。日常运营中会根据实际运营情况临时调点，推荐广大乘客提前5-10分钟候车！！！',
-        category: '运营信息',
+        category: '公交运营',
         showInBanner: false
     },
     {
@@ -188,7 +188,7 @@ const contentData = [
         releaseTime: '2025-03-09 6:30',
         date: '2025-03-09',
         summary: '五间房公交枢纽，3月9日盛大启航，183路 K881路 双线齐发',
-        category: '运营信息',
+        category: '公交运营',
         showInBanner: true
     },
     {
@@ -197,7 +197,7 @@ const contentData = [
         link: '',
         date: '2025-03-03',
         summary: '为适应最新城市规划并配合市政道路更名，现对综合保税区（千池山街道）和碧湖新城境内部分公交车站更名，涉及线路：287路、K801路。目前站名更改工作正在进行，乘客可打开“公交线路图”页面或查阅服务器Wiki查询具体信息。如有问题，请及时联系服务器管理员反馈。',
-        category: '运营信息',
+        category: '公交运营',
         showInBanner: true
     },
     {
@@ -207,7 +207,7 @@ const contentData = [
         date: '2025-03-08',
         expireDate: '2025-04-01',
         summary: '因受大环境及线路周转效率低下与客流较低等因素影响，公共汽车310支线将于2025年3月31日暂停运营，不便之处敬请谅解。顺鑫公司310车队',
-        category: '运营信息',
+        category: '公交运营',
         showInBanner: true
     },
 ];
