@@ -1905,13 +1905,13 @@ function initNotificationSettingsPanel() {
             <div class="settings-item">
                 <label>
                     <input type="checkbox" id="check-in-notification" ${settings.checkInNotification ? 'checked' : ''}>
-                    开始检票提醒（提前15分钟）
+                    检票、登机开始提醒（提前15分钟）
                 </label>
             </div>
             <div class="settings-item">
                 <label>
                     <input type="checkbox" id="check-in-end-notification" ${settings.checkInEndNotification ? 'checked' : ''}>
-                    停止检票提醒（提前5分钟）
+                    检票、登机（提前5分）、值机（提前45分）截止提醒
                 </label>
             </div>
         </div>
@@ -2089,28 +2089,66 @@ function checkTripsForNotification() {
         // 计算距离发车的分钟数
         const timeUntilDeparture = Math.floor((tripTime - now) / (1000 * 60));
         
-        // 提前指定时间通知
-        if (timeUntilDeparture === settings.advanceTime) {
-            sendNotification('行程预告', {
-                body: `您关注的${trip.route.time}出发前往${trip.route.arrival}的${trip.route.id ? trip.route.id + '次车' : trip.route.line + '行程'}离发车时间或最晚上车时间还有${settings.advanceTime}分钟，请前往${trip.route.departure}准备候车`,
-                icon: 'UI/res/agenda_notification.png'
-            });
-        }
-        
-        // 检票通知（提前15分钟）
-        if (settings.checkInNotification && timeUntilDeparture === 15) {
-            sendNotification('候车提醒', {
-                body: `您关注的${trip.route.time}出发前往${trip.route.arrival}的${trip.route.id ? trip.route.id + '次车已经开始检票' : trip.route.line + '行程离最晚上车时间还有15分钟'}，请前往${trip.route.departure}准备上车`,
-                icon: 'UI/res/waiting_notification.png'
-            });
-        }
-        
-        // 停止检票通知（提前5分钟）
-        if (settings.checkInEndNotification && timeUntilDeparture === 5) {
-            sendNotification('上车提醒', {
-                body: `您关注的${trip.route.time}出发前往${trip.route.arrival}的${trip.route.id ? trip.route.id + '次车即将停止检票' : trip.route.line + '行程离最晚上车时间仅剩5分钟'}。如您确认无法赶到${trip.route.departure}候车，请提前规划好备选行程。`,
-                icon: 'UI/res/boarding_notification.png'
-            });
+        if (trip.route.type === 'air') {
+            // 提前指定时间通知
+            if (timeUntilDeparture === settings.advanceTime + 40) {
+                sendNotification('从' + trip.route.departure + '机场出发的航班已开放值机', {
+                    body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}`,
+                    icon: 'UI/res/checkin_notification.png'
+                });
+            }
+
+            // 提前45分钟通知值机即将截止
+            if (settings.checkInEndNotification && timeUntilDeparture === 45) {
+                sendNotification(trip.route.departure + '机场的值机即将截止', {
+                    body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}
+                    如您确认无法赶到${trip.route.departure}机场，请提前规划好备选行程。`,
+                    icon: 'UI/res/checkin_notification.png'
+                });
+            }
+            
+            // 提前30分钟通知登机开始
+            if (settings.checkInNotification && timeUntilDeparture === 30) {
+                sendNotification(trip.route.id + '航班即将开始登机', {
+                    body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}
+                    实际登机位置请留意机场广播。`,
+                    icon: trip.route.id ? 'UI/res/checkin_notification.png' : 'UI/res/waiting_notification.png'
+                });
+            }
+            
+            // 提前5分钟通知即将起飞
+            if (settings.checkInEndNotification && timeUntilDeparture === 5) {
+                sendNotification(trip.route.id + '航班即将起飞', {
+                    body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}
+                    如您已经登机，请听从机上工作人员指示。如您尚未登机，请留意机场催促登机广播。`,
+                    icon: 'UI/res/takeoff_notification.png'
+                });
+            }
+        } else {
+            // 提前指定时间通知
+            if (timeUntilDeparture === settings.advanceTime) {
+                sendNotification(trip.route.id ? trip.route.id + '次即将发车' : '前往' + trip.route.arrival + '的行程即将开始', {
+                    body: `${trip.route.time} ${trip.route.departure}${trip.route.id ? '发车→' + trip.route.arrival : '出发 乘坐' + trip.route.line}`,
+                    icon: trip.route.id ? 'UI/res/waiting_notification.png' : 'UI/res/agenda_notification.png'
+                });
+            }
+            
+            // 提前15分钟通知检票开始（客运行程）或提醒最晚上车时间
+            if (settings.checkInNotification && timeUntilDeparture === 15) {
+                sendNotification(trip.route.id ? trip.route.id + '次开始检票' : '15分钟内出发可按时到达' + trip.route.arrival, {
+                    body: `${trip.route.time} ${trip.route.departure}${trip.route.id ? '发车→' + trip.route.arrival : '出发 乘坐' + trip.route.line}`,
+                    icon: trip.route.id ? 'UI/res/checkin_notification.png' : 'UI/res/waiting_notification.png'
+                });
+            }
+            
+            // 提前5分钟通知检票即将截止（客运行程）或提醒最晚上车时间
+            if (settings.checkInEndNotification && timeUntilDeparture === 5) {
+                sendNotification(trip.route.id ? trip.route.id + '次的检票即将截止' : '可能无法按时到达' + trip.route.arrival, {
+                    body: `${trip.route.time} ${trip.route.departure}${trip.route.id ? '发车→' + trip.route.arrival : '出发 乘坐' + trip.route.line}
+                    如您确认无法赶到${trip.route.departure}候车，请提前规划好备选行程。`,
+                    icon: 'UI/res/boarding_notification.png'
+                });
+            }
         }
     });
 }
@@ -2284,13 +2322,6 @@ function filterNews(category) {
     filteredHistory.forEach(news => {
         historyContainer.appendChild(createNewsItem(news));
     });
-
-    // 如果历史区域无内容，隐藏展开按钮的提示
-    const historyNewsLength = filteredHistory.length;
-    if (historyContainer.classList.contains('hidden')) {
-        const toggleBtn = document.querySelector('.toggle-history-btn');
-        toggleBtn.textContent = historyNewsLength ? '历史资讯' : '暂无历史资讯';
-    }
 }
 
 // 在 script.js 的全局作用域中定义 createNewsItem
