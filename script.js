@@ -2102,7 +2102,7 @@ function checkTripsForNotification() {
             if (settings.checkInEndNotification && timeUntilDeparture === 45) {
                 sendNotification(trip.route.departure + '机场的值机即将截止', {
                     body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}
-                    如您确认无法赶到${trip.route.departure}机场，请提前规划好备选行程。`,
+如您确认无法赶到${trip.route.departure}机场，请提前规划好备选行程。`,
                     icon: 'UI/res/checkin_notification.png'
                 });
             }
@@ -2111,7 +2111,7 @@ function checkTripsForNotification() {
             if (settings.checkInNotification && timeUntilDeparture === 30) {
                 sendNotification(trip.route.id + '航班即将开始登机', {
                     body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}
-                    实际登机位置请留意机场广播。`,
+实际登机位置请留意机场大屏或广播。`,
                     icon: trip.route.id ? 'UI/res/checkin_notification.png' : 'UI/res/waiting_notification.png'
                 });
             }
@@ -2120,7 +2120,7 @@ function checkTripsForNotification() {
             if (settings.checkInEndNotification && timeUntilDeparture === 5) {
                 sendNotification(trip.route.id + '航班即将起飞', {
                     body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}
-                    如您已经登机，请听从机上工作人员指示。如您尚未登机，请留意机场催促登机广播。`,
+如您已经登机，请听从机上工作人员指示。如您尚未登机，请留意机场催促登机广播。`,
                     icon: 'UI/res/takeoff_notification.png'
                 });
             }
@@ -2136,7 +2136,8 @@ function checkTripsForNotification() {
             // 提前15分钟通知检票开始（客运行程）或提醒最晚上车时间
             if (settings.checkInNotification && timeUntilDeparture === 15) {
                 sendNotification(trip.route.id ? trip.route.id + '次开始检票' : '15分钟内出发可按时到达' + trip.route.arrival, {
-                    body: `${trip.route.time} ${trip.route.departure}${trip.route.id ? '发车→' + trip.route.arrival : '出发 乘坐' + trip.route.line}`,
+                    body: `${trip.route.time} ${trip.route.departure}${trip.route.id ? '发车→' + trip.route.arrival : '出发 乘坐' + trip.route.line}
+实际检票位置请留意车站大屏或广播。`,
                     icon: trip.route.id ? 'UI/res/checkin_notification.png' : 'UI/res/waiting_notification.png'
                 });
             }
@@ -2145,7 +2146,7 @@ function checkTripsForNotification() {
             if (settings.checkInEndNotification && timeUntilDeparture === 5) {
                 sendNotification(trip.route.id ? trip.route.id + '次的检票即将截止' : '可能无法按时到达' + trip.route.arrival, {
                     body: `${trip.route.time} ${trip.route.departure}${trip.route.id ? '发车→' + trip.route.arrival : '出发 乘坐' + trip.route.line}
-                    如您确认无法赶到${trip.route.departure}候车，请提前规划好备选行程。`,
+如您确认无法赶到${trip.route.departure}候车，请提前规划好备选行程。`,
                     icon: 'UI/res/boarding_notification.png'
                 });
             }
