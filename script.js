@@ -1899,19 +1899,19 @@ function initNotificationSettingsPanel() {
                 </label>
             </div>
             <div class="settings-item">
-                <label>提前提醒时间（分钟）</label>
+                <label>检票开始或值机结束前前提醒时间（分钟）</label>
                 <input type="number" id="advance-time" value="${settings.advanceTime}" min="1" max="120">
             </div>
             <div class="settings-item">
                 <label>
                     <input type="checkbox" id="check-in-notification" ${settings.checkInNotification ? 'checked' : ''}>
-                    检票、登机开始提醒（提前15分钟）
+                    检票（提前15分）、登机（提前40分）开始提醒
                 </label>
             </div>
             <div class="settings-item">
                 <label>
                     <input type="checkbox" id="check-in-end-notification" ${settings.checkInEndNotification ? 'checked' : ''}>
-                    检票、登机（提前5分）、值机（提前45分）截止提醒
+                    检票、登机（提前15分）、值机（提前45分）截止提醒
                 </label>
             </div>
         </div>
@@ -2091,7 +2091,7 @@ function checkTripsForNotification() {
         
         if (trip.route.type === 'air') {
             // 提前指定时间通知
-            if (timeUntilDeparture === settings.advanceTime + 40) {
+            if (timeUntilDeparture === settings.advanceTime + 45) {
                 sendNotification('从' + trip.route.departure + '机场出发的航班已开放值机', {
                     body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}`,
                     icon: 'UI/res/checkin_notification.png'
@@ -2107,16 +2107,16 @@ function checkTripsForNotification() {
                 });
             }
             
-            // 提前30分钟通知登机开始
-            if (settings.checkInNotification && timeUntilDeparture === 30) {
-                sendNotification(trip.route.id + '航班即将开始登机', {
+            // 提前40分钟通知登机开始
+            if (settings.checkInNotification && timeUntilDeparture === 40) {
+                sendNotification(trip.route.id + '航班已开放登机', {
                     body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}
 实际登机位置请留意机场大屏或广播。`,
                     icon: trip.route.id ? 'UI/res/checkin_notification.png' : 'UI/res/waiting_notification.png'
                 });
             }
             
-            // 提前5分钟通知即将起飞
+            // 提前15分钟通知即将起飞
             if (settings.checkInEndNotification && timeUntilDeparture === 5) {
                 sendNotification(trip.route.id + '航班即将起飞', {
                     body: `计划${trip.route.time}起飞 ${trip.route.company} ${trip.route.id + '→' + trip.route.arrival}
