@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地图预览 - 雨城通实验室</title>
+    <link rel="icon" href="/UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="/mainpage.css" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/data_composer/style.css" />
+    <link rel="stylesheet" href="/lab/style.css" />
+    <link rel="stylesheet" href="road_sign.css" />
+    <link rel="stylesheet" href="/UI/toast.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<!-- 头部导航栏 -->
+<header class="header" style="display:none">
+    <button class="icon-button" id="back-to-lab" onclick="window.location.href='/lab'" title="实验室">
+        <img src="/UI/res/arrow_back_black.png" alt="返回">
+    </button>
+    <h1>地图搜索</h1>
+    <div class="toolbar">            
+        <button class="icon-button" id="share-btn" onclick="" title="复制链接">
+            <img src="/UI/res/link_black.png" alt="复制链接">
+        </button>
+    </div>
+</header>
+
+<body>
+    <!-- 主要内容区 -->
+    <div class="content-container">
+        <div class="preview-container" style="position: absolute;top:0;left:0;border-radius: 0;">
+            <div class="tile-container"></div>
+            <div class="map-scale">
+                <div class="scale-bar"></div>
+                <div class="scale-text">200m</div>
+            </div>
+            <div class="pin-container">
+                <img src="/UI/res/map_pin.png" alt="Pin" class="pin">
+            </div>
+        </div>
+        <div class="search-container" style="display:none">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="请输入搜索内容"></input>
+            </div>
+            <!-- 在页面适当位置添加 -->
+            <div class="coordinates">
+                <input type="number" id="coordinates-x" placeholder="请输入坐标">
+                <input type="number" id="coordinates-z" placeholder="请输入坐标">
+                <select id="category-filter">
+                    <option value="">全部分类</option>
+                </select>
+            </div>
+            <div class="search-result">
+                <!-- 数据项将在这里动态添加 -->
+            </div>
+        </div>
+    </div>
+</body>
+
+<div class="toast-overlay" style="display:none">
+</div>
+
+<script type="module" src="script.js"></script>
+<!-- 引入其他必要的脚本文件 -->
+<script src="/UI/toast.js"></script>
+<script type="module" src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</html>
