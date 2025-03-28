@@ -29,6 +29,15 @@ const contentData = [
         showInBanner: true
     },
     {
+        title: '临东|金桦|机场|滑行道|及|跑道|完成铺设',
+        image: '../data/content_banner/临东金桦机场开工.png',
+        link: '',
+        date: '2025-03-20',
+        summary: '在经过选址调整之后，机场一期于3月5日开工。设计飞行区等级为4F级，设有一条长度3800的跑道、一个货场以及一座航站楼。目前跑道及滑行道已完成铺设。',
+        category: '运营信息',
+        showInBanner: true
+    },
+    {
         title: '松山湖|有轨|电车|改造|计划公布',
         image: '../content/res/250221松山湖有轨电车公布改造计划/0.jpg',
         link: '../content/250221松山湖有轨电车公布改造计划.html',
@@ -168,7 +177,7 @@ const contentData = [
         date: '2025-02-19',
         expireDate: '2025-07-31',
         summary: '临铁海峡.外运轮渡决定于2025年2月至7月期间停运半年，进行旧有轮船的升级改造。给您带来的不便，敬请谅解。',
-        category: '通知公告',
+        category: '运营信息',
         showInBanner: false
     },
     {
@@ -189,7 +198,7 @@ const contentData = [
         date: '2025-03-09',
         summary: '五间房公交枢纽，3月9日盛大启航，183路 K881路 双线齐发',
         category: '公交运营',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '综合|保税区|及|碧湖|新城|部分|公交|车站更名',
@@ -198,7 +207,7 @@ const contentData = [
         date: '2025-03-03',
         summary: '为适应最新城市规划并配合市政道路更名，现对综合保税区（千池山街道）和碧湖新城境内部分公交车站更名，涉及线路：287路、K801路。目前站名更改工作正在进行，乘客可打开“公交线路图”页面或查阅服务器Wiki查询具体信息。如有问题，请及时联系服务器管理员反馈。',
         category: '公交运营',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '310路|支线|即将|暂停运营',
@@ -209,6 +218,15 @@ const contentData = [
         summary: '因受大环境及线路周转效率低下与客流较低等因素影响，公共汽车310支线将于2025年3月31日暂停运营，不便之处敬请谅解。顺鑫公司310车队',
         category: '公交运营',
         showInBanner: true
+    },
+    {
+        title: '181支线、|183路|增加|南山|派出所|临时|停靠站',
+        image: '--bus-color',
+        link: '',
+        date: '2025-03-20',
+        summary: '临北巴士181支线及183路自即日起新增南山派出所临时停靠站。该站点为临时性设置，公交线路图页面的相关信息将延后更新，具体运营安排请关注后续通知。',
+        category: '公交运营',
+        showInBanner: false
     },
 ];
 
