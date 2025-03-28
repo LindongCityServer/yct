@@ -1,0 +1,591 @@
+/* 字体定义 */
+@font-face {
+    font-family: 'HarmonyOS Sans SC';
+    src: url('UI/fonts/HARMONYOS_SANS_SC_REGULAR.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'HarmonyOS Sans SC';
+    src: url('UI/fonts/HARMONYOS_SANS_SC_MEDIUM.TTF') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'HarmonyOS Sans SC';
+    src: url('UI/fonts/HARMONYOS_SANS_SC_BOLD.TTF') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+/* 全局字体应用 */
+:root {
+    --font-family: 'HarmonyOS Sans SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* 品牌色 */
+    --brand-color-10: #000201;
+    --brand-color-20: #0b2621;
+    --brand-color-30: #14443c;
+    --brand-color-40: #1f695d;
+    --brand-color-50: #2c9684;
+    --brand-color-60: #60c2b2;
+    --brand-color-70: #a1dfd5;
+    --brand-color-80: #cef1ea;
+    --brand-color-90: #ebfbf9;
+
+    /* 背景色 */
+    --background-color-10: #0c0e0e;
+    --background-color-20: #1f2c2e;
+    --background-color-30: #373e40;
+    --background-color-40: #566164;
+    --background-color-50: #7b8a8f;
+    --background-color-60: #a3aeb1;
+    --background-color-70: #d1d6d8;
+    --background-color-80: #ebeeee;
+    --background-color-90: #f8f9f9;
+
+    /* 不同透明度的中性色 */
+    --black-90: #000000e5;
+    --black-60: #00000099;
+    --black-40: #00000066;
+    --black-20: #00000033; 
+    --white-90: #ffffffe5;
+    --white-60: #ffffff99;
+    --white-40: #ffffff66;
+    --white-20: #ffffff33;
+
+    /* 功能色 */
+    --metro-color: #008AED;
+    --bus-color: #F97D1C;
+    --tram-color: #e2023a;
+    --local-railway-color: #a0522d;
+    --start-color: #080;
+    --end-color: #fa0;
+    --warning-color: rgb(204, 40, 3);
+    --shadow-color: var(--black-20);
+
+    /* 浅色模式颜色 */
+    --color-text-primary: var(--black-90);
+    --color-text-secondary: var(--black-60);
+    --color-text-tertiary: var(--black-40);
+    --color-text-quaternary: var(--black-20);
+    --color-text-on-primary: var(--white-90);
+    --color-text-on-secondary: var(--white-60);
+    --color-text-on-tertiary: var(--white-40);
+    --color-text-on-quaternary: var(--white-20);
+    --color-text-accent: var(--brand-color-40);
+    --color-text-on-accent: white;
+    --color-component-primary: var(--brand-color-50);
+    --color-component-primary-hover: var(--brand-color-40);
+    --color-component-secondary: var(--brand-color-70);
+    --color-component-secondary-hover: var(--brand-color-60);
+    --color-component-tertiary: var(--background-color-60);
+    --color-component-tertiary-hover: var(--background-color-50);
+    --color-component-quaternary: var(--black-20);
+    --color-component-quaternary-hover: var(--black-20);
+    --color-border-primary: var(--brand-color-40);
+    --color-border-primary-hover: var(--brand-color-50);
+    --color-border-secondary: var(--black-60);
+    --color-border-tertiary: var(--black-40);
+    --color-border-quaternary: var(--black-20);
+    --color-background-primary: var(--background-color-90);
+    --color-background-secondary: var(--background-color-80);
+    --color-background-tertiary: var(--background-color-70);
+    --color-background-quaternary: var(--background-color-60);
+
+    /* Minecraft 基岩版文本颜色 */
+    --text-color-0: #000000;  /* 黑色保持 */
+    --text-color-1: #0000EE;  /* 原#0000aa加深 */
+    --text-color-2: #006400;  /* 原#00aa00加深 */
+    --text-color-3: #008B8B;  /* 原#00aaaa加深 */
+    --text-color-4: #CC0000;  /* 原#aa0000提亮 */
+    --text-color-5: #8A2BE2;  /* 原#aa00aa优化 */
+    --text-color-6: #FF8C00;  /* 原#ffaa00暗化 */
+    --text-color-7: #666666;  /* 原#aaaaaa加深 */
+    --text-color-8: #555555;  /* 保持 */
+    --text-color-9: #4169E1;  /* 原#5555ff优化 */
+    --text-color-a: #32CD32;  /* 原#55ff55优化 */
+    --text-color-b: #00CED1;  /* 原#55ffff优化 */
+    --text-color-c: #FF4444;  /* 原#ff5555优化 */
+    --text-color-d: #DA70D6;  /* 原#ff55ff优化 */
+    --text-color-e: #ffdd00;  /* 原#ffff55优化 */
+    --text-color-f: #FFFFFF;  /* 白色保持（特殊用途）*/
+    --text-color-g: #B3A905;  /* 原#ddd605加深 */
+    --text-color-h: #A89B95;  /* 原#e3d4d1加深 */
+    --text-color-i: #999090;  /* 原#cecaca加深 */
+    --text-color-j: #332A2B;  /* 原#443a3b优化 */
+    --text-color-m: #8B0000;  /* 原#971607优化 */
+    --text-color-n: #A0522D;  /* 原#b4684d优化 */
+    --text-color-p: #CD950C;  /* 原#deb12d优化 */
+    --text-color-q: #3C8D2F;  /* 原#47a036优化 */
+    --text-color-s: #20B2AA;  /* 原#2cbaa8优化 */
+    --text-color-t: #1E3A8A;  /* 原#21497b优化 */
+    --text-color-u: #9370DB;  /* 原#9a5cc6优化 */
+    --text-color-v: #FF7F24;  /* 原#eb7114优化 */
+}
+
+/* 深色模式样式，但不应用于强制浅色模式 */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-force-theme="light"]) {
+        /* 深色模式颜色 */
+        --color-text-primary: var(--white-90);
+        --color-text-secondary: var(--white-60);
+        --color-text-tertiary: var(--white-40);
+        --color-text-quaternary: var(--white-20);
+        --color-text-on-primary: var(--black-90);
+        --color-text-on-secondary: var(--black-60);
+        --color-text-on-tertiary: var(--black-40);
+        --color-text-on-quaternary: var(--black-20);
+        --color-text-accent: var(--brand-color-60);
+        --color-component-primary: var(--brand-color-40);
+        --color-component-primary-hover: var(--brand-color-50);
+        --color-component-secondary: var(--brand-color-30);
+        --color-component-secondary-hover: var(--brand-color-40);
+        --color-component-tertiary: var(--background-color-40);
+        --color-component-tertiary-hover: var(--background-color-50);
+        --color-component-quaternary: var(--white-20);
+        --color-component-quaternary-hover: var(--white-20);
+        --color-border-primary: var(--brand-color-60);
+        --color-border-primary-hover: var(--brand-color-50);
+        --color-border-secondary: var(--white-60);
+        --color-border-tertiary: var(--white-40);
+        --color-border-quaternary: var(--white-20);
+        --color-background-primary: var(--background-color-10);
+        --color-background-secondary: var(--background-color-20);
+        --color-background-tertiary: var(--background-color-30);
+        --color-background-quaternary: var(--background-color-40);       
+        --text-color-0: #212121;  /* 白色文本 */
+        --text-color-1: #0000EE;  /* 亮蓝色 */
+        --text-color-2: #00AA00;  /* 亮绿色 */
+        --text-color-3: #00AAAA;  /* 柔化青蓝 */
+        --text-color-4: #CC0000;  /* 亮红色 */
+        --text-color-5: #8A2BE2;  /* 亮紫色 */
+        --text-color-6: #FFAA00;  /* 亮橙色 */
+        --text-color-7: #AAAAAA;  /* 浅灰 */
+        --text-color-8: #555555;  /* 中灰 */
+        --text-color-9: #5555FF;  /* 浅蓝 */
+        --text-color-a: #55FF55;  /* 浅绿 */
+        --text-color-b: #55FFFF;  /* 浅青 */
+        --text-color-c: #FF5555;  /* 浅红 */
+        --text-color-d: #FF55FF;  /* 浅粉 */
+        --text-color-e: #FFFF55;  /* 浅黄 */
+        --text-color-f: #FFFFFF;  /* 深灰（特殊用途）*/
+        --text-color-g: #DDD605;  /* 亮黄 */
+        --text-color-h: #E3D4D1;  /* 浅米色 */
+        --text-color-i: #CECACA;  /* 浅灰 */
+        --text-color-j: #443A3B;  /* 浅棕 */
+        --text-color-m: #971607;  /* 浅红 */
+        --text-color-n: #B4684D;  /* 浅褐 */
+        --text-color-p: #DEB12D;  /* 亮金 */
+        --text-color-q: #47A036;  /* 浅绿 */
+        --text-color-s: #2CBAA8;  /* 浅青 */
+        --text-color-t: #21497B;  /* 浅蓝 */
+        --text-color-u: #9A5CC6;  /* 浅紫 */
+        --text-color-v: #EB7144;  /* 浅橙 */
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'HarmonyOS Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+body {
+    font-size: 16px;
+    background-color: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    min-height: 100vh;
+    position: relative;
+    overflow-y: auto;
+    font-family: var(--font-family);
+}
+
+h2 {
+    line-height: 1.5;
+}
+
+h3 {
+    line-height: 1.3;
+}
+
+/* Header styles */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background-color: var(--color-background-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Main content */
+main {
+    padding-top: 56px; /* 与header高度相同 */
+    padding-bottom: 72px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+section {
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 16px 20px;
+    background-color: var(--color-background-primary);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.line-item {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+button, input[type="button"], input[type="reset"], input[type="submit"], input[type="file"]::file-selector-button {
+    padding: 4px 10px;
+    width: fit-content;
+    height: 36px;
+    line-height: 1.1;
+    min-width: 36px;
+    border-radius: 999px;
+    border: transparent;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-align: left;
+    font-size: 0.9rem;
+    background: transparent;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+}
+
+input[type="file"]::file-selector-button {
+    height: fit-content;    
+}
+
+input[type="file"] {
+    display: inline;
+    width: fit-content;
+}
+
+button img{
+    height: 1.5rem;
+}
+
+button:hover, input[type="button"]:hover, input[type="reset"]:hover, input[type="file"]::file-selector-button:hover {
+    background-color: var(--color-component-tertiary-hover);
+}
+
+.primary-button, input[type="submit"] {
+    background-color: var(--color-component-primary);
+    color: var(--color-text-on-accent);
+    font-weight: bold;
+}
+
+.primary-button:hover, .float-button:hover, input[type="submit"]:hover {
+    background-color: var(--color-component-primary-hover);
+}
+
+.primary-button img, .float-button img{
+    filter: invert(1);
+}
+
+.filled-button, input[type="button"], input[type="select"] {
+    background-color: var(--color-component-secondary);
+}
+
+.disabled-button {
+    background-color: var(--color-component-quaternary);
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.disabled-button:hover {
+    background-color: var(--color-component-quaternary-hover);
+}
+
+.icon-button {
+    background-color: transparent;
+    width: 42px;
+    height: 42px;
+    padding: 6px;
+    border-radius: 50%;
+}
+
+.icon-button img{
+    width: 100%;
+    height: 100%;
+}
+
+.icon-button:hover {
+    background-color: var(--color-component-tertiary);
+}
+
+.float-button {
+    background-color: var(--color-component-primary);
+    min-width: 48px;
+    height: 48px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: var(--color-text-on-accent);
+    font-weight: bold;
+    font-size: 1rem;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+a {
+    color: var(--color-text-accent);
+    text-decoration: none;
+}
+
+a:hover{
+    text-decoration: underline;
+}
+
+.caption {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+}
+
+.shortcut-key {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px;
+    border: 1px solid var(--color-border-tertiary);
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    line-height: 1;
+    vertical-align: 1px;
+    min-width: 14px;
+    height: fit-content;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+input[type="date"], input[type="datetime-local"], input[type="time"], input[type="file"], input[type="month"], input[type="week"], select {
+    padding: 4px 10px;
+    height: 36px;
+    line-height: 1.1;
+    border-radius: 999px;
+    border: 1px solid var(--color-border-quaternary);
+    font-size: 0.9rem;
+    background: var(--color-background-secondary);
+    cursor: pointer;
+}
+
+input[type="text"], input[type="number"], input[type="password"], input[type="email"], input[type="tel"], input[type="url"], input[type="search"], textarea {
+    padding: 4px 10px;
+    min-height: 36px;
+    line-height: 1.1;
+    border-radius: 999px;
+    border: 1px solid var(--color-border-quaternary);
+    font-size: 0.9rem;
+    background: var(--color-background-secondary);
+    cursor: text;
+}
+
+input[type="button"], input[type="submit"], input[type="reset"] {
+    appearance: none;
+}
+
+textarea {
+    border-radius: 16px;
+}
+
+label {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+input[type="radio"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border-quaternary);
+    font-size: 0.9rem;
+    background: transparent;
+    text-align: center;
+    text-justify: center;
+}
+
+input[type="radio"]::after {
+    content: "●";
+    color: transparent;
+}
+
+input[type="radio"]:checked::after {
+    color: var(--color-text-accent);
+}
+
+input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid var(--color-border-quaternary);
+    font-size: 0.8rem;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+input[type="checkbox"]:checked {
+    background-color: var(--color-text-accent);
+}
+
+input[type="checkbox"]::after {
+    content: "\2714";
+    color: transparent;
+    background-color: transparent;
+    margin-bottom: 1px;
+}
+
+input[type="checkbox"]:checked::after {
+    color: #fff;
+}
+
+input[type="color"] {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--color-border-quaternary);
+    border-radius: 12px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: none;
+    overflow: hidden;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: none;
+}
+
+input[type="color"]::-moz-color-swatch {
+    border: none;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-background-secondary);
+    transition: .4s;
+    border-radius: 18px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--color-component-primary);
+}
+
+input:checked + .slider:before {
+    transform: translateX(12px);
+}
+
+.button-group {
+    display: flex;
+    border-radius: 30px;
+    padding: 4px;
+    overflow: hidden;
+    margin: 0;
+    background-color: var(--color-background-secondary);
+}
+
+.button-group label {
+    padding: 4px 6px;
+    background: var(--control-background);
+    cursor: pointer;
+    user-select: none;
+    flex: 1;
+    text-align: center;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.button-group label:last-child {
+    border-right: none;
+}
+
+.button-group input[type="radio"] {
+    display: none;
+}
+
+input[type="radio"]:checked + label {
+    background: var(--color-background-primary);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-component-primary);
+    color: var(--color-text-on-accent);
+    border-radius: 12px; 
+    font-size: 12px;
+    line-height: 16px;
+    margin-left: 4px;
+    font-weight: normal;
+    min-width: 20px;
+    height: 20px;
+}
+
+.divider {
+    width: 100%;
+}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页控件示例</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 头部导航栏
+    <header class="header">
+        <button class="site-logo" id="back-to-home" onclick="window.location.href='../'" title="雨城通首页">
+            <img src="../UI/res/雨城通logo绿.png" alt="雨城通首页">
+        </button>
+        <h1>网页中可能使用的控件</h1>
+        <div class="toolbar route-toolbar">
+            <button class="icon-button" id="search-button" title="搜索">
+                <img src="../UI/res/search_black.png" alt="搜索">
+            </button>
+        </div>
+    </header>-->
+    <main>
+        <section>
+            <h2>展示控件</h2>
+            <div>
+                <h3>文本</h3>
+                    <div class="line-item">
+                    <p>段落文本(p)和<a href="#">超链接</a></p>
+                    <div class="caption">caption和<a href="#">超链接</a></div>
+                    <div class="shortcut-key">shortcut-key</div>
+                </div>
+            </div>
+            <div class="line-item">
+                <h3>徽标数(badge)</h3>
+                <div class="badge">1</div>
+            </div>
+            <div class="line-item">
+                <h3>分隔器(divider)</h3>
+                <hr class="divider">
+            </div>
+        </section>
+        <section>
+            <h2>操作控件</h2>
+            <div>
+                <h3>按钮</h3>
+                <div class="line-item">
+                    <button>button</button>
+                    <button class="primary-button">
+                        <img src="../UI/res/search_black.png" alt="搜索">
+                        primary
+                    </button>
+                    <button class="filled-button">
+                        <img src="../UI/res/search_black.png" alt="搜索">
+                        filled
+                    </button>
+                    <button class="disabled-button">
+                        <img src="../UI/res/search_black.png" alt="搜索">
+                        disabled
+                    </button>
+                </div>
+            </div>
+            <div>
+                <h3>图标按钮</h3>
+                <div class="line-item">
+                    <div class="line-item">
+                        <button class="icon-button">
+                            <img src="../UI/res/search_black.png" alt="搜索">
+                        </button>
+                        <p>icon-button</p>
+                    </div>
+                    <button class="float-button">
+                        <img src="../UI/res/search_black.png" alt="搜索">
+                        float-button
+                    </button>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h2>输入控件</h2>
+            <div class="line-item">
+                <h3>输入框(input)</h3>
+                <input type="text" placeholder="text">
+                <input type="number" placeholder="number">
+                <input type="password" placeholder="password"></input>
+                <input type="email" placeholder="email"></input>
+                <input type="tel" placeholder="tel"></input>
+                <input type="url" placeholder="url"></input>
+                <input type="search" placeholder="search"></input>
+                <input type="date" placeholder="date"></input>
+                <input type="time" placeholder="time"></input>
+                <input type="datetime-local" placeholder="datetime-local"></input>
+                <input type="file" placeholder="file"></input>
+                <input type="reset" value="reset"></input>
+                <input type="submit" value="submit"></input>
+                <input type="button" value="button"></input>
+            </div>
+            <div class="line-item">
+                <h3>单选框(radio)</h3>
+                <label><input type="radio" name=" "> 选项1</label>
+                <label><input type="radio" name=" "> 选项2</label>
+            </div>
+            <div class="line-item">
+                <h3>复选框</h3>
+                <label><input type="checkbox"> checkbox</label>
+            </div>
+            <div class="line-item">
+                <h3>下拉框(select)</h3>
+                <select>
+                    <option>选项1</option>
+                    <option>选项2</option>
+                    <option>选项3</option>
+                </select>
+            </div>
+            <div class="line-item">
+                <h3>文本域</h3>
+                <textarea placeholder="textarea"></textarea>
+            </div>
+            <div class="line-item">
+                <h3>滑动条(input type="range")</h3>
+                <input type="range" min="0" max="100" value="50" step="1"></input>
+            </div>
+            <div class="line-item">
+                <h3>颜色选取器(input type="color")</h3>
+                <input type="color" value="#000000"></input>
+            </div>
+            <div class="line-item">
+                <h3>开关(switch)</h3>
+                <label class="switch">
+                    <input type="checkbox" id="show-advanced">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="line-item">
+                <h3>单选按钮(button-group)</h3>
+                <div class="button-group">
+                    <button class="button">按钮1</button>
+                    <button class="button">按钮2</button>
+                    <button class="button">按钮3</button>
+                </div>
+            </div>
+            <div class="line-item">
+                <h3>切换按钮(toggle-button)</h3>
+                <button class="toggle-button">切换按钮</button>
+                <button class="toggle-button-active">切换按钮</button>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
