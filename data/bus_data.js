@@ -670,6 +670,7 @@ export const busRoutes = {
             {name: "碧湖大桥北"},
             {name: "城海区医院"},
             {name: "城海客运站"},
+            {name: "南山派出所"},
             {name: "碧湖南山"},
             {name: "五间房"}
         ]
@@ -695,6 +696,7 @@ export const busRoutes = {
         stations: [
             {name: "五间房", fareZone: "碧湖"},
             {name: "碧湖南山", fareZone: "碧湖"},
+            {name: "南山派出所", fareZone: "碧湖"},
             {name: "城海客运站", fareZone: "碧湖"},
             {name: "城海区医院", fareZone: "碧湖"},
             {name: "碧湖大桥北", fareZone: "碧湖"},
@@ -1369,6 +1371,37 @@ export const busRoutes = {
             {name: "临北路地铁站"},
             {name: "临北路青年大街"},
             {name: "环北家园"}
+        ]
+    },
+    "V105": {
+        name: "V105路",
+        operator: "临东客运集团通运巴士运营管理服务中心",
+        firstLastBus: {
+            first: "05:20",
+            last: "19:50"
+        },
+        fare: 2,
+        stations: [
+            {name: "雪乡总医院", oneWay: "up"},
+            {name: "凌雪大街冰雪大马路", oneWay: "up"},
+            {name: "雪乐园小区", oneWay: "up"},
+            {name: "雪乡东站特色街", oneWay: "up"},
+            {name: "皑东城", oneWay: "up"},
+            {name: "雪乡科技馆", oneWay: "up"},
+            {name: "叠彩人家", oneWay: "up"},
+            {name: "雪乡农贸市场", oneWay: "up"},
+            {name: "雪乡旅游接待中心", oneWay: "up"},
+            {name: "雪乡驾校", oneWay: "up"},
+            {name: "彩虹小学东", oneWay: "up"},
+            {name:"米哈游大楼", oneWay: "up"},
+            {name:"黄金大厦", oneWay: "up"},
+            {name:"雪乡科技馆", oneWay: "up"},
+            {name:"皑东城", oneWay: "up"},
+            {name:"雪乡东站特色街", oneWay: "up"},
+            {name:"雪乐园小区", oneWay: "up"},
+            {name:"展览馆", oneWay: "up"},
+            {name:"雪乡转盘北", oneWay: "up"},
+            {name:"雪乡总医院", oneWay: "up"},
         ]
     },
     "V108": {

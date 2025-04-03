@@ -29,13 +29,22 @@ const contentData = [
         showInBanner: true
     },
     {
+        title: '临东|地铁|3号|线|延长线开工',
+        image: '../data/content_banner/临东3号线延长线开工.png',
+        link: '',
+        date: '2025-04-03',
+        summary: '临东地铁3号线东延线（图画湾—城海新港段）、西延线（云峰街—沙岭段）先后开工，预计完工后全线车站数量将增加至23座，并连通碧湖、市区、铁西、汽车城等地区。目前东延线高架段已完成铺线，新一批列车正在上线试测试。',
+        category: '地铁运营',
+        showInBanner: true
+    },
+    {
         title: '临东|金桦|机场|滑行道|及|跑道|完成铺设',
         image: '../data/content_banner/临东金桦机场开工.png',
         link: '',
         date: '2025-03-20',
         summary: '在经过选址调整之后，机场一期于3月5日开工。设计飞行区等级为4F级，设有一条长度3800的跑道、一个货场以及一座航站楼。目前跑道及滑行道已完成铺设。',
         category: '运营信息',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '松山湖|有轨|电车|改造|计划公布',
@@ -217,7 +226,7 @@ const contentData = [
         expireDate: '2025-04-01',
         summary: '因受大环境及线路周转效率低下与客流较低等因素影响，公共汽车310支线将于2025年3月31日暂停运营，不便之处敬请谅解。顺鑫公司310车队',
         category: '公交运营',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '181支线、|183路|增加|南山|派出所|临时|停靠站',

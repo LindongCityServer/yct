@@ -51,7 +51,7 @@ UnminedCustomMarkers = {
             imageScale: 0.5,
         },
 
-        Example 2: Marker with text
+        // Example 2: Marker with text
         {
             x: 0,
             z: 0,
@@ -65,7 +65,7 @@ UnminedCustomMarkers = {
             font: "bold 20px Calibri,sans serif",
         },
 
-        Example 3: Text only
+        // Example 3: Text only
         {
             x: 200,
             z: 200,
@@ -126,6 +126,30 @@ UnminedCustomMarkers = {
             offsetX: 50,
             offsetY: 1,
             font: "bold 22px Calibri,sans serif",
+        },
+        {
+            x: -1705,
+            z: -14745,
+            image: "airport.png",
+            imageAnchor: [0.5, 0.5],
+            imageScale: 0.2,
+            text: "北关岭农业\n通用机场　",
+            textColor: "white", 
+            offsetX: 39,
+            offsetY: 1,
+            font: "normal 12px Calibri,sans serif",
+        },
+        {
+            x: -3238,
+            z: 1008,
+            image: "railway-station.png",
+            imageAnchor: [0.5, 0.5],
+            imageScale: 0.2,
+            text: "骆家堡站",
+            textColor: "white", 
+            offsetX: 32,
+            offsetY: 1,
+            font: "normal 12px Calibri,sans serif",
         },  
         {
             x: -1774,
