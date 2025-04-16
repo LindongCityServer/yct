@@ -55,7 +55,9 @@ const bannerData = contentData.filter(item => {
 const filteredContentData = contentData.filter(item => {
     // 检查是否设置了发布时间且未到发布时间
     if (item.releaseTime) {
-        const releaseTime = new Date(item.releaseTime);
+        const releaseTime = item.releaseTime 
+            ? new Date(item.releaseTime) 
+            : new Date(item.date); // 使用 date 作为默认发布时间
         const now = new Date();
         if (now < releaseTime) {
             return false;
@@ -273,9 +275,11 @@ function initFeatureIcons() {
     // 添加切换按钮
     const toggleDiv = document.createElement('div');
     toggleDiv.className = 'icon-item toggle-icons';
+    // 在initFeatureIcons函数中修改切换按钮的img标签
     toggleDiv.innerHTML = `
-        <img src="UI/res/expand_more_black.png" alt="${isIconsExpanded ? '收起' : '显示全部'}" 
-             style="transform: ${isIconsExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}">
+        <img src="UI/res/expand_more_black.png" 
+            alt="${isIconsExpanded ? '收起' : '显示全部'}" 
+            style="transform: ${isIconsExpanded ? 'rotate(180deg)' : 'rotate(0deg)'};">
         <span>${isIconsExpanded ? '收起' : '显示全部'}</span>
     `;
     toggleDiv.addEventListener('click', toggleIcons);
@@ -823,6 +827,8 @@ function initCarousel() {
             startAutoplay();
         }
     });
+
+    updateAutoPrimaryColor(); // 轮播初始化时更新
 }
 
 // 切换到指定幻灯片
@@ -1746,6 +1752,11 @@ userPanelStyle.textContent = `
         height: 16px;
         opacity: 0.7;
     }
+
+    /* 添加功能图标滤镜 */
+    .themed-icon {
+        filter: var(--icon-filter);
+    }
 `;
 document.head.appendChild(userPanelStyle);
 
@@ -1774,6 +1785,10 @@ function initUserPanel() {
             <img src="UI/res/notification_black.png" alt="通知设置">
             <span>通知设置</span>
         </div>
+        <div class="user-panel-item theme-settings">
+            <img src="UI/res/theme_black.png" alt="主题设置">
+            <span>主题设置</span>
+        </div>
         <div class="user-panel-item" onclick="window.open('https://wiki.shangxiaoguan.top/雨城通', '_blank')">
             <img src="UI/res/info_black.png" alt="关于">
             <span>关于</span>
@@ -1787,9 +1802,27 @@ function initUserPanel() {
 
     // 初始化通知设置面板
     const notificationSettingsPanel = initNotificationSettingsPanel();
+
+    // 确保 user-panel 已加载
+    if (!userPanel) {
+        console.warn('User panel not found, skipping initialization.');
+        return;
+    }
+
+    // 确保 theme-settings 按钮已加载
+    const themeSettingsBtn = userPanel.querySelector('.theme-settings');
+    if (!themeSettingsBtn) {
+        console.warn('Theme settings button not found, skipping initialization.');
+        return;
+    }
     
-    // 创建遮罩层
-    const overlay = document.createElement('div');
+    // 在 initUserPanel 函数开头：
+    let overlay = document.querySelector('.settings-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'settings-overlay';
+        document.body.appendChild(overlay);
+    }
     overlay.className = 'settings-overlay';
     document.body.appendChild(overlay);
     
@@ -1805,6 +1838,17 @@ function initUserPanel() {
             userPanel.classList.toggle('show');
         });
     }
+
+    // 绑定主题设置按钮点击事件
+    themeSettingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // 阻止事件冒泡
+        userPanel.classList.remove('show');
+
+         // 显示主题设置窗口
+        const themeSettingsPanel = initThemeSettingsPanel();
+        themeSettingsPanel.classList.add('show'); // 显示面板
+        overlay.classList.add('show'); // 显示遮罩层
+    });
     
     // 点击通知设置
     if (notificationSettingsBtn) {
@@ -1832,6 +1876,11 @@ function initUserPanel() {
         if (notificationSettingsPanel && !notificationSettingsPanel.contains(e.target) && 
             (!notificationSettingsBtn || !notificationSettingsBtn.contains(e.target))) {
             notificationSettingsPanel.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+        const themeSettingsPanel = document.querySelector('.theme-settings-panel');
+        if (themeSettingsPanel && !themeSettingsPanel.contains(e.target)) {
+            themeSettingsPanel.classList.remove('show');
             overlay.classList.remove('show');
         }
     });
@@ -2018,7 +2067,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTripInfo();
     initUserPanel();
     initNotificationSettingsPanel();
+    initThemeSettingsPanel();
     initServerButtons(); // 移到最后，确保其他组件都已初始化
+    updateAutoPrimaryColor(); // 初始化时调用
     
     // 移除登录按钮的点击事件
     const loginBtn = document.querySelector('.login-btn');
@@ -2363,4 +2414,280 @@ function createNewsItem(news) {
     newsItem.querySelector('.news-summary').textContent = news.summary;
     
     return newsItem;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const themeSettingsBtn = document.getElementById('theme-settings-btn');
+  const themeSettingsPanel = document.getElementById('theme-settings-panel');
+  const themeModeSelect = document.getElementById('theme-mode-select');
+  const primaryColorSelect = document.getElementById('primary-color-select');
+  const saveButton = document.getElementById('save-theme-settings');
+  const cancelButton = document.getElementById('cancel-theme-settings');
+
+  // 加载保存的设置
+  const savedThemeMode = localStorage.getItem('theme-mode') || 'system';
+  const savedPrimaryColor = localStorage.getItem('primary-color') || 'auto';
+
+  themeModeSelect.value = savedThemeMode;
+  primaryColorSelect.value = savedPrimaryColor;
+
+  applyTheme(savedThemeMode, savedPrimaryColor);
+
+  // 显示/隐藏设置窗口
+  themeSettingsBtn.addEventListener('click', () => {
+    themeSettingsPanel.classList.toggle('hidden');
+  });
+
+  cancelButton.addEventListener('click', () => {
+    themeSettingsPanel.classList.add('hidden');
+  });
+
+  // 保存设置
+  saveButton.addEventListener('click', () => {
+    const selectedThemeMode = themeModeSelect.value;
+    const selectedPrimaryColor = primaryColorSelect.value;
+
+    localStorage.setItem('theme-mode', selectedThemeMode);
+    localStorage.setItem('primary-color', selectedPrimaryColor);
+
+    applyTheme(selectedThemeMode, selectedPrimaryColor);
+    themeSettingsPanel.classList.add('hidden');
+  });
+
+  // 监听系统主题变化
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (localStorage.getItem('theme-mode') === 'system') {
+      applyTheme('system', localStorage.getItem('primary-color'));
+    }
+  });  
+});
+
+function initThemeSettingsPanel() {
+    const savedThemeMode = localStorage.getItem('theme-mode') || 'system';
+    const savedPrimaryColor = localStorage.getItem('primary-color') || 'auto';
+
+    // 记录初始值
+    const initialThemeMode = savedThemeMode;
+    const initialPrimaryColor = savedPrimaryColor;
+
+    const themeSettingsPanel = document.createElement('div');
+    themeSettingsPanel.className = 'theme-settings-panel hidden';
+    themeSettingsPanel.innerHTML = `
+        <div class="settings-header">
+            <h3>主题与配色设置</h3>
+            <button class="close-settings">×</button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-item">
+                <label>主题模式：</label>
+                <select id="theme-mode-select">
+                    <option value="system" ${savedThemeMode === 'system' ? 'selected' : ''}>跟随系统</option>
+                    <option value="light" ${savedThemeMode === 'light' ? 'selected' : ''}>手动浅色</option>
+                    <option value="dark" ${savedThemeMode === 'dark' ? 'selected' : ''}>手动深色</option>
+                </select>
+            </div>
+            <div class="settings-item">
+                <label>强调色：</label>
+                <select id="primary-color-select">
+                    <option value="auto" ${savedPrimaryColor === 'auto' ? 'selected' : ''}>自动</option>
+                    <option value="cyan" ${savedPrimaryColor === 'cyan' ? 'selected' : ''}>雨城青</option>
+                    <option value="red" ${savedPrimaryColor === 'red' ? 'selected' : ''}>中国红</option>
+                    <option value="gray" ${savedPrimaryColor === 'gray' ? 'selected' : ''}>水墨灰</option>
+                </select>
+            </div>
+        </div>
+        <div class="settings-footer">
+            <button class="save-settings">保存设置</button>
+        </div>
+    `;
+
+    // 获取元素
+    const closeBtn = themeSettingsPanel.querySelector('.close-settings');
+    const overlay = document.querySelector('.settings-overlay') || createOverlay();
+
+    // 存储初始值到面板对象
+    themeSettingsPanel.initialThemeMode = initialThemeMode;
+    themeSettingsPanel.initialPrimaryColor = initialPrimaryColor;
+
+    // 获取选择框
+    const themeModeSelect = themeSettingsPanel.querySelector('#theme-mode-select');
+    const primaryColorSelect = themeSettingsPanel.querySelector('#primary-color-select');
+
+    // 实时预览主题变化
+    themeModeSelect.addEventListener('change', () => {
+        applyTheme(themeModeSelect.value, primaryColorSelect.value);
+    });
+    primaryColorSelect.addEventListener('change', () => {
+        applyTheme(themeModeSelect.value, primaryColorSelect.value);
+    });
+
+    // 关闭按钮逻辑
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            applyTheme(initialThemeMode, initialPrimaryColor);
+            themeSettingsPanel.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+    }
+
+    // 遮罩层点击事件
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            applyTheme(initialThemeMode, initialPrimaryColor);
+            themeSettingsPanel.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+    }
+
+    // 保存按钮逻辑
+    const saveBtn = themeSettingsPanel.querySelector('.save-settings');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            const selectedThemeMode = themeModeSelect.value;
+            const selectedPrimaryColor = primaryColorSelect.value;
+            localStorage.setItem('theme-mode', selectedThemeMode);
+            localStorage.setItem('primary-color', selectedPrimaryColor);
+            applyTheme(selectedThemeMode, selectedPrimaryColor);
+            themeSettingsPanel.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+    }
+
+    // 在最后添加到 body
+    document.body.appendChild(themeSettingsPanel);
+
+    return themeSettingsPanel;
+}
+
+// 辅助函数：创建遮罩层（如果不存在）
+function createOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'settings-overlay';
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
+function applyTheme(themeMode, primaryColor) {
+    // 设置主题模式
+    if (themeMode === 'system') {
+        document.documentElement.removeAttribute('data-force-theme');
+    } else {
+        document.documentElement.setAttribute('data-force-theme', themeMode);
+    }
+
+    // 设置强调色
+    const rootStyles = document.documentElement.style;
+    if (primaryColor === 'auto') {
+        updateAutoPrimaryColor();
+    } else if (primaryColor === 'red') {
+        rootStyles.setProperty('--primary-color', '#A61B29');
+        rootStyles.setProperty('--primary-color-hover', '#8C1723');
+        rootStyles.setProperty('--primary-color-transparent', '#A61B2920'); // RGBA格式
+    } else if (primaryColor === 'gray') {
+        rootStyles.setProperty('--primary-color', '#888888');
+        rootStyles.setProperty('--primary-color-hover', '#777777');
+        document.body.style.filter = 'grayscale(100%)'; // 使用grayscale替代saturate
+    } else {
+        rootStyles.setProperty('--primary-color', '#2C9678');
+        rootStyles.setProperty('--primary-color-hover', '#1f7e63');
+        document.body.style.filter = 'none'; // 明确清除滤镜
+    }
+
+    // 更新 logo 图片色调
+    updateLogoTone(primaryColor);
+
+    // 新增：根据primaryColor和themeMode计算最终滤镜
+    let iconFilter = 'none';
+    if (primaryColor === 'red') {
+        iconFilter = 'hue-rotate(4deg)'; // 中国红主题专用色调
+    } else if (primaryColor === 'gray') {
+        iconFilter = 'grayscale(100%)';
+    } else {
+        iconFilter = themeMode === 'dark' 
+            ? 'brightness(0.8)' // 深色模式图标暗化
+            : 'brightness(1)'; // 浅色模式保持原样
+    }
+
+    // 合并主题模式和强调色滤镜
+    const finalFilter = 
+        (primaryColor === 'red' || primaryColor === 'gray') 
+        ? iconFilter 
+        : `${iconFilter} ${themeMode === 'dark' ? 'brightness(0.9)' : ''}`;
+
+    // 合并滤镜并设置到CSS变量
+    document.documentElement.style.setProperty('--icon-filter', iconFilter);
+
+    // 在最后添加：
+    updateAutoPrimaryColor(); // 强制更新自动模式的颜色
+    updateLogoTone(getCurrentColorType()); // 强制更新图标滤镜
+}
+
+function getCurrentColorType() {
+  const currentColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--primary-color').trim();
+  return currentColor === '#888888' ? 'gray' : 
+         currentColor === '#A61B29' ? 'red' : 'cyan';
+}
+
+// 自动更新强调色
+function updateAutoPrimaryColor() {
+    const rootStyles = document.documentElement.style; // 移到顶部
+    const today = new Date();
+    let color = '#2C9678'; // 默认青色
+
+    bannerData.forEach(item => {
+        // 新增：同时检查颜色代码（#开头）和 CSS 变量（--开头）
+        if (item.image.startsWith('#') || item.image.startsWith('--')) {
+            const releaseTime = item.releaseTime ? new Date(item.releaseTime) : new Date(item.date);
+            const expireDate = new Date(item.expireDate);
+            
+            // 检查当前时间是否在发布和过期时间之间
+            if (today >= releaseTime && today <= expireDate) {
+                if (item.image === '#888888') {
+                    color = '#888888'; // 灰色优先级最高
+                } else if (item.image === '#A61B29' && color !== '#888888') {
+                    color = '#A61B29'; // 中国红次之
+                }
+            }
+        }
+    });
+
+    // 设置滤镜和强调色
+    if (color === '#888888') {
+        document.body.style.filter = 'grayscale(100%)';
+    } else {
+        document.body.style.filter = 'none';
+    }
+
+    rootStyles.setProperty('--primary-color', color);
+    rootStyles.setProperty('--primary-color-hover', adjustColor(color, 0.8));
+    const colorType = 
+        color === '#888888' ? 'gray' : 
+        color === '#A61B29' ? 'red' : 
+        'cyan';
+    updateLogoTone(colorType);
+}
+
+// 更新 logo 图片色调
+function updateLogoTone(color) {
+    const logoImages = document.querySelectorAll('.logo img');
+    logoImages.forEach(img => {
+        if (color === 'gray') {
+            img.style.filter = 'grayscale(100%)';
+        } else if (color === 'red') {
+            img.style.filter = 'hue-rotate(185deg)';
+        } else {
+            img.style.filter = 'none'; // 明确清除其他情况
+        }
+    });
+    const featureIcons = document.querySelectorAll('.themed-icon img');
+    featureIcons.forEach(img => {
+        if (color === 'gray') {
+            img.style.filter = 'grayscale(100%)';
+        } else if (color === 'red') {
+            img.style.filter = 'hue-rotate(4deg)';
+        } else {
+            img.style.filter = 'hue-rotate(185deg)'; // 明确清除其他情况
+        }
+    });
 }

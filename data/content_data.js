@@ -1,14 +1,26 @@
 // 内容数据
 const contentData = [
     {
-        title: '服管会祝各位玩家新年快乐！',
+        title: '服管会|祝|各位玩家|新年快乐！',
         image: '#A61B29',
         link: '',
         date: '2025-01-21',
+        releaseTime: '2025-01-21 00:00',
         expireDate: '2025-02-12',
         summary: '临东市服务器管理委员会祝各位玩家朋友新年快乐，身体健康，万事如意！',
         category: '通知公告',
         showInBanner: false
+    },
+    {
+        title: '庆祝|新中国|成立|76周年',
+        image: '#A61B29',
+        link: '',
+        date: '2025-10-01',
+        releaseTime: '2025-10-01 00:00',
+        expireDate: '2025-10-03',
+        summary: '临东市服务器管理委员会祝愿伟大祖国繁荣昌盛，国泰民安！',
+        category: '通知公告',
+        showInBanner: true
     },
     {
         title: '服管会|呼吁|共同维护|线路|运营秩序',
@@ -235,6 +247,15 @@ const contentData = [
         date: '2025-03-20',
         summary: '临北巴士181支线及183路自即日起新增南山派出所临时停靠站。该站点为临时性设置，公交线路图页面的相关信息将延后更新，具体运营安排请关注后续通知。',
         category: '公交运营',
+        showInBanner: false
+    },
+    {
+        title: '临东|地铁|3号线|列车|开展|技术测试',
+        image: '',
+        link: 'https://pd.qq.com/g/58ocn0s744/post/B_49baef6748ef09001441152186775804310X60',
+        date: '2025-04-05',
+        summary:'经过连续4小时的高强度数据采集与分析，临东地铁集团于4月4日正式公布地铁3号线延长段列车性能测试完整报告。数据显示，新一代智能列车在加速性能、制动安全及线路适配性等维度均实现跨越式提升，其中平均加速度实测达0.95m/s²，为临东地铁后续建设指明方向。',
+        category: '地铁运营',
         showInBanner: false
     },
 ];
