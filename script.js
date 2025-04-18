@@ -1832,6 +1832,10 @@ function initUserPanel() {
     const notificationPermissionBtn = document.querySelector('.notification-permission');
     
     // 切换面板显示状态
+    if (!loginBtn) {
+        console.error("登录按钮未找到，无法绑定事件监听器");
+        return;
+    }
     if (loginBtn) {
         loginBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1843,11 +1847,10 @@ function initUserPanel() {
     themeSettingsBtn.addEventListener('click', (e) => {
         e.stopPropagation(); // 阻止事件冒泡
         userPanel.classList.remove('show');
-
-         // 显示主题设置窗口
-        const themeSettingsPanel = initThemeSettingsPanel();
-        themeSettingsPanel.classList.add('show'); // 显示面板
-        overlay.classList.add('show'); // 显示遮罩层
+        const panel = initThemeSettingsPanel(); // 确保调用初始化函数
+        document.body.appendChild(panel); // 确保追加到DOM
+        panel.classList.add('show');
+        overlay.classList.add('show');
     });
     
     // 点击通知设置
@@ -2069,7 +2072,15 @@ document.addEventListener('DOMContentLoaded', () => {
     initNotificationSettingsPanel();
     initThemeSettingsPanel();
     initServerButtons(); // 移到最后，确保其他组件都已初始化
-    updateAutoPrimaryColor(); // 初始化时调用
+    
+    // 确保面板已创建后再操作
+    const themeSettingsPanel = initThemeSettingsPanel();
+    document.body.appendChild(themeSettingsPanel); // 确保面板已添加到DOM
+
+    // 移除过早的设置操作（原代码中的themeModeSelect.value = ...）
+    // 将主题应用逻辑移到面板初始化后
+    applyTheme(localStorage.getItem('theme-mode') || 'system', 
+            localStorage.getItem('primary-color') || 'auto');
     
     // 移除登录按钮的点击事件
     const loginBtn = document.querySelector('.login-btn');
@@ -2419,8 +2430,8 @@ function createNewsItem(news) {
 document.addEventListener('DOMContentLoaded', () => {
   const themeSettingsBtn = document.getElementById('theme-settings-btn');
   const themeSettingsPanel = document.getElementById('theme-settings-panel');
-  const themeModeSelect = document.getElementById('theme-mode-select');
-  const primaryColorSelect = document.getElementById('primary-color-select');
+  const themeModeSelect = document.querySelector('theme-mode-select');
+  const primaryColorSelect = document.querySelector('primary-color-select');
   const saveButton = document.getElementById('save-theme-settings');
   const cancelButton = document.getElementById('cancel-theme-settings');
 
@@ -2442,6 +2453,11 @@ document.addEventListener('DOMContentLoaded', () => {
     themeSettingsPanel.classList.add('hidden');
   });
 
+  if (!themeModeSelect || !primaryColorSelect) {
+    console.error('未能找到主题模式或强调色选择器');
+    return;
+  }
+
   // 保存设置
   saveButton.addEventListener('click', () => {
     const selectedThemeMode = themeModeSelect.value;
@@ -2454,6 +2470,11 @@ document.addEventListener('DOMContentLoaded', () => {
     themeSettingsPanel.classList.add('hidden');
   });
 
+  themeModeSelect.value = savedThemeMode;
+  primaryColorSelect.value = savedPrimaryColor;
+
+  applyTheme(savedThemeMode, savedPrimaryColor);
+
   // 监听系统主题变化
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (localStorage.getItem('theme-mode') === 'system') {
@@ -2462,101 +2483,104 @@ document.addEventListener('DOMContentLoaded', () => {
   });  
 });
 
+// 确保 themeSettingsPanel 是全局变量
+let themeSettingsPanel;
+
 function initThemeSettingsPanel() {
-    const savedThemeMode = localStorage.getItem('theme-mode') || 'system';
-    const savedPrimaryColor = localStorage.getItem('primary-color') || 'auto';
-
-    // 记录初始值
-    const initialThemeMode = savedThemeMode;
-    const initialPrimaryColor = savedPrimaryColor;
-
-    const themeSettingsPanel = document.createElement('div');
-    themeSettingsPanel.className = 'theme-settings-panel hidden';
-    themeSettingsPanel.innerHTML = `
+    const panel = document.createElement('div');
+    panel.className = 'theme-settings-panel hidden';
+    panel.innerHTML = `
         <div class="settings-header">
             <h3>主题与配色设置</h3>
             <button class="close-settings">×</button>
         </div>
         <div class="settings-content">
-            <div class="settings-item">
-                <label>主题模式：</label>
-                <select id="theme-mode-select">
-                    <option value="system" ${savedThemeMode === 'system' ? 'selected' : ''}>跟随系统</option>
-                    <option value="light" ${savedThemeMode === 'light' ? 'selected' : ''}>手动浅色</option>
-                    <option value="dark" ${savedThemeMode === 'dark' ? 'selected' : ''}>手动深色</option>
-                </select>
+            <!-- 主题模式选择 -->
+            <div class="settings-item themed-select">
+                <div class="select-label">主题模式：</div>
+                <div class="theme-mode-select direction-tabs">
+                    <div class="tab-button active" data-value="system">跟随系统</div>
+                    <div class="tab-button" data-value="light">手动浅色</div>
+                    <div class="tab-button" data-value="dark">手动深色</div>
+                </div>
             </div>
-            <div class="settings-item">
-                <label>强调色：</label>
-                <select id="primary-color-select">
-                    <option value="auto" ${savedPrimaryColor === 'auto' ? 'selected' : ''}>自动</option>
-                    <option value="cyan" ${savedPrimaryColor === 'cyan' ? 'selected' : ''}>雨城青</option>
-                    <option value="red" ${savedPrimaryColor === 'red' ? 'selected' : ''}>中国红</option>
-                    <option value="gray" ${savedPrimaryColor === 'gray' ? 'selected' : ''}>水墨灰</option>
-                </select>
+            <!-- 强调色选择 -->
+            <div class="settings-item themed-select">
+                <div class="select-label">强调色：</div>
+                <div class="primary-color-select direction-tabs">
+                    <div class="tab-button active" data-value="auto">自动</div>
+                    <div class="tab-button" data-value="cyan">雨城青</div>
+                    <div class="tab-button" data-value="red">中国红</div>
+                    <div class="tab-button" data-value="gray">水墨灰</div>
+                </div>
             </div>
         </div>
         <div class="settings-footer">
             <button class="save-settings">保存设置</button>
         </div>
     `;
+    return panel;
+}
 
-    // 获取元素
-    const closeBtn = themeSettingsPanel.querySelector('.close-settings');
-    const overlay = document.querySelector('.settings-overlay') || createOverlay();
+// 在页面加载时初始化
+document.addEventListener('DOMContentLoaded', () => {
+    themeSettingsPanel = initThemeSettingsPanel();
+    document.body.appendChild(themeSettingsPanel); // 确保追加到 DOM
+    const themeModeSelect = document.querySelector('.theme-mode-select');
+    const primaryColorSelect = document.querySelector('.primary-color-select');
 
-    // 存储初始值到面板对象
-    themeSettingsPanel.initialThemeMode = initialThemeMode;
-    themeSettingsPanel.initialPrimaryColor = initialPrimaryColor;
+    if (!themeModeSelect || !primaryColorSelect) {
+        console.error('未能找到主题模式或强调色选择器');
+        return;
+    }
 
-    // 获取选择框
-    const themeModeSelect = themeSettingsPanel.querySelector('#theme-mode-select');
-    const primaryColorSelect = themeSettingsPanel.querySelector('#primary-color-select');
+    // 加载保存的设置
+    const savedThemeMode = localStorage.getItem('theme-mode') || 'system';
+    const savedPrimaryColor = localStorage.getItem('primary-color') || 'auto';
 
-    // 实时预览主题变化
-    themeModeSelect.addEventListener('change', () => {
-        applyTheme(themeModeSelect.value, primaryColorSelect.value);
+    themeModeSelect.value = savedThemeMode;
+    primaryColorSelect.value = savedPrimaryColor;
+
+    applyTheme(savedThemeMode, savedPrimaryColor);
+
+    const themeSettingsPanel = document.querySelector('.theme-settings-panel');
+    const closeButton = themeSettingsPanel.querySelector('.close-settings');
+    const saveButton = themeSettingsPanel.querySelector('.save-settings');
+
+    // 关闭按钮事件
+    closeButton.addEventListener('click', () => {
+        themeSettingsPanel.classList.remove('show');
+        overlay.classList.remove('show');
     });
-    primaryColorSelect.addEventListener('change', () => {
-        applyTheme(themeModeSelect.value, primaryColorSelect.value);
+
+    // 保存按钮事件
+    saveButton.addEventListener('click', () => {
+        const selectedThemeMode = themeModeSelect.value;
+        const selectedPrimaryColor = primaryColorSelect.value;
+
+        // 保存到 localStorage
+        localStorage.setItem('theme-mode', selectedThemeMode);
+        localStorage.setItem('primary-color', selectedPrimaryColor);
+
+        // 应用主题
+        applyTheme(selectedThemeMode, selectedPrimaryColor);
+
+        // 隐藏设置面板
+        themeSettingsPanel.classList.remove('show');
+        overlay.classList.remove('show');
     });
+});
 
-    // 关闭按钮逻辑
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            applyTheme(initialThemeMode, initialPrimaryColor);
-            themeSettingsPanel.classList.remove('show');
-            overlay.classList.remove('show');
-        });
-    }
+// 工具函数：切换 tab 按钮状态
+function toggleTab(container, target) {
+    container.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    target.classList.add('active');
+}
 
-    // 遮罩层点击事件
-    if (overlay) {
-        overlay.addEventListener('click', () => {
-            applyTheme(initialThemeMode, initialPrimaryColor);
-            themeSettingsPanel.classList.remove('show');
-            overlay.classList.remove('show');
-        });
-    }
-
-    // 保存按钮逻辑
-    const saveBtn = themeSettingsPanel.querySelector('.save-settings');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            const selectedThemeMode = themeModeSelect.value;
-            const selectedPrimaryColor = primaryColorSelect.value;
-            localStorage.setItem('theme-mode', selectedThemeMode);
-            localStorage.setItem('primary-color', selectedPrimaryColor);
-            applyTheme(selectedThemeMode, selectedPrimaryColor);
-            themeSettingsPanel.classList.remove('show');
-            overlay.classList.remove('show');
-        });
-    }
-
-    // 在最后添加到 body
-    document.body.appendChild(themeSettingsPanel);
-
-    return themeSettingsPanel;
+// 工具函数：获取选中的 tab 值
+function getSelectedTabValue(container) {
+    const activeTab = container.querySelector('.tab-button.active');
+    return activeTab ? activeTab.dataset.value : 'system';
 }
 
 // 辅助函数：创建遮罩层（如果不存在）
@@ -2579,47 +2603,25 @@ function applyTheme(themeMode, primaryColor) {
     const rootStyles = document.documentElement.style;
     if (primaryColor === 'auto') {
         updateAutoPrimaryColor();
-    } else if (primaryColor === 'red') {
-        rootStyles.setProperty('--primary-color', '#A61B29');
-        rootStyles.setProperty('--primary-color-hover', '#8C1723');
-        rootStyles.setProperty('--primary-color-transparent', '#A61B2920'); // RGBA格式
-    } else if (primaryColor === 'gray') {
-        rootStyles.setProperty('--primary-color', '#888888');
-        rootStyles.setProperty('--primary-color-hover', '#777777');
-        document.body.style.filter = 'grayscale(100%)'; // 使用grayscale替代saturate
     } else {
-        rootStyles.setProperty('--primary-color', '#2C9678');
-        rootStyles.setProperty('--primary-color-hover', '#1f7e63');
-        document.body.style.filter = 'none'; // 明确清除滤镜
+        const baseColor = getPrimaryColorValue(primaryColor); // 调用新函数
+        rootStyles.setProperty('--primary-color', baseColor);
+        rootStyles.setProperty('--primary-color-hover', adjustColor(baseColor, 0.8));
     }
+}
 
-    // 更新 logo 图片色调
-    updateLogoTone(primaryColor);
+// 新增：根据主题和颜色计算图标滤镜
+function getIconFilter() {
+    const currentPrimaryColor = localStorage.getItem('primary-color') || 'auto';
+    const themeMode = localStorage.getItem('theme-mode') || 'system';
 
-    // 新增：根据primaryColor和themeMode计算最终滤镜
-    let iconFilter = 'none';
-    if (primaryColor === 'red') {
-        iconFilter = 'hue-rotate(4deg)'; // 中国红主题专用色调
-    } else if (primaryColor === 'gray') {
-        iconFilter = 'grayscale(100%)';
+    if (currentPrimaryColor === 'gray') {
+        return 'grayscale(100%)';
+    } else if (currentPrimaryColor === 'red') {
+        return 'hue-rotate(4deg)';
     } else {
-        iconFilter = themeMode === 'dark' 
-            ? 'brightness(0.8)' // 深色模式图标暗化
-            : 'brightness(1)'; // 浅色模式保持原样
+        return themeMode === 'dark' ? 'brightness(0.9)' : 'none';
     }
-
-    // 合并主题模式和强调色滤镜
-    const finalFilter = 
-        (primaryColor === 'red' || primaryColor === 'gray') 
-        ? iconFilter 
-        : `${iconFilter} ${themeMode === 'dark' ? 'brightness(0.9)' : ''}`;
-
-    // 合并滤镜并设置到CSS变量
-    document.documentElement.style.setProperty('--icon-filter', iconFilter);
-
-    // 在最后添加：
-    updateAutoPrimaryColor(); // 强制更新自动模式的颜色
-    updateLogoTone(getCurrentColorType()); // 强制更新图标滤镜
 }
 
 function getCurrentColorType() {
@@ -2629,9 +2631,27 @@ function getCurrentColorType() {
          currentColor === '#A61B29' ? 'red' : 'cyan';
 }
 
+function getPrimaryColorValue(color) {
+    switch(color) {
+        case 'cyan':
+            return '#2C9678';
+        case 'red':
+            return '#A61B29';
+        case 'gray':
+            return '#888888';
+        default:
+            return '#2C9678'; // 默认雨城青色
+    }
+}
+
 // 自动更新强调色
 function updateAutoPrimaryColor() {
-    const rootStyles = document.documentElement.style; // 移到顶部
+    // 新增模式检查：仅在“自动模式”下运行
+    const currentPrimaryColor = localStorage.getItem('primary-color');
+    if (currentPrimaryColor !== 'auto') return;
+
+    // 原逻辑保持不变
+    const rootStyles = document.documentElement.style;
     const today = new Date();
     let color = '#2C9678'; // 默认青色
 
@@ -2689,5 +2709,45 @@ function updateLogoTone(color) {
         } else {
             img.style.filter = 'hue-rotate(185deg)'; // 明确清除其他情况
         }
+    });
+}
+
+// 初始化主题模式选择
+const themeModeTabs = themeSettingsPanel.querySelector('.theme-mode-select');
+themeModeTabs.addEventListener('click', (e) => {
+    const target = e.target.closest('.tab-button');
+    if (target) {
+        Array.from(themeModeTabs.children).forEach(btn => btn.classList.remove('active'));
+        target.classList.add('active');
+        themeModeSelect.value = target.dataset.value;
+    }
+});
+
+// 初始化强调色选择
+const primaryColorTabs = themeSettingsPanel.querySelector('.primary-color-select');
+primaryColorTabs.addEventListener('click', (e) => {
+    const target = e.target.closest('.tab-button');
+    if (target) {
+        Array.from(primaryColorTabs.children).forEach(btn => btn.classList.remove('active'));
+        target.classList.add('active');
+        primaryColorSelect.value = target.dataset.value;
+    }
+});
+
+// 自动同步tab按钮状态
+function syncSelectValues() {
+    const selectedThemeMode = localStorage.getItem('theme-mode') || 'system';
+    const selectedPrimaryColor = localStorage.getItem('primary-color') || 'auto';
+    
+    // 同步主题模式
+    const themeButtons = themeModeTabs.querySelectorAll('.tab-button');
+    themeButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === selectedThemeMode);
+    });
+    
+    // 同步强调色
+    const colorButtons = primaryColorTabs.querySelectorAll('.tab-button');
+    colorButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === selectedPrimaryColor);
     });
 }

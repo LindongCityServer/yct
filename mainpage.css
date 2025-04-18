@@ -26,6 +26,7 @@
     /* Light mode variables */
     --primary-color: #2C9678;
     --primary-color-hover: #1f7e63;
+    --primary-color-transparent: rgba(38, 166, 134, 0.15);
     --metro-color: #008AED;
     --bus-color: #F97D1C;
     --tram-color: #e2023a;
@@ -2348,5 +2349,38 @@ input[type="color"]::-moz-color-swatch {
 }
 
 .settings-overlay.show {
+    display: block;
+}
+
+.themed-select {
+    margin-bottom: 16px;
+}
+
+.direction-tabs {
+    display: flex;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.tab-button {
+    padding: 8px 16px;
+    background: var(--secondary-background);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-button.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.tab-button + .tab-button {
+    border-left: 1px solid var(--border-color);
+}
+
+.select-label {
+    margin-bottom: 4px;
     display: block;
 }
