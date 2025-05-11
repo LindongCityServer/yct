@@ -101,8 +101,13 @@ function renderBusRoute(routeId) {
     } else {
         const upwardStations = route.stations.filter(station => !station.oneWay || station.oneWay === 'down');
         const downwardStations = route.stations.filter(station => !station.oneWay || station.oneWay === 'up');
-        const upwardTerminal = upwardStations[upwardStations.length - 1].name;
-        const downwardTerminal = downwardStations[0].name;
+        
+        // 判断是否为纯单向线路
+        const isPureUp = downwardStations.length === 0 && upwardStations.length > 0;
+        const isPureDown = upwardStations.length === 0 && downwardStations.length > 0;
+        
+        const upwardTerminal = isPureDown ? '' : upwardStations[upwardStations.length - 1].name;
+        const downwardTerminal = isPureUp ? '' : downwardStations[0].name;
 
         upwardDirectionName = `${upwardTerminal}方向`;
         downwardDirectionName = `${downwardTerminal}方向`;
@@ -214,14 +219,30 @@ function renderBusRoute(routeId) {
         const upwardStations = route.stations.filter(station => !station.oneWay || station.oneWay === 'down');
         const downwardStations = route.stations.filter(station => !station.oneWay || station.oneWay === 'up');
 
+        // 判断是否为纯单向线路
+        const isPureUp = downwardStations.length === 0 && upwardStations.length > 0;
+        const isPureDown = upwardStations.length === 0 && downwardStations.length > 0;
+
         // 获取首末站名称
-        const upwardTerminal = upwardStations[upwardStations.length - 1].name;
-        const downwardTerminal = downwardStations[0].name;
+        const upwardTerminal = isPureDown ? '' : upwardStations[upwardStations.length - 1].name;
+        const downwardTerminal = isPureUp ? '' : downwardStations[0].name;
 
         // 创建方向切换tabs
         directionTabs = document.createElement('div'); // 初始化 directionTabs
         directionTabs.className = 'direction-tabs';
         
+        if (isPureUp) {
+            directionTabs.innerHTML = `<div class="tab-button active">上行</div>`;
+        } else if (isPureDown) {
+            directionTabs.innerHTML = `<div class="tab-button active">下行</div>`;
+        } else {
+            // 原始逻辑：双向线路显示两个标签
+            directionTabs.innerHTML = `
+                <div class="tab-button active">上行</div>
+                <div class="tab-button">下行</div>
+            `;
+        }
+
         // 为环路特殊处理方向名称
         let upwardDirectionName, downwardDirectionName;
         if (route.name === '环路') {
@@ -237,6 +258,13 @@ function renderBusRoute(routeId) {
             <button class="tab-button" data-direction="down">${downwardDirectionName}</button>
         `;
 
+        // 创建 directionTabs 后，移除文本为“方向”的按钮
+        directionTabs.querySelectorAll('.tab-button').forEach(button => {
+            if (button.textContent.trim() === '方向') {
+                button.remove();
+            }
+        });
+
         // 创建站点列表内容区
         const stationContent = document.createElement('div');
         stationContent.className = 'station-content';
@@ -245,13 +273,13 @@ function renderBusRoute(routeId) {
         const upwardSection = document.createElement('div');
         upwardSection.className = 'direction-section active';
         upwardSection.setAttribute('data-direction', 'up');
-        renderStationSection(upwardStations, upwardSection);
+        if (!isPureDown) renderStationSection(upwardStations, upwardSection);
 
         // 创建下行方向站点列表
         const downwardSection = document.createElement('div');
         downwardSection.className = 'direction-section';
         downwardSection.setAttribute('data-direction', 'down');
-        renderStationSection(downwardStations.reverse(), downwardSection);
+        if (!isPureUp) renderStationSection(downwardStations.reverse(), downwardSection);
 
         // 添加tab切换事件
         directionTabs.addEventListener('click', (e) => {
@@ -590,10 +618,13 @@ function showStationDetails(stationName) {
                 upwardDirectionName = '环一路';
                 downwardDirectionName = '环二路';
             } else {
-                const upwardTerminal = upwardStations[upwardStations.length - 1].name;
-                const downwardTerminal = downwardStations[0].name;
-                upwardDirectionName = `${upwardTerminal}方向`;
-                downwardDirectionName = `${downwardTerminal}方向`;
+                // 判断是否为纯单向线路
+                const isPureUp = downwardStations.length === 0 && upwardStations.length > 0;
+                const isPureDown = upwardStations.length === 0 && downwardStations.length > 0;
+                const upwardTerminal = isPureDown ? '' : upwardStations[upwardStations.length - 1]?.name || '';
+                const downwardTerminal = isPureUp ? '' : downwardStations[0]?.name || '';
+                upwardDirectionName = upwardTerminal ? `${upwardTerminal}方向` : '';
+                downwardDirectionName = downwardTerminal ? `${downwardTerminal}方向` : '';
             }
 
             routeContent = `
