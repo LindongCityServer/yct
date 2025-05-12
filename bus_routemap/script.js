@@ -1,3 +1,8 @@
+// 在JS顶部添加运营商颜色配置
+const operatorColorMap = {
+    "default": "#F97D1C"
+};
+
 // 导入公交数据
 import busRoutes from '../data/bus_data.js';
 
@@ -83,6 +88,13 @@ function renderBusRoute(routeId) {
     const routeSection = document.querySelector('.route-section');
     routeSection.innerHTML = '';
 
+    // 获取运营商对应颜色（带默认值）
+    const routeData = busRoutes[routeId];
+    const themeColor = operatorColorMap[routeData.operator] || operatorColorMap.default;
+    
+    // 动态设置CSS变量
+    routeSection.style.setProperty('--bus-color', themeColor);
+
     // 提前声明并初始化 isCircular
     const isCircular =
         route.stations[0].name === route.stations[route.stations.length - 1].name &&
@@ -116,7 +128,7 @@ function renderBusRoute(routeId) {
     // 构造route-info内容
     const routeInfoContent = `
         <div class="route-info">
-            <p>首末车时间：${route.firstLastBusUpwards ? '</p><p>　　' + upwardDirectionName + '：' : ''}${route.firstLastBus.first}-${route.firstLastBus.last}</p>
+            <p>首末车时间：${route.firstLastBusUpwards ? '</p><p>　　' + upwardDirectionName + '：' : ''}${route.firstLastBus.displayFirst}-${route.firstLastBus.displayLast}</p>
             ${route.firstLastBusUpwards ? `<p>　　${downwardDirectionName}：${route.firstLastBusUpwards.first}-${route.firstLastBusUpwards.last}</p>` : ''}
             <p>票价：${route.fare} 元</p>
             <p>运营单位：${route.operator}</p>
@@ -314,7 +326,7 @@ function renderBusRoute(routeId) {
         routeInfo.innerHTML = `
             <div class="route-info">
                 <p>首末车时间：</p>
-                <p>${downwardDirectionName}：${route.firstLastBus.first}-${route.firstLastBus.last}</p>
+                <p>${downwardDirectionName}：${route.firstLastBus.displayFirst}-${route.firstLastBus.displayLast}</p>
                 <p>${upwardDirectionName}：${route.firstLastBusUpwards.first}-${route.firstLastBusUpwards.last}</p>
                 <p>票价：${route.fare} 元</p>
                 <p>运营单位：${route.operator}</p>
@@ -330,6 +342,45 @@ function renderBusRoute(routeId) {
     console.log('Rendered route:', route.name);
     console.log('Route stations:', route.stations);
     console.log('Direction tabs:', directionTabs.innerHTML);
+}
+
+/**
+ * 处理超24小时时间格式
+ * @param {string} timeStr - 原始时间字符串（如"25:30"）
+ * @returns {string} 格式化后的时间（如"次日1:30"）
+ */
+function formatBusTime(timeStr) {
+    // 解析原始时间
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    
+    // 计算总分钟数
+    const totalMinutes = hours * 60 + minutes;
+    
+    // 计算天数偏移和剩余分钟
+    const dayOffset = Math.floor(totalMinutes / 1440); // 1440分钟/天
+    const remainingMinutes = totalMinutes % 1440;
+    
+    // 计算实际时间
+    const realHours = Math.floor(remainingMinutes / 60);
+    const realMinutes = remainingMinutes % 60;
+    
+    // 格式化输出
+    const hourStr = realHours.toString().padStart(2, '0');
+    const minuteStr = realMinutes.toString().padStart(2, '0');
+    
+    return dayOffset > 0 
+        ? `次日${realHours}:${minuteStr}` 
+        : `${hourStr}:${minuteStr}`;
+}
+
+/**
+ * 获取时间排序值（用于时间比较）
+ * @param {string} timeStr - 原始时间字符串
+ * @returns {number} 排序权重值
+ */
+function getTimeSortValue(timeStr) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
 }
 
 // 渲染站点列表区域
@@ -432,19 +483,40 @@ function renderStationSection(stations, container) {
     });
 }
 
+// 修改validateRouteData函数
 function validateRouteData(route) {
     if (!route.firstLastBus || !route.firstLastBus.first || !route.firstLastBus.last) {
         console.error('Invalid route data:', route);
         return false;
     }
+    
+    // 添加排序权重
+    route.firstLastBus.firstSort = getTimeSortValue(route.firstLastBus.first);
+    route.firstLastBus.lastSort = getTimeSortValue(route.firstLastBus.last);
+    
     return true;
 }
 
+// 初始化时预处理所有线路
 Object.values(busRoutes).forEach(route => {
-    if (!validateRouteData(route)) {
-        console.warn(`Route ${route.name} has missing or invalid firstLastBus data`);
+    if (validateRouteData(route)) {
+        // 预处理时间显示
+        route.firstLastBus.displayFirst = formatBusTime(route.firstLastBus.first);
+        route.firstLastBus.displayLast = formatBusTime(route.firstLastBus.last);
     }
 });
+
+function isTimeInRange(timeStr, startStr, endStr) {
+    const time = getTimeSortValue(timeStr);
+    const start = getTimeSortValue(startStr);
+    const end = getTimeSortValue(endStr);
+    
+    // 处理跨天情况
+    if (start > end) {
+        return time >= start || time <= end;
+    }
+    return time >= start && time <= end;
+}
 
 // 计算站点在特定路线上的运营时间
 function calculateStationOperationTime(routeId, stationName) {
@@ -565,6 +637,9 @@ function showStationDetails(stationName) {
             
         // 检查是否为单向运行
         const isOneWay = busRoutes[route.routeId].stations.every(station => station.oneWay === "down");
+
+        // 获取运营商颜色
+        const operatorColor = operatorColorMap[route.operator] || operatorColorMap.default;
 
         let routeContent = '';
         if (isCircular && isOneWay) {
@@ -834,6 +909,7 @@ function findAllPossibleTransferRoutes(startStation, endStation, maxTransfers = 
                         routes.push({
                             type: 'direct',
                             route: route.routeName,
+                            operator: route.operator,
                             fare: route.fare,
                             stations: [
                                 { name: startStation, index: currentIndex },
@@ -844,6 +920,7 @@ function findAllPossibleTransferRoutes(startStation, endStation, maxTransfers = 
                         // 换乘路线
                         const newPath = [...current.path, {
                             name: route.routeName,
+                            operator: route.operator,
                             from: current.currentStation,
                             to: endStation
                         }];
@@ -879,6 +956,7 @@ function findAllPossibleTransferRoutes(startStation, endStation, maxTransfers = 
                     currentStation: transferStation.name,
                     path: [...current.path, {
                         name: route.routeName,
+                        operator: route.operator,
                         from: current.currentStation,
                         to: transferStation.name
                     }],
@@ -1261,7 +1339,7 @@ function renderTransferResults(routes, resultsContainer) {
                             </li>
                             <li class="route-step">
                                 ${segment.routes.map(route => `
-                                    <a href="#" class="route-link" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
+                                    <a href="#" class="route-link" style="color:${operatorColor}" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
                                 `).join(' / ')} 乘坐${stationCount}站
                             </li>
                         `;
@@ -1272,7 +1350,7 @@ function renderTransferResults(routes, resultsContainer) {
                             </li>
                             <li class="route-step">
                                 ${segment.routes.map(route => `
-                                    <a href="#" class="route-link" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
+                                    <a href="#" class="route-link" style="color:${operatorColor}" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
                                 `).join(' / ')} 乘坐${stationCount}站
                             </li>
                             <li class="route-step end">
@@ -1286,7 +1364,7 @@ function renderTransferResults(routes, resultsContainer) {
                             </li>
                             <li class="route-step">
                                 ${segment.routes.map(route => `
-                                    <a href="#" class="route-link" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
+                                    <a href="#" class="route-link" style="color:${operatorColor}" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
                                 `).join(' / ')} 乘坐${stationCount}站
                             </li>
                         `;
@@ -1341,14 +1419,14 @@ function renderTransferResults(routes, resultsContainer) {
                                 <a href="#" class="station-link" data-station="${route.routes[0].from}" onclick="handleRouteStepClick(event, this)">${route.routes[0].from} 出发</a>
                             </li>
                             <li class="route-step">
-                                <a href="#" class="route-link" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${direction}</a> 乘坐${stationCount}站
+                                <a href="#" class="route-link" style="color:${operatorColor}" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${direction}</a> 乘坐${stationCount}站
                             </li>
                         `;
                     } else if (segmentIndex === route.mergedSegments.length - 1) {
                         return `
                             ${transferText}
                             <li class="route-step">
-                                <a href="#" class="route-link" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${direction}</a> 乘坐${stationCount}站
+                                <a href="#" class="route-link" style="color:${operatorColor}" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${direction}</a> 乘坐${stationCount}站
                             </li>
                             <li class="route-step end">
                                 <a href="#" class="station-link" data-station="${route.routes[route.routes.length - 1].to}" onclick="handleRouteStepClick(event, this)">到达 ${route.routes[route.routes.length - 1].to}</a>
@@ -1358,7 +1436,7 @@ function renderTransferResults(routes, resultsContainer) {
                         return `
                             ${transferText}
                             <li class="route-step">
-                                <a href="#" class="route-link" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${direction}</a> 乘坐${stationCount}站
+                                <a href="#" class="route-link" style="color:${operatorColor}" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${direction}</a> 乘坐${stationCount}站
                             </li>
                         `;
                     }
@@ -1376,6 +1454,12 @@ function renderTransferResults(routes, resultsContainer) {
                     const direction = getRouteDirection(routeId, stationName, routeName);
                     if (routeLink[1] === routeLink[2]) {
                         hasInvalidRouteLink = true; // 标记存在无效的 route-link
+                    }
+                    if (routeId) {
+                        const operator = busRoutes[routeId].operator || "default";
+                        const color = operatorColorMap[operator] || operatorColorMap.default;
+                        // 将颜色应用到 route-link（例如通过 style 或 class）
+                        return step.replace('<a ', `<a style="color: ${color}" `);
                     }
                     return direction || routeLink[1] !== routeLink[2]; // 如果有方向信息或route-link和route文字内容不同则保留该步骤
                 }
