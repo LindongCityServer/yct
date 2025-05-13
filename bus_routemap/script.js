@@ -1,10 +1,12 @@
-// 在JS顶部添加运营商颜色配置
+// 导入公交数据
+import busRoutes from '../data/bus_data.js';// 在JS顶部添加运营商颜色配置
+
 const operatorColorMap = {
+    "嘎联巴士（临东）有限公司": "#dea38c",
+    "临东客运集团有限公司/嘎联巴士（临东）有限公司": "#dea38c",
+    "回南控股临东客运有限责任公司": "#254f9d",
     "default": "#F97D1C"
 };
-
-// 导入公交数据
-import busRoutes from '../data/bus_data.js';
 
 // 获取地铁线路数据
 const metroLines = {};
@@ -341,7 +343,11 @@ function renderBusRoute(routeId) {
     // 添加调试信息
     console.log('Rendered route:', route.name);
     console.log('Route stations:', route.stations);
-    console.log('Direction tabs:', directionTabs.innerHTML);
+    console.log('Direction tabs:', directionTabs.innerHTML);    
+    // 新增调试输出：首末班车原始时间
+    console.log(`[renderBusRoute] 线路 ${route.name} 的首末班车时间原始值: ${route.firstLastBus.first}-${route.firstLastBus.last}`);
+    console.log(`[renderBusRoute] 线路 ${route.name} 的首末班车时间格式化值: ${route.firstLastBus.displayFirst}-${route.firstLastBus.displayLast}`);
+
 }
 
 /**
@@ -375,7 +381,7 @@ function formatBusTime(timeStr) {
 
 /**
  * 获取时间排序值（用于时间比较）
- * @param {string} timeStr - 原始时间字符串
+ * @param {string} timeStr - 原始时间字符串（如"25:30"）
  * @returns {number} 排序权重值
  */
 function getTimeSortValue(timeStr) {
@@ -483,17 +489,53 @@ function renderStationSection(stations, container) {
     });
 }
 
-// 修改validateRouteData函数
+// 修改 validateRouteData 函数中的 24 小时判断逻辑
 function validateRouteData(route) {
     if (!route.firstLastBus || !route.firstLastBus.first || !route.firstLastBus.last) {
         console.error('Invalid route data:', route);
         return false;
     }
+
+    // 新增调试输出：原始时间值
+    console.log(`[validateRouteData] Route ${route.name} 原始时间`);
+    console.log(`下行方向首班车: ${route.firstLastBus.first}, 末班车: ${route.firstLastBus.last}`);
     
+    const dayMinutes = 1440; // 一天的分钟数
+    const startFirst = getTimeSortValue(route.firstLastBus.first);
+    const endLastDownwards = getTimeSortValue(route.firstLastBus.last);
+    
+    // 判断是否跨天，并且次日末班车时间 >= 首班车时间
+    const isCrossDay = endLastDownwards > dayMinutes;
+    const nextDayEndMinutes = endLastDownwards % dayMinutes;
+    route.is24HoursDownwards = isCrossDay && (nextDayEndMinutes >= startFirst);
+
+    // 新增调试输出：下行方向判断
+    console.log(`[validateRouteData] 下行方向判断: ${route.is24HoursDownwards} (首班车排序值: ${startFirst}, 末班车排序值: ${endLastDownwards}, 次日分钟数: ${nextDayEndMinutes})`);
+
+    // 判断上行方向是否为24小时运营
+    if (route.firstLastBusUpwards) {
+        const startFirstUpwards = getTimeSortValue(route.firstLastBusUpwards.first);
+        const endLastUpwards = getTimeSortValue(route.firstLastBusUpwards.last);
+        
+        // 判断是否跨天，并且次日末班车时间 >= 首班车时间
+        const isCrossDayUpwards = endLastUpwards > dayMinutes;
+        const nextDayEndMinutesUpwards = endLastUpwards % dayMinutes;
+        route.is24HoursUpwards = isCrossDayUpwards && (nextDayEndMinutesUpwards >= startFirstUpwards);
+
+        // 新增调试输出：上行方向判断
+        console.log(`[validateRouteData] 上行方向判断: ${route.is24HoursUpwards} (首班车排序值: ${startFirstUpwards}, 末班车排序值: ${endLastUpwards}, 次日分钟数: ${nextDayEndMinutesUpwards})`);
+    } else {
+        // 如果没有上行方向时间，继承下行方向的判断
+        route.is24HoursUpwards = route.is24HoursDownwards;
+
+        // 新增调试输出：上行方向继承下行判断
+        console.log(`[validateRouteData] 上行方向继承下行判断: ${route.is24HoursUpwards}`);
+    }
+
     // 添加排序权重
-    route.firstLastBus.firstSort = getTimeSortValue(route.firstLastBus.first);
-    route.firstLastBus.lastSort = getTimeSortValue(route.firstLastBus.last);
-    
+    route.firstLastBus.firstSort = startFirst;
+    route.firstLastBus.lastSort = endLastDownwards;
+
     return true;
 }
 
@@ -506,10 +548,13 @@ Object.values(busRoutes).forEach(route => {
     }
 });
 
-function isTimeInRange(timeStr, startStr, endStr) {
+function isTimeInRange(timeStr, startStr, endStr, is24Hours = false) {
     const time = getTimeSortValue(timeStr);
     const start = getTimeSortValue(startStr);
     const end = getTimeSortValue(endStr);
+
+    // 新增参数支持24小时逻辑
+    if (is24Hours) return true; // 24小时运营直接返回true
     
     // 处理跨天情况
     if (start > end) {
@@ -519,85 +564,162 @@ function isTimeInRange(timeStr, startStr, endStr) {
 }
 
 // 计算站点在特定路线上的运营时间
-function calculateStationOperationTime(routeId, stationName) {
+function calculateStationOperationTime(routeId, stationName, isUpward = null) {
     const route = busRoutes[routeId];
     if (!route) return null;
 
-    // 获取上下行方向的站点列表
-    const upwardStations = route.stations.filter(station => !station.oneWay || station.oneWay === 'down');
-    const downwardStations = route.stations.filter(station => !station.oneWay || station.oneWay === 'up');
+    // 新增调试输出：进入函数
+    console.log(`[calculateStationOperationTime] 计算 ${route.name} 站点 ${stationName} 的时间`);
 
-    // 在上行方向中查找站点位置
+    // 获取上下行方向的站点列表
+    const upwardStations = route.stations.filter(s => !s.oneWay || s.oneWay === 'down');
+    const downwardStations = route.stations.filter(s => !s.oneWay || s.oneWay === 'up');
+
+    // 新增调试输出：站点所在方向
+    console.log(`站点 ${stationName} 上行方向存在: ${upwardStations.some(s => s.name === stationName)}, 下行方向存在: ${downwardStations.some(s => s.name === stationName)}`);
+
+    // 判断是否为24小时运营
+    const is24HoursUpwards = route.is24HoursUpwards;
+    const is24HoursDownwards = route.is24HoursDownwards;
+
+    // 如果站点不在任何方向上，返回 null
     const upwardIndex = upwardStations.findIndex(s => s.name === stationName);
-    // 在下行方向中查找站点位置（注意下行方向是反向的）
     const downwardIndex = downwardStations.findIndex(s => s.name === stationName);
 
-    // 如果站点不在任何方向上，返回null
-    if (upwardIndex === -1 && downwardIndex === -1) return null;
+    if (upwardIndex === -1 && downwardIndex === -1) {
+        console.warn(`站点 ${stationName} 不在 ${route.name} 的任何方向上`);
+        return null;
+    }
+
+    // 如果是24小时运营，直接返回全天时间
+    if (is24HoursUpwards && is24HoursDownwards) {
+        console.log(`[calculateStationOperationTime] 线路 ${route.name} 上下行均为24小时运营`);
+        return {
+            upward: { first: '00:00', last: '23:59' },
+            downward: { first: '00:00', last: '23:59' }
+        };
+    }
 
     // 解析首末班车时间
     const [firstHour, firstMinute] = route.firstLastBus.first.split(':').map(Number);
     const [lastHour, lastMinute] = route.firstLastBus.last.split(':').map(Number);
-    const [firstHourUpwards, firstMinuteUpwards] = route.firstLastBusUpwards ? route.firstLastBusUpwards.first.split(':').map(Number) : [firstHour, firstMinute];
-    const [lastHourUpwards, lastMinuteUpwards] = route.firstLastBusUpwards ? route.firstLastBusUpwards.last.split(':').map(Number) : [lastHour, lastMinute];
+    const [firstHourUpwards, firstMinuteUpwards] = route.firstLastBusUpwards 
+        ? route.firstLastBusUpwards.first.split(':').map(Number) 
+        : [firstHour, firstMinute];
+    const [lastHourUpwards, lastMinuteUpwards] = route.firstLastBusUpwards 
+        ? route.firstLastBusUpwards.last.split(':').map(Number) 
+        : [lastHour, lastMinute];
 
-    // 计算上行方向时间
-    let upwardTime = null;
-    if (upwardIndex !== -1) {
-        // 假设每站2分钟
-        const timeToStation = upwardIndex * 2;
-        
-        const firstTimeUp = new Date();
-        firstTimeUp.setHours(firstHour, firstMinute + timeToStation, 0);
-        
-        const lastTimeUp = new Date();
-        lastTimeUp.setHours(lastHour, lastMinute + timeToStation, 0);
+    // 根据是否为上行方向计算时间
+    const result = {};
+    
+    if (isUpward === true || isUpward === false) {
+        const useUpward = isUpward === true;
+        const directionIndex = useUpward ? upwardIndex : downwardIndex;
+        const directionHours = useUpward ? firstHourUpwards : firstHour;
+        const directionMinutes = useUpward ? firstMinuteUpwards : firstMinute;
+        const directionLastHours = useUpward ? lastHourUpwards : lastHour;
+        const directionLastMinutes = useUpward ? lastMinuteUpwards : lastMinute;
 
-        upwardTime = {
-            first: `${String(firstTimeUp.getHours()).padStart(2, '0')}:${String(firstTimeUp.getMinutes()).padStart(2, '0')}`,
-            last: `${String(lastTimeUp.getHours()).padStart(2, '0')}:${String(lastTimeUp.getMinutes()).padStart(2, '0')}`
-        };
+        if (directionIndex !== -1) {
+            const timeToStation = useUpward ? directionIndex * 2 : (downwardStations.length - 1 - directionIndex) * 2;
+
+            const firstTime = new Date();
+            firstTime.setHours(directionHours, directionMinutes + timeToStation, 0);
+
+            const lastTime = new Date();
+            lastTime.setHours(directionLastHours, directionLastMinutes + timeToStation, 0);
+
+            result[useUpward ? 'upward' : 'downward'] = {
+                first: `${String(firstTime.getHours()).padStart(2, '0')}:${String(firstTime.getMinutes()).padStart(2, '0')}`,
+                last: `${String(lastTime.getHours()).padStart(2, '0')}:${String(lastTime.getMinutes()).padStart(2, '0')}`
+            };
+
+            // 新增调试输出：单方向计算结果
+            console.log(`[calculateStationOperationTime] 单方向计算 ${useUpward ? '上行' : '下行'}: ${result[useUpward ? 'upward' : 'downward'].first}-${result[useUpward ? 'upward' : 'downward'].last}`);
+        }
+    } else {
+        // 如果未指定方向，同时计算两个方向
+        if (upwardIndex !== -1) {
+            const timeToStation = upwardIndex * 2;
+            const firstTime = new Date();
+            firstTime.setHours(firstHourUpwards, firstMinuteUpwards + timeToStation, 0);
+            const lastTime = new Date();
+            lastTime.setHours(lastHourUpwards, lastMinuteUpwards + timeToStation, 0);
+            result.upward = {
+                first: `${String(firstTime.getHours()).padStart(2, '0')}:${String(firstTime.getMinutes()).padStart(2, '0')}`,
+                last: `${String(lastTime.getHours()).padStart(2, '0')}:${String(lastTime.getMinutes()).padStart(2, '0')}`
+            };
+
+            // 新增调试输出：上行方向计算结果
+            console.log(`[calculateStationOperationTime] 上行方向计算: ${result.upward.first}-${result.upward.last}`);
+        }
+
+        if (downwardIndex !== -1) {
+            const timeFromEnd = (downwardStations.length - 1 - downwardIndex) * 2;
+            const firstTimeDown = new Date();
+            firstTimeDown.setHours(firstHour, firstMinute + timeFromEnd, 0);
+            const lastTimeDown = new Date();
+            lastTimeDown.setHours(lastHour, lastMinute + timeFromEnd, 0);
+            result.downward = {
+                first: `${String(firstTimeDown.getHours()).padStart(2, '0')}:${String(firstTimeDown.getMinutes()).padStart(2, '0')}`,
+                last: `${String(lastTimeDown.getHours()).padStart(2, '0')}:${String(lastTimeDown.getMinutes()).padStart(2, '0')}`
+            };
+
+            // 新增调试输出：下行方向计算结果
+            console.log(`[calculateStationOperationTime] 下行方向计算: ${result.downward.first}-${result.downward.last}`);
+        }
     }
 
-    // 计算下行方向时间
-    let downwardTime = null;
-    if (downwardIndex !== -1) {
-        // 对于下行方向，从终点站往回算
-        const timeFromEnd = (downwardStations.length - 1 - downwardIndex) * 2;
-        
-        const firstTimeDown = new Date();
-        firstTimeDown.setHours(firstHourUpwards, firstMinuteUpwards + timeFromEnd, 0);
-        
-        const lastTimeDown = new Date();
-        lastTimeDown.setHours(lastHourUpwards, lastMinuteUpwards + timeFromEnd, 0);
-
-        downwardTime = {
-            first: `${String(firstTimeDown.getHours()).padStart(2, '0')}:${String(firstTimeDown.getMinutes()).padStart(2, '0')}`,
-            last: `${String(lastTimeDown.getHours()).padStart(2, '0')}:${String(lastTimeDown.getMinutes()).padStart(2, '0')}`
-        };
+    // 如果是24小时运营，覆盖计算结果
+    if (is24HoursUpwards && upwardStations.some(s => s.name === stationName)) {
+        result.upward = { first: '00:00', last: '23:59' };
+        console.log(`[calculateStationOperationTime] 站点 ${stationName} 上行方向被标记为24小时运营`);
+    }
+    if (is24HoursDownwards && downwardStations.some(s => s.name === stationName)) {
+        result.downward = { first: '00:00', last: '23:59' };
+        console.log(`[calculateStationOperationTime] 站点 ${stationName} 下行方向被标记为24小时运营`);
     }
 
-    return {
-        upward: upwardTime,
-        downward: downwardTime
-    };
+    return Object.keys(result).length > 0 ? result : null;
 }
 
 // 检查站点在特定路线和方向上是否在运营时间内
 function isStationOperatingInDirection(routeId, stationName, isUpward) {
-    const operationTime = calculateStationOperationTime(routeId, stationName);
+    const route = busRoutes[routeId];
+    if (!route) {
+        console.error('Route not found for routeId:', routeId);
+        return false;
+    }
+
+    const operationTime = calculateStationOperationTime(routeId, stationName, isUpward);
     if (!operationTime) return false;
 
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    
+
+    // 新增调试输出：当前时间和判断依据
+    console.log(`[isStationOperatingInDirection] 当前时间: ${currentTime}, 是否为24小时运营: ${isUpward ? route.is24HoursUpwards : route.is24HoursDownwards}`);
+
+    // 根据方向使用不同的24小时标志
+    const is24Hours = isUpward ? route.is24HoursUpwards : route.is24HoursDownwards;
+
+    if (is24Hours) {
+        return true;
+    }
+
+    // 新增调试输出：非24小时时的判断
+    console.log(`[isStationOperatingInDirection] 线路 ${route.name} 的 ${isUpward ? '上行' : '下行'} 方向非24小时`);
+    console.log(`运营时间范围: ${operationTime[isUpward ? 'upward' : 'downward'].first}-${operationTime[isUpward ? 'upward' : 'downward'].last}`);
+
+
     // 根据方向检查运营时间
     if (isUpward && operationTime.upward) {
         return currentTime >= operationTime.upward.first && currentTime <= operationTime.upward.last;
     } else if (!isUpward && operationTime.downward) {
         return currentTime >= operationTime.downward.first && currentTime <= operationTime.downward.last;
     }
-    
+
     return false;
 }
 
@@ -614,17 +736,25 @@ function showStationDetails(stationName) {
     // 查找经过该站点的所有线路
     const routes = findStationRoutes(stationName);
     routes.forEach(route => {
+        // 新增调试输出：正在处理的线路
+        console.log(`[showStationDetails] 处理线路: ${route.routeName}`);
+
         const operationTime = calculateStationOperationTime(route.routeId, stationName);
         if (!operationTime) {
             console.warn(`Could not calculate operation time for station ${stationName} on route ${route.routeName}`);
             return; // 跳过无法计算的站点
         }
 
+        // 新增调试输出：operationTime 的值
+        console.log(`[showStationDetails] 站点 ${stationName} 的 operationTime:`, operationTime);
+
         // 检查任一方向是否在运营时间内
-        const isOperating = (operationTime.upward && 
-            isStationOperatingInDirection(route.routeId, stationName, true)) || 
-            (operationTime.downward && 
-            isStationOperatingInDirection(route.routeId, stationName, false));
+        // 在 showStationDetails 中调用 calculateStationOperationTime 时传入 isUpward 参数
+        const upwardTime = calculateStationOperationTime(route.routeId, stationName, true);
+        const downwardTime = calculateStationOperationTime(route.routeId, stationName, false);
+
+        const isOperating = (upwardTime?.upward && isStationOperatingInDirection(route.routeId, stationName, true)) ||
+                            (downwardTime?.downward && isStationOperatingInDirection(route.routeId, stationName, false));
         
         const routeItem = document.createElement('div');
         routeItem.className = 'route-item';
@@ -640,6 +770,7 @@ function showStationDetails(stationName) {
 
         // 获取运营商颜色
         const operatorColor = operatorColorMap[route.operator] || operatorColorMap.default;
+        console.log(`[showStationDetails] 线路 ${route.routeName} 的运营商${route.operator}，颜色: ${operatorColor}`);
 
         let routeContent = '';
         if (isCircular && isOneWay) {
@@ -647,7 +778,7 @@ function showStationDetails(stationName) {
             const circularDirection = busRoutes[route.routeId].circularDirection === 'clockwise' ? '内环' : '外环';
             routeContent = `
                 <div class="route-info-container">
-                    <span class="route-name ${isOperating ? 'operating' : 'not-operating'}">
+                    <span class="route-name ${isOperating ? 'operating' : 'not-operating'}" style="color: ${isOperating ? operatorColor : 'var(--secondary-text)'};">
                         ${route.routeName}
                     </span>
                     <div class="direction-times">
@@ -663,7 +794,7 @@ function showStationDetails(stationName) {
             const isClockwise = busRoutes[route.routeId].circularDirection === 'clockwise';
             routeContent = `
                 <div class="route-info-container">
-                    <span class="route-name ${isOperating ? 'operating' : 'not-operating'}">
+                    <span class="route-name ${isOperating ? 'operating' : 'not-operating'}" style="color: ${isOperating ? operatorColor : 'var(--secondary-text)'};">
                         ${route.routeName}
                     </span>
                     <div class="direction-times">
@@ -704,7 +835,7 @@ function showStationDetails(stationName) {
 
             routeContent = `
                 <div class="route-info-container">
-                    <span class="route-name ${isOperating ? 'operating' : 'not-operating'}">
+                    <span class="route-name ${isOperating ? 'operating' : 'not-operating'}" style="color: ${isOperating ? operatorColor : 'var(--secondary-text)'};">
                         ${route.routeName}
                     </span>
                     <div class="direction-times">
@@ -847,6 +978,7 @@ function findStationRoutes(stationName) {
                 routeId,
                 routeName: route.name,
                 fare: route.fare,
+                operator: route.operator,
                 stationIndex,
                 stations: stations
             });
@@ -1235,6 +1367,8 @@ function renderTransferResults(routes, resultsContainer) {
             const stationCount = Math.abs(route.stations[1].index - route.stations[0].index);
             const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === route.route);
             const direction = getRouteDirection(routeId, route.stations[0].name, route.stations[1].name);
+            const operatorColor = operatorColorMap[route.operator] || operatorColorMap.default;
+            //console.log(`直达路线：${route.route} ${direction} ${route.operator} ${operatorColor}`);
             
             // 检查方向信息是否存在
             if (!direction) {
@@ -1242,7 +1376,7 @@ function renderTransferResults(routes, resultsContainer) {
             }
 
             routeIndex++; // 增加方案编号
-            console.log('直达路线原始数据：', route);
+            //console.log('直达路线原始数据：', route);
             return `
                 <div class="transfer-route ${route.operationStatus && route.operationStatus.length > 0 ? 'not-operating' : ''}" data-route-index="${routeIndex}">
                     <h3>方案 ${routeIndex}：${route.route}</h3>
@@ -1332,6 +1466,9 @@ function renderTransferResults(routes, resultsContainer) {
                         return ''; // 跳过该路线
                     }
 
+                    const operatorColor = operatorColorMap[route.operator] || operatorColorMap.default;
+                    //console.log(`多个可选线路方案：${route.route} ${route.operator} ${operatorColor}`);
+
                     if (segmentIndex === 0) {
                         return `
                             <li class="route-step start">
@@ -1391,6 +1528,9 @@ function renderTransferResults(routes, resultsContainer) {
                     // 获取方向信息
                     const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === segment.name);
                     const direction = getRouteDirection(routeId, route.routes[segmentIndex].from, route.routes[segmentIndex].to);
+
+                    const operatorColor = operatorColorMap[segment.operator] || operatorColorMap.default;
+                    //console.log(`合并换乘站方案：${segment.route} ${direction} ${segment.operator} ${operatorColor}`);
 
                     let transferText = '';
                     // 检查方向信息是否存在

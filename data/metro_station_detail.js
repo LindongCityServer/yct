@@ -251,7 +251,7 @@ window.stationDetail = [
         maxCarCount: 6,
         stations: [
             {
-                name: "临湖路",
+                name: "云峰街",
                 overGround: false,
                 layers: [
                     { floor: "B1", type: "concourse", },
@@ -387,6 +387,31 @@ window.stationDetail = [
                 ],
                 surrounding_stations: ["精卫街地铁站"]
             }
+        ]
+    },
+    {
+        name: "6号线",
+        maxCarCount: 6,
+        stationTemplate: [
+            {
+                name: "岛式站台",
+                overGround: false,
+                layers: [
+                    { floor: "B1", type: "concourse", },
+                    { floor: "B2", type: "platform", },
+                ],
+                facilities: []
+            }
+        ],
+        stations: [
+            {name: "金阳大街", template: "岛式站台", surrounding_stations: ["人杰湖公园"]},
+            {name: "人杰湖公园", template: "岛式站台", surrounding_stations: ["石桥子"]},
+            {name: "北台路", template: "岛式站台", surrounding_stations: ["青年大街普济路"]},
+            {name: "草仓路", template: "岛式站台", surrounding_stations: ["CT中心","来又来商场","科普公园东","会展中心"]},
+            {name: "宣庆文化宫", template: "岛式站台"},
+            {name: "青年大街", template: "岛式站台"},
+            {name: "新阳路", template: "岛式站台", surrounding_stations: ["新阳路地铁站", "通合物流场", "市府广场", "航洋城","航洋城北"]},
+            {name: "仁德路", template: "岛式站台", surrounding_stations: ["公交仁德站","青年大街仁德路","仁德路青年大街"]},
         ]
     },
     {
