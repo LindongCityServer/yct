@@ -118,7 +118,6 @@ svg {
     box-shadow: 0 2px 5px var(--shadow-color);
     display: none;
     max-width: 240px;
-    max-height: 720px;
     line-height: 1.8;
 }
 
@@ -402,9 +401,24 @@ svg {
 }
 
 .route-selector button.selected {
-    background-color: #e6f3f0;
-    color: #2c9678;
-    border-color: #2c9678;
+    background-color: #e6f3f1;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* 为屏幕显示保留滚动 */
+#line-summary:not(.exporting) {
+    max-height: calc(100vh - 320px);
+    overflow-y: auto;
+    /* 自定义滚动条样式 */
+    scrollbar-width: thin;
+    scrollbar-color: var(--tertiary-text) transparent;
+}
+
+/* 导出时解除限制 */
+#line-summary.exporting {
+    max-height: none;
+    overflow-y: visible;
 }
 
 #fare-zone-summary {
@@ -421,7 +435,7 @@ svg {
 }
 
 #fare-zone-summary p:first-child {
-    color: #2c9678;
+    color: var(--primary-color);
     font-weight: 500;
 }
 
@@ -459,7 +473,7 @@ svg {
 
 .footer-logo {
     height: 24px;
-    width: 96px;
+    width: fit-content;
     margin-bottom: 0px;
     margin-top: -4px;
 }
@@ -566,12 +580,12 @@ svg {
 }
 
 .dialog-button.primary {
-    background: #00796b;
+    background: var(--primary-color-hover);
     color: white;
 }
 
 .dialog-button.primary:hover {
-    background: #00695c;
+    background: var(--primary-color-hover);
 }
 
 /* Dark mode specific adjustments */
@@ -717,9 +731,9 @@ svg {
     }
     
     .route-selector button.selected {
-        background-color: #1a4d3d;
-        color: #4cd3a5;
-        border-color: #2c9678;
+        background-color: var(--primary-color-transparent);
+        color: var(--primary-color-hover);
+        border-color: var(--primary-color);
     }
     
     /* 运营时间和票价信息 */
@@ -732,7 +746,7 @@ svg {
     }
     
     #fare-zone-summary p:first-child {
-        color: #4cd3a5;
+        color: var(--primary-color);
     }
     
     /* 图例分隔线 */
