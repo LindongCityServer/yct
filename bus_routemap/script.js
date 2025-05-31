@@ -2197,8 +2197,17 @@ document.addEventListener('DOMContentLoaded', () => {
         hideAllStationActions();
     });
 
-    // 加载地铁数据并显示默认路线
+    // 新增：解析URL参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const routeIdFromURL = urlParams.get('route');
+
+    // 加载地铁数据并显示对应的路线
     loadMetroData().then(() => {
-        renderBusRoute('环路');
+        // 检查参数中的routeID是否有效
+        if (routeIdFromURL && busRoutes[routeIdFromURL]) {
+            renderBusRoute(routeIdFromURL); // 渲染指定线路
+        } else {
+            renderBusRoute('环路'); // 渲染默认路线
+        }
     });
 });
