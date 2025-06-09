@@ -124,6 +124,15 @@ addSafeEventListener(document.getElementById('lineSelect'), 'change', function(e
     if (lineIndex !== '') {
         currentLine = lineData.lines[lineIndex];
         
+        // 获取当前线路的 maxCarCount
+        const lineDetail = window.stationDetail.find(line => line.name === currentLine.name);
+        const maxCarCount = lineDetail?.maxCarCount || 6;
+
+        // 更新 carCount 并重置车厢控件
+        carCount = maxCarCount;
+        document.getElementById('carCount').textContent = carCount;
+        updateCarSelection(); // 重新生成车厢选择按钮
+        
         console.log('线路变化:', {
             线路: currentLine.name,
             总站点数: currentLine.stations.length,
@@ -659,11 +668,21 @@ function findTransferLine(stationName) {
 
 // 初始化车厢控制
 function initializeCarControls() {
-    // 车厢数量控制
     const decreaseBtn = document.getElementById('decreaseCars');
     const increaseBtn = document.getElementById('increaseCars');
     const carCountDisplay = document.getElementById('carCount');
-    
+
+    // 获取当前线路的 maxCarCount，若不存在则使用默认值6
+    const lineDetail = window.stationDetail.find(line => line.name === currentLine?.name);
+    const maxCarCount = lineDetail?.maxCarCount || 6;
+
+    carCount = maxCarCount; // 设置初始值
+    carCountDisplay.textContent = carCount;
+
+    // 更新车厢选择按钮
+    updateCarSelection();
+
+    // 增加/减少车厢数量的逻辑
     decreaseBtn.addEventListener('click', () => {
         if (carCount > 1) {
             carCount--;
@@ -677,9 +696,9 @@ function initializeCarControls() {
             }
         }
     });
-    
+
     increaseBtn.addEventListener('click', () => {
-        if (carCount < 20) {
+        if (carCount < maxCarCount) { // 限制不超过 maxCarCount
             carCount++;
             carCountDisplay.textContent = carCount;
             updateCarSelection();
@@ -688,18 +707,6 @@ function initializeCarControls() {
             }
         }
     });
-    
-    // 初始化车厢选择
-    updateCarSelection();
-    
-    // 为车头方向控制添加提示
-    document.querySelectorAll('.head-direction input[type="radio"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            if (document.getElementById('stationDetail').style.display === 'flex') {
-                updateStationDetail();
-            }
-        });
-    });
 }
 
 // 更新车厢选择按钮
@@ -707,7 +714,10 @@ function updateCarSelection() {
     const carSelect = document.querySelector('.car-select.button-group');
     carSelect.innerHTML = '';
     
-    for (let i = 1; i <= carCount; i++) {
+    const lineDetail = window.stationDetail.find(line => line.name === currentLine?.name);
+    const maxCarCount = lineDetail?.maxCarCount || 6;
+
+    for (let i = 1; i <= carCount && i <= maxCarCount; i++) { // 限制最大值
         const input = document.createElement('input');
         input.type = 'radio';
         input.id = `car${i}`;
@@ -724,7 +734,7 @@ function updateCarSelection() {
         carSelect.appendChild(input);
         carSelect.appendChild(label);
     }
-    
+
     // 添加车厢选择事件监听
     const carInputs = carSelect.querySelectorAll('input[type="radio"]');
     carInputs.forEach(input => {
