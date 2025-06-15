@@ -23,13 +23,22 @@ const contentData = [
         showInBanner: true
     },
     {
+        title: '临东|地铁|调整|计费方式',
+        image: '--metro-color',
+        link: '/metro_map',
+        date: '2025-06-15',
+        summary:'15日起，临东地铁计费方式从分区计费改为按里程分段计费。新方案起步价为2元可乘坐的计费里程为6公里，之后每增加1元，可续乘的计费里程依次为4、4、7、7、10、10公里。调整后，起步价覆盖里程平均缩短1至2站距离，但目前全线网的最高票价仍维持3元不变。点击链接或页面顶部蓝色横幅可进入地铁线网图查询具体票价。',
+        category: '地铁运营',
+        showInBanner: true
+    },
+    {
         title: '服管会|呼吁|共同维护|线路|运营秩序',
         image: '../data/content_banner/服管会呼吁共同维护线路运营秩序.png',
         link: 'https://pd.qq.com/s/2b9byqcxs',
         date: '2025-03-08',
         summary: '本月新任轮值管理段冰峰就公交站牌规范化问题在群内发起讨论，引发玩家广泛热议。各方就站牌制作标准达成共识，共同推动公交线路规范化运营。',
         category: '通知公告',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '临东|推出|首枚|文化|纪念印章',
@@ -65,7 +74,7 @@ const contentData = [
         date: '2025-02-21',
         summary: '松山湖有轨电车全面升级：运力翻倍、混跑提速、色彩缤纷、标准统一、调度强大……点击查看全图，了解更多详情！',
         category: '有轨运营',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '松山湖有轨电车停止对外服务',

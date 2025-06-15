@@ -297,7 +297,10 @@ function dijkstraFindShortestPath(graph, start, end, optimizeFor = 'time') {
                 (optimizeFor === 'transfers' && 
                     (distances[node].transfers < distances[closestNode].transfers || 
                     (distances[node].transfers === distances[closestNode].transfers && 
-                     distances[node].time < distances[closestNode].time)))) {
+                     distances[node].time < distances[closestNode].time))) ||
+                (optimizeFor === 'fare' && 
+                    distances[node].time + distances[node].transfers < distances[closestNode].time + distances[closestNode].transfers)
+                ){
                 closestNode = node;
             }
         }
@@ -334,6 +337,14 @@ function dijkstraFindShortestPath(graph, start, end, optimizeFor = 'time') {
                 shouldUpdate = newTransfers < distances[neighbor].transfers || 
                              (newTransfers === distances[neighbor].transfers && 
                               newTime < distances[neighbor].time);
+            } else if (optimizeFor === 'fare') {
+                // 对于费用优化，优先考虑费用，次要考虑换乘次数，再考虑总时间
+                shouldUpdate = edge.fare < distances[neighbor].fare || 
+                             (edge.fare === distances[neighbor].fare && 
+                              newTransfers < distances[neighbor].transfers) ||
+                             (edge.fare === distances[neighbor].fare && 
+                              newTransfers === distances[neighbor].transfers && 
+                              newTime < distances[neighbor].time);
             }
 
             if (shouldUpdate) {
@@ -353,13 +364,16 @@ function dijkstraFindShortestPath(graph, start, end, optimizeFor = 'time') {
     const edges = [];
     let currentNode = end;
     
-    while (currentNode !== null) {
+    while (currentNode !== start) { // ✅ 修正终止条件
         path.unshift(currentNode);
         if (previousEdges[currentNode]) {
             edges.unshift(previousEdges[currentNode]);
         }
         currentNode = previousNodes[currentNode];
     }
+    
+    // 添加起始点
+    path.unshift(start);
 
     // 在返回结果中添加 totalFare 字段
     return {
@@ -372,31 +386,93 @@ function dijkstraFindShortestPath(graph, start, end, optimizeFor = 'time') {
 }
 
 function calculateFare(path) {
-    // ✅ 收集各线路下的计费区
-    const fareZones = new Set();
-    
+    let totalFare = 0;
+    let currentSegmentDistance = 0;
+    let fareZones = new Set();
+    let lastFareZone = null;
+    let segmentCount = 1;
+
+    const segments = []; // 新增：用于保存每个区段的详细信息
+
     for (let i = 0; i < path.length; i++) {
         const node = path[i];
         const [stationName, lineName] = node.split('_');
         const station = stationsData[stationName];
-        
-        if (station && station.fareZones && station.fareZones[lineName]) {
-            fareZones.add(station.fareZones[lineName]);
-        } else if (station) {
-            // ✅ 默认使用“市区”作为兜底
-            fareZones.add('市区');
+        const line = lines.find(l => l.name === lineName);
+
+        const lineStation = line?.stations.find(s => s.name === stationName);
+        if (!lineStation) continue;
+
+        const isTransferLine = /^#000000[0-9a-fA-F]{2}$/.test(line.color);
+        const currentFareZone = stationName === "万方铁博" ? "铁路" : (lineStation.fareZone || '市区');
+
+        const fareZoneChanged = stationName !== "万方铁博" && currentFareZone !== lastFareZone;
+
+        //if (isTransferLine || fareZoneChanged) 
+        if (isTransferLine) {
+            if (currentSegmentDistance > 0) {
+                const segmentFare = calculateSegmentFare(currentSegmentDistance);
+                totalFare += segmentFare;
+                segments.push({
+                    distance: currentSegmentDistance,
+                    fare: segmentFare,
+                    segmentNumber: segmentCount,
+                    fareZone: lastFareZone
+                });
+                currentSegmentDistance = 0;
+                segmentCount++;
+            }
+
+            /*if (fareZoneChanged) {
+                lastFareZone = currentFareZone;
+                fareZones.add(currentFareZone);
+            }*/
+            if (isTransferLine) continue;
+        }
+
+        if (i > 0 && !isTransferLine) {
+            const prevNode = path[i-1];
+            const [prevStationName, prevLineName] = prevNode.split('_');
+            const prevLine = lines.find(l => l.name === prevLineName);
+
+            if (prevLine && prevLine.stations) {
+                const prevLineStation = prevLine.stations.find(s => s.name === prevStationName);
+                if (prevLineStation && prevLineStation.distance) {
+                    currentSegmentDistance += prevLineStation.distance;
+                }
+            }
         }
     }
 
-    const baseFare = 2;
-    const additionalFare = fareZones.size > 1 ? fareZones.size - 2 : 0;
-    const airportLineUsed = path.some(station => {
-        const lineName = station.split('_')[1];
-        return lineName === '机场线';
-    });
-    const airportFare = airportLineUsed ? 15 : 0;
+    if (currentSegmentDistance > 0) {
+        const segmentFare = calculateSegmentFare(currentSegmentDistance);
+        totalFare += segmentFare;
+        segments.push({
+            distance: currentSegmentDistance,
+            fare: segmentFare,
+            segmentNumber: segmentCount,
+            fareZone: lastFareZone
+        });
+    }
 
-    return baseFare + additionalFare + airportFare;
+    return {
+        totalFare,
+        segments
+    };
+}
+
+// 分段计价函数
+function calculateSegmentFare(distance) {
+    if (distance <= 6000) return 2;
+    if (distance <= 10000) return 3;
+    if (distance <= 14000) return 4;
+    if (distance <= 21000) return 5;
+    if (distance <= 28000) return 6;
+    return 7; // 暂行票价7元封顶优惠
+    //if (distance <= 38000) return 7;
+    //if (distance <= 48000) return 8;
+    // 超过48000米的部分按每10000米加1元计算
+    //return 8 + Math.ceil((distance - 48000) / 10000);
 }
 
 function buildWeightedGraph(lines, options = {}) {
@@ -414,6 +490,17 @@ function buildWeightedGraph(lines, options = {}) {
             if (!stationToLines[station.name]) {
                 stationToLines[station.name] = [];
             }
+
+            line.stations.forEach(station => {
+                // 设置默认值
+                if (station.travelTime === undefined) {
+                    station.travelTime = 2;
+                }
+                if (station.fareZone === undefined) {
+                    station.fareZone = '市区';
+                }
+            });
+
             // 记录站点在线路中的位置和方向终点站
             const isDownbound = index > line.stations[Math.floor(line.stations.length / 2)].index;
             const directionEndStation = isDownbound ? 
@@ -755,48 +842,51 @@ map.addEventListener("touchend", () => {
 });
 
 function highlightRoute() {
-    if (!startPoint || !endPoint) return;
+    if (!startPoint || !endPoint) {
+        console.error('Start point or end point is not set');
+        return;
+    }
 
     resetMap();
 
-    // 获取不同的路径方案
     const timeOptimizedPath = findOptimalPath(startPoint, endPoint, 'time');
     const transferOptimizedPath = findOptimalPath(startPoint, endPoint, 'transfers');
     const noAirportPath = findOptimalPath(startPoint, endPoint, 'time', true);
+    const fareOptimizedPath = findOptimalPath(startPoint, endPoint, 'fare');
 
-    // 检查路线是否相同
-    const isTimeAndTransferSame = areRoutesEqual(timeOptimizedPath, transferOptimizedPath);
-    const isTransferAndNoAirportSame = areRoutesEqual(transferOptimizedPath, noAirportPath);
-
-    // 构建初始方案列表
+    // 修改 highlightRoute 中 routes 的构建方式，确保每个 route 对象包含 totalFare
     const routes = [
-        {
-            type: isTimeAndTransferSame ? '推荐路线' : '时间短',
-            path: timeOptimizedPath,
-            isSelected: true
-        },
-        ...(isTimeAndTransferSame ? [] : [{
-            type: isTransferAndNoAirportSame ? '普通路线' : '少换乘',
-            path: transferOptimizedPath,
-            isSelected: false
-        }]),
-        ...(!isTransferAndNoAirportSame && timeOptimizedPath.usesAirportLine ? [{
-            type: '普通线路',
-            path: noAirportPath,
-            isSelected: false
-        }] : []),
-        /*{
+        timeOptimizedPath && timeOptimizedPath.path.length >= 2 ? {
+            type: '时间短',
+            path: timeOptimizedPath.path,
+            totalTime: timeOptimizedPath.totalTime,
+            totalTransfers: timeOptimizedPath.totalTransfers,
+            totalFare: timeOptimizedPath.totalFare,
+            fareData: timeOptimizedPath.fare,
+            edges: timeOptimizedPath.edges
+        } : null,
+        transferOptimizedPath && transferOptimizedPath.path.length >= 2 ? {
+            type: '少换乘',
+            path: transferOptimizedPath.path,
+            totalTime: transferOptimizedPath.totalTime,
+            totalTransfers: transferOptimizedPath.totalTransfers,
+            totalFare: transferOptimizedPath.totalFare,
+            fareData: transferOptimizedPath.fare,
+            edges: transferOptimizedPath.edges
+        } : null,
+        fareOptimizedPath && fareOptimizedPath.path.length >= 2 && fareOptimizedPath.totalFare > 0 ? {
             type: '票价低',
-            path: fareOptimizedPath,
-            isSelected: false
-        }*/
-    ];
-
-    // 过滤无效路径
-    const validRoutes = routes.filter(route => route.path.path.length > 0);
+            path: fareOptimizedPath.path,
+            totalTime: fareOptimizedPath.totalTime,
+            totalTransfers: fareOptimizedPath.totalTransfers,
+            totalFare: fareOptimizedPath.totalFare,
+            fareData: fareOptimizedPath.fare,
+            edges: fareOptimizedPath.edges
+        } : null
+    ]
 
     // 调用 showRouteResults
-    showRouteResults(validRoutes);
+    showRouteResults(routes);
 }
 
 // 比较两条路线是否相同
@@ -810,39 +900,43 @@ function areRoutesEqual(route1, route2) {
     return true;
 }
 
+// 修改 findOptimalPath 函数内的容错逻辑
 function findOptimalPath(start, end, optimizeFor = 'time', excludeAirport = false) {
     const graph = buildWeightedGraph(lines, { excludeAirportLine: excludeAirport });
-    
-    // 获取起点和终点的所有可能线路
     const startLines = getLinesForStation(start);
     const endLines = getLinesForStation(end);
-    
+
     let bestResult = null;
     let shortestTime = Infinity;
     let leastTransfers = Infinity;
     let lowestFare = Infinity;
 
-    // 尝试所有可能的起点和终点线路组合
     for (const startLine of startLines) {
         for (const endLine of endLines) {
             const startNode = `${start}_${startLine}`;
             const endNode = `${end}_${endLine}`;
-            
+
             if (graph[startNode] && graph[endNode]) {
                 const result = dijkstraFindShortestPath(graph, startNode, endNode, optimizeFor);
-                
-                if (result.path.length > 0) {
-                    if (optimizeFor === 'time' && result.totalTime < shortestTime) {
+                const fareData = calculateFare(result.path);
+
+                result.totalFare = fareData.totalFare;
+                result.fareSegments = fareData.segments;
+
+                // ✅ 增加路径有效性检查
+                if (result.path?.length >= 2 && result.edges?.length === result.path.length - 1) {
+                    // ✅ 确保 edges 长度与路径匹配
+                    if (optimizeFor === 'fare' && result.totalFare < lowestFare) {
+                        lowestFare = result.totalFare;
+                        bestResult = result;
+                    } else if (optimizeFor === 'time' && result.totalTime < shortestTime) {
                         shortestTime = result.totalTime;
                         bestResult = result;
-                    } else if (optimizeFor === 'transfers' &&
-                        (result.totalTransfers < leastTransfers ||
-                         (result.totalTransfers === leastTransfers && result.totalTime < shortestTime))) {
+                    } else if (optimizeFor === 'transfers' && 
+                              (result.totalTransfers < leastTransfers || 
+                               (result.totalTransfers === leastTransfers && result.totalTime < shortestTime))) {
                         leastTransfers = result.totalTransfers;
                         shortestTime = result.totalTime;
-                        bestResult = result;
-                    } else if (optimizeFor === 'fare' && result.totalFare < lowestFare) {
-                        lowestFare = result.totalFare;
                         bestResult = result;
                     }
                 }
@@ -850,82 +944,98 @@ function findOptimalPath(start, end, optimizeFor = 'time', excludeAirport = fals
         }
     }
 
-    if (!bestResult) {
-        return {
-            path: [],
-            edges: [],
-            totalTime: 0,
-            totalTransfers: 0,
-            usesAirportLine: false,
-            fare: {
-                base: 0,
-                additional: 0,
-                airport: 0,
-                total: 0
-            },
-            totalFare: 0
-        };
-    }
-
-    // 检查是否使用了机场线
-    const usesAirportLine = bestResult.edges.some(edge => {
-        const line = lines.find(l => l.name === edge.line);
-        return line && line.name === "机场线";
-    });
-
-    // ✅ 从 path 解析对应线路下的计费区
-    const fareZones = new Set(
-        bestResult.path.map(node => {
-            const [stationName, lineName] = node.split('_');
-            const station = stationsData[stationName];
-            
-            return station?.fareZones?.[lineName] || '市区';
-        })
-    );
-    const baseFare = 2;
-    const additionalFare = fareZones.size > 1 ? fareZones.size - 2 : 0;
-    const airportFare = usesAirportLine ? 15 : 0;
-    const totalFare = baseFare + additionalFare + airportFare;
-
-    return {
+    console.log('findOptimalPath result:', bestResult, 'optimizeFor:', optimizeFor);
+    return bestResult ? {
         ...bestResult,
         fare: {
-            base: baseFare,
-            additional: additionalFare,
-            airport: airportFare,
-            total: totalFare
+            base: 0,
+            additional: 0,
+            airport: 0,
+            total: bestResult.totalFare || 0,
+            segments: bestResult.fareSegments || [],
         },
-        totalFare
-    };
+    } : null;
 }
 
 function showRouteResults(routes) {
     const routeResult = document.getElementById('route-result');
-        routeResult.style.display = "block";
-    const routeList = document.getElementById('route-list');
     const lineSummary = document.getElementById('line-summary');
     const fareZoneSummary = document.getElementById('fare-zone-summary');
 
     // 清空现有内容
-        routeList.innerHTML = '';
-        lineSummary.innerHTML = '';
+    //lineSummary.innerHTML = '';
     fareZoneSummary.innerHTML = '';
 
-    // 合并相同路径的方案
-    const mergedRoutes = [];
-    routes.forEach(route => {
-        const existing = mergedRoutes.find(r => areRoutesEqual(r.path, route.path));
-        if (existing) {
-            // 合并类型描述
-            existing.type += '/' + route.type;
-        } else {
-            mergedRoutes.push({ ...route });
-        }
+    // ✅ 正确过滤路径，使用 route.totalFare 而不是 route.path.totalFare
+    //const validRoutes = routes.filter(route => route.path?.length >= 2 && route.totalFare > 0);
+
+    routeResult.style.display = 'block';
+
+    /*if (validRoutes.length === 0) {
+        showToast('没有找到有效路径');
+        return;
+    }*/
+
+    // ✅ 获取最优路径
+    const bestTimeRoute = [...routes].sort((a, b) => a.totalTime - b.totalTime)[0];
+    const bestTransferRoute = [...routes].sort((a, b) => a.totalTransfers - b.totalTransfers)[0];
+    const bestFareRoute = [...routes].sort((a, b) => a.totalFare - b.totalFare)[0];
+
+    // ✅ 构建展示路径列表
+    const displayRoutes = [];
+
+    displayRoutes.push({
+        type: '时间短',
+        path: bestTimeRoute.path,
+        totalTime: bestTimeRoute.totalTime,
+        totalTransfers: bestTimeRoute.totalTransfers,
+        totalFare: bestTimeRoute.totalFare,
+        fareData: bestTimeRoute.fareData,
+        isSelected: false,
+        edges: bestTimeRoute.edges
     });
 
-    // 创建路线选择器
+    if (!areRoutesEqual(bestTimeRoute, bestTransferRoute) && bestTransferRoute.totalTransfers < bestTimeRoute.totalTransfers) {
+        displayRoutes.push({
+            type: '少换乘',
+            path: bestTransferRoute.path,
+            totalTime: bestTransferRoute.totalTime,
+            totalTransfers: bestTransferRoute.totalTransfers,
+            totalFare: bestTransferRoute.totalFare,
+            fareData: bestTransferRoute.fareData,
+            isSelected: false,
+            edges: bestTransferRoute.edges
+        });
+    }
+
+    if (!areRoutesEqual(bestFareRoute, bestTimeRoute) &&
+        !areRoutesEqual(bestFareRoute, bestTransferRoute) &&
+        bestFareRoute.totalFare < bestTimeRoute.totalFare) {
+        displayRoutes.push({
+            type: '票价低',
+            path: bestFareRoute.path,
+            totalTime: bestFareRoute.totalTime,
+            totalTransfers: bestFareRoute.totalTransfers,
+            totalFare: bestFareRoute.totalFare,
+            fareData: bestFareRoute.fareData,
+            isSelected: false,
+            edges: bestFareRoute.edges
+        });
+    }
+
+    // ✅ 合并相同路径
+    const mergedRoutes = mergeIdenticalRoutes(displayRoutes);
+
+    // ✅ 设置默认选中路径
+    const defaultRoute = mergedRoutes.find(r => r.type === '时间短') || mergedRoutes[0];
+    mergedRoutes.forEach(route => {
+        route.isSelected = (route.type === defaultRoute.type);
+    });
+
+    // ✅ 创建路径选择器
     const routeSelector = document.createElement('div');
     routeSelector.className = 'route-selector';
+
     mergedRoutes.forEach(route => {
         const button = document.createElement('button');
         button.textContent = route.type;
@@ -933,28 +1043,62 @@ function showRouteResults(routes) {
         button.onclick = () => {
             document.querySelectorAll('.route-selector button').forEach(btn => btn.className = '');
             button.className = 'selected';
-            displayRoute(route.path);
+            displayRoute(route);
         };
         routeSelector.appendChild(button);
     });
+
     lineSummary.appendChild(routeSelector);
 
-    // 显示选中的路线
-    const selectedRoute = mergedRoutes.find(r => r.isSelected);
-    if (selectedRoute) {
-        displayRoute(selectedRoute.path);
-    }
+    // ✅ 默认显示时间最短的路径
+    displayRoute(defaultRoute);
+}
+
+// ✅ 新增路线合并函数
+function mergeIdenticalRoutes(routes) {
+    const result = [];
+    const seenPaths = new Set();
+    
+    routes.forEach(route => {
+        const pathKey = JSON.stringify(route.path);
+        
+        if (!seenPaths.has(pathKey)) {
+            seenPaths.add(pathKey);
+            result.push({ ...route });
+        } else {
+            // 合并相同路径的标签
+            const existing = result.find(r => JSON.stringify(r.path) === pathKey);
+            if (existing) {
+                existing.type += '/' + route.type;
+            }
+        }
+    });
+    
+    return result;
 }
 
 function displayRoute(routeInfo) {
-    resetMap();
-    const { path, edges, totalTime, totalTransfers } = routeInfo;
+    const { path, edges, totalTime, totalTransfers, totalFare, fareData } = routeInfo;
 
-    if (!path || path.length === 0) {
-        console.error('No valid path found');
-        showToast('没有找到有效路径');
+    if (!path || path.length < 2) {
+        console.error('Invalid path');
+        setToastText('没有找到有效路径');
+        showToast();
+        setTimeout(hideToast, 3000);
         return;
     }
+
+    // ✅ 强化 edges 校验
+    if (!edges || edges.length !== path.length - 1) {
+        console.error('Edges data is invalid or missing');
+        setToastText('路径数据无效，请重新查询');
+        showToast();
+        setTimeout(hideToast, 3000);
+        return;
+    }
+
+    // ✅ 正常执行绘制与信息展示
+    routeResult.style.display = "block"; // 显示 route-result
 
     // 清空所有路线相关内容
     const lineSummary = document.getElementById('line-summary');
@@ -993,9 +1137,23 @@ function displayRoute(routeInfo) {
     // 处理每个站点
     const highlightedStations = new Set();
     for (let i = 0; i < path.length - 1; i++) {
+
+        if (!edges || i >= edges.length) {
+            console.error(`Edge data missing for path index ${i}`);
+            continue; // 或者返回，根据业务逻辑决定
+        }
+
         const edge = edges[i];
         const station = path[i].split('_')[0];
         const nextStation = path[i + 1].split('_')[0];
+
+        if (!edges || edges.length < path.length - 1) {
+            console.error('Edges data is invalid or missing');
+            setToastText('路径数据无效');
+            showToast();
+            setTimeout(() => {hideToast();}, 1000);
+            return;
+        }
 
         // 记录站点
         highlightedStations.add(station);
@@ -1083,7 +1241,8 @@ function displayRoute(routeInfo) {
 
     // 显示票价和行程信息
     const fareZoneSummary = document.getElementById('fare-zone-summary');
-    let fareText = `<p class="clickable-info" onclick="showFareDetail(${routeInfo.fare.base}, ${routeInfo.fare.additional}, ${routeInfo.fare.airport}, ${routeInfo.fare.total})">票价 ${routeInfo.fare.total} 元</p>`;
+    // ✅ 重点修改：直接使用新版总票价
+    let fareText = `<p class="clickable-info fare-detail">票价 ${routeInfo.totalFare} 元</p>`;
     
     fareZoneSummary.innerHTML = `
         ${fareText}
@@ -1096,6 +1255,11 @@ function displayRoute(routeInfo) {
     clickableInfos.forEach(info => {
         info.style.cursor = 'pointer';
     });
+
+    const fareDetail = document.querySelector(".fare-detail");
+    fareDetail.addEventListener("click", () => {
+        showFareDetail(fareData);
+    })
 }
 
 function displaySegments(segments) {
@@ -1111,6 +1275,9 @@ function displaySegments(segments) {
         const lineItem = document.createElement('p');
         // 获取该线路的终点站（方向）
         const line = lines.find(l => l.name === segment.line);
+        if (!line) {
+            console.error(`线路 ${segment.line} 未找到`);
+        }
         
         // 找到当前段的起点和终点在线路中的索引
         let startIndex = -1;
@@ -1278,7 +1445,7 @@ lines.forEach(line => {
 });
 
 // Auto-resize the SVG canvas based on the maximum coordinates
-map.setAttribute("viewBox", `${minX - 100} ${minY - 100} ${maxX + 300} ${maxY + 300}`);
+map.setAttribute("viewBox", `${minX - 100} ${minY - 100} ${maxX + 1200} ${maxY + 300}`);
 
 // Ensure stations are drawn after lines
 const stationsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -1302,26 +1469,67 @@ updateMarkers();
 function showToast() {
     const Toast = document.getElementById('toast');
     Toast.style.display = 'flex';
-    setTimeout(() => {
-        Toast.style.top = '12px';
-    }, 300);
+    Toast.style.top = '12px';
 }
 
 function hideToast() {
     const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+
+    // 清除当前定时器
+    if (currentToastTimer) {
+        clearInterval(currentToastTimer);
+        currentToastTimer = null;
+    }
+
+    // 重置队列和文本
+    toastQueue = [];
+    currentToastIndex = 0;
+    toastText.innerText = '';
+
+    // 隐藏弹窗
     toast.style.top = '-100px';
     setTimeout(() => {
         toast.style.display = 'none';
-    }, 300); // 等待过渡动画完成
+    }, 300);
 }
 
 // 自定义弹窗文字内容
-function setToastText(text) {
-    document.getElementById('toastText').innerText = text;
-}
+let toastQueue = []; // 存储待显示的消息队列
+let currentToastTimer = null; // 当前正在执行的定时器
+let currentToastIndex = 0; // 当前显示的行索引
 
-function isTransparentColor(color) {
-    return /^#[0-9A-Fa-f]{6}00$/.test(color); // 匹配以00结尾的颜色（如#00000100等）
+function setToastText(lines) {
+    // 清除当前正在进行的显示
+    if (currentToastTimer) {
+        clearTimeout(currentToastTimer);
+        currentToastTimer = null;
+    }
+
+    // 如果是字符串，转为单行数组
+    if (typeof lines === 'string') {
+        lines = lines.split('\n');
+    }
+
+    // 加入队列
+    toastQueue = [...lines];
+    currentToastIndex = 0;
+
+    // 立即显示第一行
+    const toastText = document.getElementById('toastText');
+    toastText.innerText = toastQueue[currentToastIndex];
+
+    // 启动定时器
+    currentToastTimer = setInterval(() => {
+        currentToastIndex++;
+        if (currentToastIndex < toastQueue.length) {
+            toastText.innerText = toastQueue[currentToastIndex];
+        } else {
+            clearInterval(currentToastTimer);
+            currentToastTimer = null;
+            hideToast(); // 所有行显示完毕后隐藏
+        }
+    }, 1500); // 每行显示1.5秒
 }
 
 // 初始化图例内容
@@ -1333,6 +1541,8 @@ function initializeLegend() {
     
     // 生成线路图例
     lines.forEach(line => {
+        if (isTransparentColor(line.color)) return; // 跳过透明色线路
+
         const lineItem = document.createElement('div');
         lineItem.className = 'line-item';
         
@@ -1356,6 +1566,10 @@ function showLegend() {
     } else {
         legendContainer.style.display = 'none';
     }
+}
+
+function isTransparentColor(color) {
+    return /^#[0-9A-Fa-f]{6}00$/.test(color); // 匹配以#000000开头的颜色（如#00000000等）
 }
 
 // 初始化
@@ -1673,17 +1887,28 @@ window.showFareDetail = showFareDetail;
 window.showTimeDetail = showTimeDetail;
 
 // 添加显示票价详情的函数
-function showFareDetail(base, additional, airport, total) {
-    let details = [`基础票价${base}元`];
-    if (additional > 0) {
-        details.push(`跨区附加费${additional}元`);
+// 修改 showFareDetail 函数以适配新逻辑
+function showFareDetail(fareData) {
+    console.log('showFareDetail', fareData);
+
+    if (!fareData || !Array.isArray(fareData.segments) || fareData.segments.length === 0) {
+        setToastText('无计费区段信息');
+        showToast();
+        setTimeout(() => hideToast(), 3000);
+        return;
     }
-    if (airport > 0) {
-        details.push(`机场线附加费${airport}元`);
-    }
-    setToastText(details.join(' + '));
+
+    const details = fareData.segments.map((segment, index) => {
+        const km = (segment.distance / 1000).toFixed(1);
+        //return `第${index + 1}段：${km}公里，票价${segment.fare}元`;
+        return `计费里程${km}公里`;
+    });
+
+    const total = `总计：${fareData.total}元`;
+
+    setToastText([total, ...details]);
     showToast();
-    setTimeout(() => hideToast(), 3000);
+    setTimeout(() => hideToast(), 5000);
 }
 
 // 添加显示时间详情的函数

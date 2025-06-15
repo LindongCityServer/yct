@@ -14,15 +14,15 @@ const lines = [
         color: "#e60012",
         stations: [
             { name: "临北路", nameEN: "LINBEILU", coordinates: { x: 460, y: 140 }, fareZone: "坂田", labelOffset: { x: 8, y: -8 }, travelTime: 3.2, platformSide: "left", },
-            { name: "江阳路", nameEN: "JIANGYANGLU", coordinates: { x: 460, y: 240 }, fareZone: "坂田", labelOffset: { x: 8, y: -8 }, travelTime: 2.5, platformSide: "left", },
-            { name: "度假基地", nameEN: "DUJIAJIDI", coordinates: { x: 460, y: 340 }, fareZone: "坂田", labelOffset: { x: 8, y: -8 }, travelTime: 2.6, platformSide: "left", },
-            { name: "花城广场", nameEN: "HUACHENGGUANGCHANG", coordinates: { x: 400, y: 400 }, fareZone: "坂田", labelOffset: { x: 8, y: 8 }, travelTime: 2.4, platformSide: "left", },
-            { name: "建业街临医二院", nameEN: "JIANYEJIELINYIERYUAN", coordinates: { x: 400, y: 500 }, fareZone: "坂田", labelOffset: { x: 8, y: 24 }, travelTime: 2, platformSide: "left", },
-            { name: "中华路", nameEN: "ZHONGHUALU", coordinates: { x: 400, y: 600 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.5, platformSide: "left", },
-            { name: "市府大路", nameEN: "SHIFUDALU", coordinates: { x: 460, y: 660 }, fareZone: "出生点", labelOffset: { x: -72, y: 12 }, travelTime: 2.4, platformSide: "left", },
-            { name: "海洋基地", nameEN: "HAIYANGJIDI", coordinates: { x: 520, y: 720 }, fareZone: "出生点", labelOffset: { x: 28, y: -8 }, travelTime: 3, platformSide: "left", },
-            { name: "忌城路", nameEN: "JICHENGLU", coordinates: { x: 520, y: 820 }, fareZone: "出生点", labelOffset: { x: 28, y: -8 }, travelTime: 3, platformSide: "left", },
-            { name: "冰岭西路", nameEN: "BINGLINGXILU", coordinates: { x: 640, y: 820 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", }
+            { name: "江阳路", nameEN: "JIANGYANGLU", coordinates: { x: 460, y: 240 }, fareZone: "坂田", labelOffset: { x: 8, y: -8 }, travelTime: 2.5, platformSide: "left", distance: 1393 },
+            { name: "度假基地", nameEN: "DUJIAJIDI", coordinates: { x: 460, y: 340 }, fareZone: "坂田", labelOffset: { x: 8, y: -8 }, travelTime: 2.6, platformSide: "left", distance: 1207 },
+            { name: "花城广场", nameEN: "HUACHENGGUANGCHANG", coordinates: { x: 400, y: 400 }, fareZone: "坂田", labelOffset: { x: 8, y: 8 }, travelTime: 2.4, platformSide: "left", distance: 826 },
+            { name: "建业街临医二院", nameEN: "JIANYEJIELINYIERYUAN", coordinates: { x: 400, y: 500 }, fareZone: "坂田", labelOffset: { x: 8, y: 24 }, travelTime: 2, platformSide: "left", distance: 911 },
+            { name: "中华路", nameEN: "ZHONGHUALU", coordinates: { x: 400, y: 600 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.5, platformSide: "left", distance: 658 },
+            { name: "市府大路", nameEN: "SHIFUDALU", coordinates: { x: 460, y: 660 }, fareZone: "出生点", labelOffset: { x: -72, y: 12 }, travelTime: 2.4, platformSide: "left", distance: 1009 },
+            { name: "海洋基地", nameEN: "HAIYANGJIDI", coordinates: { x: 520, y: 720 }, fareZone: "出生点", labelOffset: { x: 28, y: -8 }, travelTime: 3, platformSide: "left", distance: 884 },
+            { name: "忌城路", nameEN: "JICHENGLU", coordinates: { x: 520, y: 820 }, fareZone: "出生点", labelOffset: { x: 28, y: -8 }, travelTime: 3, platformSide: "left", distance: 420 },
+            { name: "冰岭西路", nameEN: "BINGLINGXILU", coordinates: { x: 640, y: 820 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1639 }
         ]
     },
     /*{
@@ -30,15 +30,15 @@ const lines = [
         nameEN: "Line 2",
         color: "#00a0e9",
         stations: [
-            { name: "方形广场", nameEN: "FANGXINGGUANGCHANG", coordinates: { x: 530, y: 450 }, fareZone: "坂田", labelOffset: { x: 18, y: -8 }, travelTime: 2, platformSide: "both", trainPosition: 0.5 },
-            { name: "白塔河路", nameEN: "BAITAHELU", coordinates: { x: 530, y: 630 }, fareZone: "出生点", labelOffset: { x: 18, y: 12 }, travelTime: 2, platformSide: "left", trainPosition: 0.5 },
-            { name: "海洋基地", nameEN: "HAIYANGJIDI", coordinates: { x: 530, y: 720 }, fareZone: "出生点", labelOffset: { x: 18, y: -8 }, travelTime: 3, platformSide: "right", trainPosition: 0.5 },
-            { name: "忌城路", nameEN: "JICHENGLU", coordinates: { x: 530, y: 820 }, fareZone: "出生点", labelOffset: { x: 18, y: -8 }, travelTime: 3, platformSide: "left", trainPosition: 0.5 },
-            { name: "临东大学", nameEN: "LINDONGDAXUE", coordinates: { x: 530, y: 900 }, fareZone: "出生点", labelOffset: { x: 18, y: -8 }, travelTime: 2, platformSide: "left", trainPosition: 0.5 },
-            { name: "远航路", nameEN: "YUANHANGLU", coordinates: { x: 530, y: 1000 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", trainPosition: 0.5 },
-            { name: "雪乡中学", nameEN: "XUEXIANGZHONGXUE", coordinates: { x: 530, y: 1100 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", trainPosition: 0.5 },
-            { name: "雪乡展览馆", nameEN: "XUEXIANGZHANLANGUAN", coordinates: { x: 530, y: 1200 }, fareZone: "机场", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", trainPosition: 0.5 },
-            { name: "临南中路", nameEN: "LINANZHONGLU", coordinates: { x: 530, y: 1300 }, fareZone: "机场", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", trainPosition: 0.5  }
+            { name: "方形广场", nameEN: "FANGXINGGUANGCHANG", coordinates: { x: 540, y: 450 }, fareZone: "坂田", labelOffset: { x: 18, y: -8 }, travelTime: 2, platformSide: "both", trainPosition: 0.5 },
+            { name: "图画湾", nameEN: "TUHUAWAN", coordinates: { x: 540, y: 600 }, fareZone: "出生点", labelOffset: { x: -48, y: 18 }, travelTime: 2, platformSide: "right", distance: 950 },
+            { name: "海洋基地", nameEN: "HAIYANGJIDI", coordinates: { x: 540, y: 720 }, fareZone: "出生点", labelOffset: { x: 18, y: -8 }, travelTime: 3, platformSide: "right", distance: 766 },
+            { name: "忌城路", nameEN: "JICHENGLU", coordinates: { x: 540, y: 820 }, fareZone: "出生点", labelOffset: { x: 18, y: -8 }, travelTime: 3, platformSide: "left", distance: 420 },
+            { name: "临东大学", nameEN: "LINDONGDAXUE", coordinates: { x: 540, y: 900 }, fareZone: "出生点", labelOffset: { x: 18, y: -8 }, travelTime: 2, platformSide: "left", distance: 779 },
+            { name: "远航路", nameEN: "YUANHANGLU", coordinates: { x: 540, y: 1000 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", distance: 1553 },
+            { name: "雪乡中学", nameEN: "XUEXIANGZHONGXUE", coordinates: { x: 540, y: 1100 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", distance: 1092 },
+            { name: "雪乡展览馆", nameEN: "XUEXIANGZHANLANGUAN", coordinates: { x: 540, y: 1200 }, fareZone: "机场", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", distance: 1151 },
+            { name: "临南中路", nameEN: "LINANZHONGLU", coordinates: { x: 540, y: 1300 }, fareZone: "机场", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", distance: 997  }
         ]
     },*/
     /*{
@@ -77,28 +77,28 @@ const lines = [
         color: "#f5d000",
         stations: [
             //{ name: "沙岭", nameEN: "SHALING", coordinates: { x: -850, y: 550 }, fareZone: "汽车城", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right" },
-            //{ name: "铁西汽车工厂", nameEN: "TIEXIQICHEGONGCHANG", coordinates: { x: -750, y: 550 }, fareZone: "汽车城", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left" },
-            //{ name: "车城大厦", nameEN: "CHECHENGDASHA", coordinates: { x: -650, y: 550 }, fareZone: "汽车城", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right" },
-            //{ name: "中央大街", nameEN: "ZHONGYANGDAJIE", coordinates: { x: -550, y: 550 }, fareZone: "汽车城",labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right" },
-            //{ name: "顾家", nameEN: "GUJIA", coordinates: { x: -450, y: 550 }, fareZone: "铁西", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right" },
-            //{ name: "香蜜湖", nameEN: "XIANGMIHU", coordinates: { x: -350, y: 550 }, fareZone: "铁西", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right" },
-            //{ name: "珀河悠谷", nameEN: "POHEYOUGU", coordinates: { x: -250, y: 550 }, fareZone: "铁西", labelOffset:{ x: 8, y: -8 }, travelTime: 2, platformSide: "right" },
-            //{ name: "宁官", nameEN: "NINGGUAN", coordinates: { x: -200, y: 600 }, fareZone: "铁西", labelOffset:{ x: 8, y: -8 }, travelTime: 2},
-            //{ name: "南官", nameEN: "NANGUAN", coordinates: { x: -100, y: 600 }, fareZone: "铁西", labelOffset: { x: 8, y: -8 }, travelTime: 2 },
-            //{ name: "卫工渠", nameEN: "WEIGONGQU", coordinates: { x: 0, y: 600 }, fareZone: "市区", labelOffset:{ x: 8, y: -8 }, travelTime: 2 },
-            { name: "云峰街", nameEN: "YUNFENGJIE", coordinates: { x: 100, y: 600 }, fareZone: "市区", labelOffset: { x: -48, y: -8 }, travelTime: 4, platformSide: "left", },
-            { name: "临东站", nameEN: "LINDONGZHAN", coordinates: { x: 200, y: 600 }, fareZone: "市区", labelOffset: { x: -54, y: -8 }, travelTime: 2.4, platformSide: "left", },
-            { name: "青年大街", nameEN: "QINGNIANDAJIE", coordinates: { x: 300, y: 600 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.2, platformSide: "left", },
-            { name: "中华路", nameEN: "ZHONGHUALU", coordinates: { x: 400, y: 600 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.2, platformSide: "left", },
-            { name: "精卫街", nameEN: "JINGWEIJIE", coordinates: { x: 500, y: 600 }, fareZone: "出生点", labelOffset: { x: -48, y: 18 }, travelTime: 2, platformSide: "right", },
-            { name: "图画湾", nameEN: "TUHUAWAN", coordinates: { x: 540, y: 600 }, fareZone: "出生点", labelOffset: { x: -48, y: 18 }, travelTime: 2, platformSide: "right", },
-            //{ name: "山前街", nameEN: "SHANQIANJIE", coordinates: { x: 590, y: 550 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", },
-            //{ name: "繁花山", nameEN: "FANHUASHAN", coordinates: { x: 670, y: 600 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", },
-            //{ name: "综合保税区", nameEN: "ZONGHEBAOSHUIQU", coordinates: { x: 750, y: 600 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", },
-            //{ name: "翠竹塘", nameEN: "CUIZHUTANG", coordinates: { x: 830, y: 600 }, fareZone: "碧湖", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", },
-            //{ name: "团山湾", nameEN: "TUANSHANWAN", coordinates: { x: 900, y: 600 }, fareZone: "碧湖", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", },
-            //{ name: "碧湖新城", nameEN: "BIHUXINCHENG", coordinates: { x: 980, y: 600 }, fareZone: "碧湖", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", },
-            //{ name: "城海新港", nameEN: "CHENGHAIXINGANG", coordinates: { x: 1050, y: 600 }, fareZone: "碧湖", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", },
+            //{ name: "铁西汽车工厂", nameEN: "TIEXIQICHEGONGCHANG", coordinates: { x: -750, y: 550 }, fareZone: "汽车城", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", distance: 1000 },
+            //{ name: "车城大厦", nameEN: "CHECHENGDASHA", coordinates: { x: -650, y: 550 }, fareZone: "汽车城", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000 },
+            //{ name: "中央大街", nameEN: "ZHONGYANGDAJIE", coordinates: { x: -550, y: 550 }, fareZone: "汽车城",labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000 },
+            //{ name: "顾家", nameEN: "GUJIA", coordinates: { x: -450, y: 550 }, fareZone: "铁西", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000 },
+            //{ name: "香蜜湖", nameEN: "XIANGMIHU", coordinates: { x: -350, y: 550 }, fareZone: "铁西", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000 },
+            //{ name: "珀河悠谷", nameEN: "POHEYOUGU", coordinates: { x: -250, y: 550 }, fareZone: "铁西", labelOffset:{ x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000 },
+            //{ name: "宁官", nameEN: "NINGGUAN", coordinates: { x: -200, y: 600 }, fareZone: "铁西", labelOffset:{ x: 8, y: -8 }, travelTime: 2, distance: 1000},
+            //{ name: "南官", nameEN: "NANGUAN", coordinates: { x: -100, y: 600 }, fareZone: "铁西", labelOffset: { x: 8, y: -8 }, travelTime: 2, distance: 1666 },
+            //{ name: "卫工渠", nameEN: "WEIGONGQU", coordinates: { x: 0, y: 600 }, fareZone: "市区", labelOffset:{ x: 8, y: -8 }, travelTime: 2 , distance: 1000},
+            { name: "云峰街", nameEN: "YUNFENGJIE", coordinates: { x: 100, y: 600 }, fareZone: "市区", labelOffset: { x: -48, y: -8 }, travelTime: 4, platformSide: "left", distance: 1000 },
+            { name: "临东站", nameEN: "LINDONGZHAN", coordinates: { x: 200, y: 600 }, fareZone: "市区", labelOffset: { x: -54, y: -8 }, travelTime: 2.4, platformSide: "left", distance: 1569 },
+            { name: "青年大街", nameEN: "QINGNIANDAJIE", coordinates: { x: 300, y: 600 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.2, platformSide: "left", distance: 967 },
+            { name: "中华路", nameEN: "ZHONGHUALU", coordinates: { x: 400, y: 600 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.2, platformSide: "left", distance: 695 },
+            { name: "精卫街", nameEN: "JINGWEIJIE", coordinates: { x: 500, y: 600 }, fareZone: "出生点", labelOffset: { x: -48, y: 18 }, travelTime: 2, platformSide: "right", distance: 764 },
+            { name: "图画湾", nameEN: "TUHUAWAN", coordinates: { x: 540, y: 600 }, fareZone: "出生点", labelOffset: { x: -48, y: 18 }, travelTime: 2, platformSide: "right", distance: 446 },
+            //{ name: "山前街", nameEN: "SHANQIANJIE", coordinates: { x: 590, y: 600 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 2023 },
+            //{ name: "繁花山", nameEN: "FANHUASHAN", coordinates: { x: 670, y: 600 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000 },
+            //{ name: "综合保税区", nameEN: "ZONGHEBAOSHUIQU", coordinates: { x: 750, y: 600 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000, },
+            //{ name: "翠竹塘", nameEN: "CUIZHUTANG", coordinates: { x: 830, y: 600 }, fareZone: "碧湖", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000, },
+            //{ name: "团山湾", nameEN: "TUANSHANWAN", coordinates: { x: 900, y: 600 }, fareZone: "碧湖", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000, },
+            //{ name: "碧湖新城", nameEN: "BIHUXINCHENG", coordinates: { x: 980, y: 600 }, fareZone: "碧湖", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000, },
+            //{ name: "城海新港", nameEN: "CHENGHAIXINGANG", coordinates: { x: 1050, y: 600 }, fareZone: "碧湖", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000, },
         ]
     },
     {
@@ -106,14 +106,14 @@ const lines = [
         nameEN: "Line 6",
         color: "#ec6941",
         stations: [
-            { name: "金阳大街", nameEN: "JINYANGDAJIE", coordinates: { x: 300, y: 100 }, fareZone: "北站", labelOffset: { x: 8, y: -8 }, travelTime: 3.6, platformSide: "left", },
-            { name: "人杰湖公园", nameEN: "RENJIEHUGONGYUAN", coordinates: { x: 300, y: 200 }, fareZone: "北站", labelOffset: { x: 8, y: -8 }, travelTime: 2.2, platformSide: "left", },
-            { name: "北台路", nameEN: "BEITAILU", coordinates: { x: 300, y: 300 }, fareZone: "北站", labelOffset: { x: 8, y: -8 }, travelTime: 2.5, platformSide: "left", },
-            { name: "草仓路", nameEN: "CAOCANGLU", coordinates: { x: 300, y: 400 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.4, platformSide: "left", },
-            { name: "宣庆文化宫", nameEN: "XUANQINGWENHUAGONG", coordinates: { x: 300, y: 500 }, fareZone: "市区", labelOffset: { x: -90, y: -8 }, travelTime: 2, platformSide: "left", },
-            { name: "青年大街", nameEN: "QINGNIANDAJIE", coordinates: { x: 300, y: 600 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.5, platformSide: "left", },
-            { name: "新阳路", nameEN: "XINYANGLU", coordinates: { x: 300, y: 750 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.6, platformSide: "left", },
-            { name: "仁德路", nameEN: "RENDELU", coordinates: { x: 300, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", }
+            { name: "金阳大街", nameEN: "JINYANGDAJIE", coordinates: { x: 300, y: 100 }, fareZone: "北站", labelOffset: { x: 8, y: -8 }, travelTime: 3.6, platformSide: "left" },
+            { name: "人杰湖公园", nameEN: "RENJIEHUGONGYUAN", coordinates: { x: 300, y: 200 }, fareZone: "北站", labelOffset: { x: 8, y: -8 }, travelTime: 2.2, platformSide: "left", distance: 1691 },
+            { name: "北台路", nameEN: "BEITAILU", coordinates: { x: 300, y: 300 }, fareZone: "北站", labelOffset: { x: 8, y: -8 }, travelTime: 2.5, platformSide: "left", distance: 729, },
+            { name: "草仓路", nameEN: "CAOCANGLU", coordinates: { x: 300, y: 400 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.4, platformSide: "left", distance: 950 },
+            { name: "宣庆文化宫", nameEN: "XUANQINGWENHUAGONG", coordinates: { x: 300, y: 500 }, fareZone: "市区", labelOffset: { x: -90, y: -8 }, travelTime: 2, platformSide: "left", distance: 881 },
+            { name: "青年大街", nameEN: "QINGNIANDAJIE", coordinates: { x: 300, y: 600 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.5, platformSide: "left", distance: 595 },
+            { name: "新阳路", nameEN: "XINYANGLU", coordinates: { x: 300, y: 750 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.6, platformSide: "left", distance: 811 },
+            { name: "仁德路", nameEN: "RENDELU", coordinates: { x: 300, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", distance: 1324 }
         ]
     },
     /*{
@@ -122,12 +122,12 @@ const lines = [
         color: "#e4007f",
         stations: [
             { name: "工人村", nameEN: "GONGRENCUN", coordinates: { x: 40, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2 },
-            { name: "骆家堡", nameEN: "LUOJIAPU", coordinates: { x: 120, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2 },
-            { name: "和平门", nameEN: "HEPINGMEN", coordinates: { x: 200, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2 },
-            { name: "仁德路", nameEN: "RENDELU", coordinates: { x: 300, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2 },
-            { name: "标识湾", nameEN: "BIAOZHIWAN", coordinates: { x: 420, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2 },
-            { name: "临东大学", nameEN: "LINDONGDAXUE", coordinates: { x: 530, y: 900 }, fareZone: "出生点", labelOffset: { x: 18, y: -8 }, travelTime: 2 },
-            { name: "红山公园", nameEN: "HONGSHANGONGYUAN", coordinates: { x: 640, y: 900 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2 }
+            { name: "骆家堡", nameEN: "LUOJIAPU", coordinates: { x: 120, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, distance: 594 },
+            { name: "和平门", nameEN: "HEPINGMEN", coordinates: { x: 200, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, distance: 829 },
+            { name: "仁德路", nameEN: "RENDELU", coordinates: { x: 300, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, distance: 862 },
+            { name: "标识湾", nameEN: "BIAOZHIWAN", coordinates: { x: 420, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, distance: 853 },
+            { name: "临东大学", nameEN: "LINDONGDAXUE", coordinates: { x: 540, y: 900 }, fareZone: "出生点", labelOffset: { x: 18, y: -8 }, travelTime: 2, distance: 1125 },
+            { name: "红山公园", nameEN: "HONGSHANGONGYUAN", coordinates: { x: 640, y: 900 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, distance: 1393 }
         ]
     },*/
     {
@@ -135,15 +135,15 @@ const lines = [
         nameEN: "Line 10",
         color: "#57d33e",
         stations: [
-            { name: "坂田客运港", nameEN: "BANTIANKEYUNGANG", coordinates: { x: 530, y: 360 }, fareZone: "坂田", labelOffset: { x: 18, y: -8 }, travelTime: 2.5, platformSide: "right", },
-            { name: "方形广场", nameEN: "FANGXINGGUANGCHANG", coordinates: { x: 530, y: 450 }, fareZone: "坂田", labelOffset: { x: 18, y: -8 }, travelTime: 3.6, platformSide: "left", },
-            { name: "工农桥", nameEN: "GONGNONGQIAO", coordinates: { x: 480, y: 500 }, fareZone: "坂田", labelOffset: { x: -48, y: -8 }, travelTime: 2, platformSide: "left", },
-            { name: "建业街临医二院", nameEN: "JIANYEJIELINYIERYUAN", coordinates: { x: 400, y: 500 }, fareZone: "坂田", labelOffset: { x: 8, y: 24 }, travelTime: 2.4, platformSide: "left", },
-            { name: "宣庆文化宫", nameEN: "XUANQINGWENHUAGONG", coordinates: { x: 300, y: 500 }, fareZone: "市区", labelOffset: { x: -90, y: -8 }, travelTime: 3.2, platformSide: "left", },
-            { name: "临东站", nameEN: "LINDONGZHAN", coordinates: { x: 200, y: 600 }, fareZone: "市区", labelOffset: { x: -54, y: -8 }, travelTime: 2.2, platformSide: "right", },
-            { name: "百鸟公园", nameEN: "BAINIAOGONGYUAN", coordinates: { x: 200, y: 700 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.4, platformSide: "right", },
-            { name: "南市场", nameEN: "NANSHICHANG", coordinates: { x: 200, y: 800 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", },
-            { name: "和平门", nameEN: "HEPINGMEN", coordinates: { x: 200, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", }
+            { name: "坂田客运港", nameEN: "BANTIANKEYUNGANG", coordinates: { x: 540, y: 360 }, fareZone: "坂田", labelOffset: { x: 18, y: -8 }, travelTime: 2.5, platformSide: "right", },
+            { name: "方形广场", nameEN: "FANGXINGGUANGCHANG", coordinates: { x: 540, y: 450 }, fareZone: "坂田", labelOffset: { x: 18, y: -8 }, travelTime: 3.6, platformSide: "left", distance: 787 },
+            { name: "工农桥", nameEN: "GONGNONGQIAO", coordinates: { x: 490, y: 500 }, fareZone: "坂田", labelOffset: { x: -48, y: -8 }, travelTime: 2, platformSide: "left", distance: 827 },
+            { name: "建业街临医二院", nameEN: "JIANYEJIELINYIERYUAN", coordinates: { x: 400, y: 500 }, fareZone: "坂田", labelOffset: { x: 8, y: 24 }, travelTime: 2.4, platformSide: "left", distance: 570 },
+            { name: "宣庆文化宫", nameEN: "XUANQINGWENHUAGONG", coordinates: { x: 300, y: 500 }, fareZone: "市区", labelOffset: { x: -90, y: -8 }, travelTime: 3.2, platformSide: "left", distance: 774 },
+            { name: "临东站", nameEN: "LINDONGZHAN", coordinates: { x: 200, y: 600 }, fareZone: "市区", labelOffset: { x: -54, y: -8 }, travelTime: 2.2, platformSide: "right", distance: 1510 },
+            { name: "百鸟公园", nameEN: "BAINIAOGONGYUAN", coordinates: { x: 200, y: 700 }, fareZone: "市区", labelOffset: { x: 8, y: -8 }, travelTime: 2.4, platformSide: "right", distance: 740 },
+            { name: "南市场", nameEN: "NANSHICHANG", coordinates: { x: 200, y: 800 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 782 },
+            { name: "和平门", nameEN: "HEPINGMEN", coordinates: { x: 200, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 577 }
         ]
     },
     /*{
