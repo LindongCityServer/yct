@@ -82,23 +82,25 @@ function loadNewsContent() {
     const currentDate = new Date();
     const twoMonthsAgo = new Date();
     twoMonthsAgo.setMonth(currentDate.getMonth() - 2);
-    
-    // 分离最近和历史资讯
+
+    let recentUnexpiredCount = 0;
     const recentNews = [];
     const historyNews = [];
-    
+
     filteredContentData.forEach(news => {
         const newsDate = new Date(news.date);
         const expireDate = news.expireDate ? new Date(news.expireDate) : null;
-        const currentDate = new Date();
-        const twoMonthsAgo = new Date();
-        twoMonthsAgo.setMonth(currentDate.getMonth() - 2);
-        
-        // 更新条件：如果新闻日期早于两个月前或过期日期早于今天，则推送到历史消息
-        if (newsDate < twoMonthsAgo || (expireDate && expireDate < currentDate)) {
-            historyNews.push(news);
-        } else {
+        const isUnexpired = !expireDate || expireDate >= currentDate;
+
+        if (isUnexpired && recentUnexpiredCount < 3) {
             recentNews.push(news);
+            recentUnexpiredCount++;
+        } else {
+            if (newsDate < twoMonthsAgo || (expireDate && expireDate < currentDate)) {
+                historyNews.push(news);
+            } else {
+                recentNews.push(news);
+            }
         }
     });
     
@@ -2358,28 +2360,35 @@ function filterNews(category) {
     const twoMonthsAgo = new Date();
     twoMonthsAgo.setMonth(currentDate.getMonth() - 2);
 
-    // 重新分割为 recent 和 history
+    let recentUnexpiredCount = 0;
     const filteredRecent = [];
     const filteredHistory = [];
+
     filteredByCategory.forEach(news => {
         const newsDate = new Date(news.date);
         const expireDate = news.expireDate ? new Date(news.expireDate) : null;
+        const isUnexpired = !expireDate || expireDate >= currentDate;
 
-        if (newsDate < twoMonthsAgo || (expireDate && expireDate < currentDate)) {
-            filteredHistory.push(news);
-        } else {
+        if (isUnexpired && recentUnexpiredCount < 3) {
             filteredRecent.push(news);
+            recentUnexpiredCount++;
+        } else {
+            if (newsDate < twoMonthsAgo || (expireDate && expireDate < currentDate)) {
+                filteredHistory.push(news);
+            } else {
+                filteredRecent.push(news);
+            }
         }
     });
 
-    // 更新「最近资讯」区域
+    // 更新最近资讯区域
     const recentContainer = document.querySelector('.filtered-news-content');
     recentContainer.innerHTML = '';
     filteredRecent.forEach(news => {
         recentContainer.appendChild(createNewsItem(news));
     });
 
-    // 更新「历史资讯」区域
+    // 更新历史资讯区域
     const historyContainer = document.querySelector('.history-news-content');
     historyContainer.innerHTML = '';
     filteredHistory.forEach(news => {
