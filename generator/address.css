@@ -1,0 +1,105 @@
+:root {
+    --font-family-preview: 'Arial', 'Helvetica Neue', Helvetica, 'HarmonyOS Sans SC', sans-serif !important;
+}
+
+.content-container {
+    margin-top: 12px;
+}
+
+.preview-container {
+    display: flex;
+    flex-direction: row;
+    width: 256px;
+    height: 128px;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    background: #0054c2;
+}
+
+.road-name-layer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 134px;
+    height: 128px;
+    padding: 4px 0;
+    color: #f8fade;
+    white-space: nowrap;
+}
+
+.road-name {
+    font-family: var(--font-family-preview);
+    height: 35%;
+    font-size: 33px;
+    font-weight: bold;
+    transform: scaleX(0.95);
+}
+
+.road-name-en {
+    font-family: var(--font-family-preview);
+    height: 35%;
+    font-size: 18px;
+    font-weight: bold;
+    transform: scaleX(0.95);
+}
+
+.postal-code {
+    font-family: var(--font-family-preview);
+    font-size: 16px;
+}
+
+.number-background {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8fade;
+    overflow: hidden;
+    width: 108px;
+    height: 118px;
+}
+
+.number-layer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 6px;
+    padding: 10px;
+    gap: 2px;
+    color: #a40000;
+    white-space: nowrap;
+}
+
+.input-container { 
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.number {
+    font-family: var(--font-family-preview);
+    font-weight: bold;
+    font-size: 120px;
+    padding-top: 8px;
+    letter-spacing: -6px;
+}
+
+.number-add {
+    font-family: var(--font-family-preview);
+    font-weight: bold;
+    padding-top: 36px;
+    font-size: 62px;
+}
+
+button {
+    padding: 6px 12px;
+    margin: 0;
+}
+
+.road-name-container, .number-container {
+    display: flex;
+    flex-direction: row;
+}

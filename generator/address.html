@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>楼牌生成器 - 雨城通实验室</title>
+    <link rel="icon" href="../UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="../mainpage.css" />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../data_composer/style.css" />
+    <link rel="stylesheet" href="../dynamic_routemap/style.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="address.css" />
+    <link rel="stylesheet" href="../UI/toast.css" />
+</head>
+<body>
+    <!-- 头部导航栏 -->
+    <header class="header">
+        <button class="icon-button" id="back-to-lab" onclick="window.location.href='../lab'" title="实验室">
+            <img src="../UI/res/arrow_back_black.png" alt="返回">
+        </button>
+        <h1>楼牌生成器</h1>
+        <div class="toolbar">            
+            <button class="icon-button" id="copy" onclick="" title="复制链接">
+                <img src="../UI/res/link_black.png" alt="复制链接">
+            </button>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <div class="content-container">
+        <!-- 预览窗口 -->
+        <div class="preview-container" style="line-height: 1;">
+            <div class="road-name-layer">
+                <div class="road-name"></div>
+                <div class="road-name-en"></div>
+                <div class="postal-code"></div>
+            </div>
+            <div class="number-background">
+                <div class="number-layer">
+                    <div class="number"></div>
+                    <div class="number-add"></div>
+                </div>
+            </div>
+        </div>
+        <!--从../data/bus_data.js读取的busRoutes数据中选择线路、方向和站点-->
+        <div class="input-container">
+            <div class="road-name-container">
+                <input type="text" id="roadName" placeholder="路名">
+                <input type="text" id="roadNameEn" placeholder="路名拼音">
+            </div>
+            <div class="number-container">
+                <input type="text" id="number" placeholder="楼牌号">
+                <input type="text" id="numberAdd" placeholder="附加部分">
+            </div>
+            <div class="postal-code-container">
+                <input type="text" id="postalCode" placeholder="邮编">
+            </div>
+        </div>
+        <div class="button-container">
+            <button class="action-button" id="downloadAction">
+                下载图片
+            </button>
+        </div>
+    </div>
+    </div>
+    <div class="toast-overlay"></div>
+    <div class="caption" style="padding: 0 24px;">
+        网页部分代码由AI生成，仅供学习参考，切勿用于非法用途。本站不对用户输入的内容做任何担保。部分图标来自<a href="https://www.icons8.com/">Icons8</a>
+    </div>
+
+    <!-- 引入其他必要的脚本文件 -->
+    <script type="module" src="address.js"></script>
+    <script type="module" src="../UI/toast.js"></script>
+    <script type="module" src="../UI/footer.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</body>
+</html>

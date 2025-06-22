@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电报纸生成器 - 雨城通实验室</title>
+    <link rel="icon" href="../UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="../mainpage.css" />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../data_composer/style.css" />
+    <link rel="stylesheet" href="../dynamic_routemap/style.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../UI/toast.css" />
+    <link rel="stylesheet" href="dianbao.css" />
+</head>
+<body>
+    <!-- 头部导航栏 -->
+    <header class="header">
+        <button class="icon-button" id="back-to-lab" onclick="window.location.href='../lab'" title="实验室">
+            <img src="../UI/res/arrow_back_black.png" alt="返回">
+        </button>
+        <h1>电报纸生成器</h1>
+        <div class="toolbar">            
+            <button class="icon-button" id="copy" onclick="" title="复制链接">
+                <img src="../UI/res/link_black.png" alt="复制链接">
+            </button>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <div class="content-container">
+        <!-- 预览窗口 -->
+        <div class="preview-container">
+            <div class="preview-header">
+                <div class="header-title-container">
+                    <div class="charge-stats">
+                        <div class="cell-count-container">
+                            <div class="cell-count-header">计费字数</div>
+                            <div class="cell-count-cell"></div>
+                        </div>
+                        <div class="fare-container">
+                            <div class="fare-header">报 费<br />译 费</div>
+                            <div class="fare-cell"></div>
+                        </div>
+                        <div class="staff-container">
+                            <div class="staff-header">营业员</div>
+                            <div class="staff-cell"></div>
+                        </div>
+                    </div>
+                    <div class="header-logo-container">
+                        <div class="header-title">电</div>
+                        <div class="header-logo">
+                            <!--<img src="../UI/res/雨城通logo绿.png" alt="雨城通logo">-->
+                        </div>
+                        <div class="header-title">报</div>
+                    </div>
+                    <div class="radio-stats">
+                        <div class="radio-sn-container">
+                            <div class="radio-sn-header">机上流水</div>
+                            <div class="radio-sn-cell"></div>
+                        </div>
+                        <div class="radio-date-container">
+                            <div class="radio-date-header">发出日期</div>
+                            <div class="radio-date-cell"></div>
+                        </div>
+                        <div class="radio-staff-container">
+                            <div class="radio-staff-header">值机员</div>
+                            <div class="radio-staff-cell"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-stats-container">
+                    <div class="header-stats">
+                        <div class="stats-type">
+                            <div class="stats-type-header">报  类</div>
+                            <div class="stats-type-cell"></div>
+                        </div>
+                        <div class="stats-office">
+                            <div class="stats-office-header">发报局名</div>
+                            <div class="stats-office-cell"></div>
+                        </div>
+                        <div class="stats-office-sn">
+                            <div class="stats-office-sn-header">原来号数</div>
+                            <div class="stats-office-sn-cell"></div>
+                        </div>
+                        <div class="stats-word-count">
+                            <div class="stats-word-count-header">字  数</div>
+                            <div class="stats-word-count-cell"></div>
+                        </div>
+                        <div class="stats-date">
+                            <div class="stats-date-header">日  期</div>
+                            <div class="stats-date-cell"></div>
+                        </div>
+                        <div class="stats-time">
+                            <div class="stats-time-header">时  间</div>
+                            <div class="stats-time-cell"></div>
+                        </div>
+                    </div>
+                    <div class="stats-notes">
+                        <div class="stats-notes-header">备  注</div>
+                        <div class="stats-notes-content"></div>
+                    </div> 
+                </div>
+            </div>
+            <div class="preview-divider">
+                <p>以下由发报人填写</p>
+                <p>字体要清楚正规</p>
+            </div>
+            <div class="code-container">
+                <!-- 新增收报人区域 -->
+                <div class="recipient-section">
+                    <div class="recipient-section-header">收   <br />报 或<br />人 电<br />住 报<br />址 挂<br />姓 号<br />名</div>
+                    <div class="recipient-section-content" id="recipientInputSection"></div>
+                </div>
+                <div class="recipient-region-section">
+                    <div class="recipient-region-section-header">收报地名</div>
+                    <div class="recipient-province-section">
+                        <div class="recipient-province"></div>
+                        <p>省</p>
+                    </div>
+                    <div class="recipient-city-section">
+                        <div class="recipient-city"></div>
+                        <p>市</p>
+                    </div>
+                    <div class="recipient-county-section">
+                        <div class="recipient-county"></div>
+                        <p>县</p>
+                    </div>
+                    <div class="recipient-town-section">
+                        <div class="recipient-town"></div>
+                    </div>
+                </div>                
+                <!-- 表单区域 -->
+                <div class="input-section-container">
+                    <div class="input-section-header">电<br /><br />报<br /><br />内<br /><br />容</div>
+                    <div class="input-section"></div>
+                </div>
+            </div>
+        </div>
+        <section class="control-panel" >
+            <div class="recipient-region-input-container">
+                <div class="recipient-region-input-content">
+                    <input type="text" id="province" placeholder="省" class="recipient-region-input"></input>
+                    <input type="text" id="city" placeholder="市" class="recipient-region-input"></input>
+                    <input type="text" id="county" placeholder="县" class="recipient-region-input"></input>
+                    <input type="text" id="town" placeholder="其他" class="recipient-region-input"></input>
+                </div>
+            </div>
+            <input type="text" id="telegraphRecipient" placeholder="收报人" class="telegraph-recipient-input">
+            <input type="text" id="telegraphContent" placeholder="报文" class="telegraph-content-input">
+            <div class="button-container">
+                <!--<button id="copy-content">刷新流水号</button>-->
+                <button id="copyContent">复制电码</button>
+                <!--<button id="copy-content">生成报文</button>-->
+                <button class="action-button" id="downloadButton">下载图片</button>
+            </div>
+        </section>
+    </div>
+    </div>
+    <div class="toast-overlay"></div>
+    <div class="caption" style="padding: 0 24px;">
+        网页部分代码由AI生成，仅供学习参考，切勿用于非法用途。本站不对用户输入的内容做任何担保。部分图标来自<a href="https://www.icons8.com/">Icons8</a>
+    </div>
+
+    <!-- 引入 js 文件 -->
+    <script type="module" src="dianbao.js"></script>
+    <script type="module" src="dianma.js"></script>
+    <!-- 引入其他必要的脚本文件 -->
+    <script type="module" src="/UI/toast.js"></script>
+    <script type="module" src="/UI/footer.js"></script>
+    <script type="module" src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</body>
+</html>
