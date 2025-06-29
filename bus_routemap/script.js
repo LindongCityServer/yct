@@ -26,7 +26,7 @@ function parseMetroData(text) {
         });
         isMetroDataLoaded = true;
         // 重新渲染当前路线以显示地铁接驳信息
-        renderBusRoute(currentRouteId);
+        //renderBusRoute();
     }
 }
 
@@ -80,19 +80,22 @@ function checkMetroConnection(busStationName) {
 
 // 渲染公交线路图
 function renderBusRoute(routeId) {
+    const defaultRouteId = ' 环';
+    if (!routeId) {
+        routeId = defaultRouteId;
+    }
     currentRouteId = routeId; // 保存当前路线ID
-    const route = busRoutes[routeId];
-    if (!route) {
+    const route = busRoutes[routeId] || busRoutes[defaultRouteId];
+    if (!busRoutes[routeId]) {
         console.error('Route not found:', routeId);
-        return;
+        showToast('未找到该线路，将显示' + defaultRouteId + '路信息');
     }
 
     const routeSection = document.querySelector('.route-section');
     routeSection.innerHTML = '';
 
     // 获取运营商对应颜色（带默认值）
-    const routeData = busRoutes[routeId];
-    const themeColor = operatorColorMap[routeData.operator] || operatorColorMap.default;
+    const themeColor = operatorColorMap[route.operator] || operatorColorMap.default;
     
     // 动态设置CSS变量
     routeSection.style.setProperty('--bus-color', themeColor);
@@ -339,6 +342,7 @@ function renderBusRoute(routeId) {
     }
 
     routeSection.appendChild(stationList);
+    loadMetroData(); // 确保地铁数据已加载
 
     // 添加调试信息
     console.log('Rendered route:', route.name);
@@ -497,8 +501,8 @@ function validateRouteData(route) {
     }
 
     // 新增调试输出：原始时间值
-    console.log(`[validateRouteData] Route ${route.name} 原始时间`);
-    console.log(`下行方向首班车: ${route.firstLastBus.first}, 末班车: ${route.firstLastBus.last}`);
+    //console.log(`[validateRouteData] Route ${route.name} 原始时间`);
+    //console.log(`下行方向首班车: ${route.firstLastBus.first}, 末班车: ${route.firstLastBus.last}`);
     
     const dayMinutes = 1440; // 一天的分钟数
     const startFirst = getTimeSortValue(route.firstLastBus.first);
@@ -510,7 +514,7 @@ function validateRouteData(route) {
     route.is24HoursDownwards = isCrossDay && (nextDayEndMinutes >= startFirst);
 
     // 新增调试输出：下行方向判断
-    console.log(`[validateRouteData] 下行方向判断: ${route.is24HoursDownwards} (首班车排序值: ${startFirst}, 末班车排序值: ${endLastDownwards}, 次日分钟数: ${nextDayEndMinutes})`);
+    //console.log(`[validateRouteData] 下行方向判断: ${route.is24HoursDownwards} (首班车排序值: ${startFirst}, 末班车排序值: ${endLastDownwards}, 次日分钟数: ${nextDayEndMinutes})`);
 
     // 判断上行方向是否为24小时运营
     if (route.firstLastBusUpwards) {
@@ -523,13 +527,13 @@ function validateRouteData(route) {
         route.is24HoursUpwards = isCrossDayUpwards && (nextDayEndMinutesUpwards >= startFirstUpwards);
 
         // 新增调试输出：上行方向判断
-        console.log(`[validateRouteData] 上行方向判断: ${route.is24HoursUpwards} (首班车排序值: ${startFirstUpwards}, 末班车排序值: ${endLastUpwards}, 次日分钟数: ${nextDayEndMinutesUpwards})`);
+        //console.log(`[validateRouteData] 上行方向判断: ${route.is24HoursUpwards} (首班车排序值: ${startFirstUpwards}, 末班车排序值: ${endLastUpwards}, 次日分钟数: ${nextDayEndMinutesUpwards})`);
     } else {
         // 如果没有上行方向时间，继承下行方向的判断
         route.is24HoursUpwards = route.is24HoursDownwards;
 
         // 新增调试输出：上行方向继承下行判断
-        console.log(`[validateRouteData] 上行方向继承下行判断: ${route.is24HoursUpwards}`);
+        //console.log(`[validateRouteData] 上行方向继承下行判断: ${route.is24HoursUpwards}`);
     }
 
     // 添加排序权重
@@ -2204,10 +2208,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 加载地铁数据并显示对应的路线
     loadMetroData().then(() => {
         // 检查参数中的routeID是否有效
-        if (routeIdFromURL && busRoutes[routeIdFromURL]) {
+        if (routeIdFromURL) {
             renderBusRoute(routeIdFromURL); // 渲染指定线路
         } else {
-            renderBusRoute('环路'); // 渲染默认路线
+            renderBusRoute();
         }
     });
 });
