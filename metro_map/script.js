@@ -437,8 +437,17 @@ function calculateFare(path) {
 
             if (prevLine && prevLine.stations) {
                 const prevLineStation = prevLine.stations.find(s => s.name === prevStationName);
-                if (prevLineStation && prevLineStation.distance) {
-                    currentSegmentDistance += prevLineStation.distance;
+                const prevLineStationIndex = prevLine.stations.indexOf(prevLineStation);
+
+                const isDownbound = prevLine.stations[prevLineStationIndex + 1]?.name === stationName;
+                //console.log(`Is downbound for ${stationName} on ${lineName}:`, isDownbound);
+
+                const stationDistanceSource = isDownbound ? prevLine.stations[prevLineStationIndex + 1] : prevLine.stations[prevLineStationIndex];
+                //console.log(`Source station for ${stationName} on ${lineName}:`, stationDistanceSource);
+
+                //if (prevLineStation && prevLineStation.distance) {
+                if (prevLineStation) {
+                    currentSegmentDistance += stationDistanceSource.distance || 1000; // 默认距离为1000米
                 }
             }
         }
@@ -885,6 +894,8 @@ function highlightRoute() {
         } : null
     ]
 
+    console.log('highlightRoute routes:', routes);
+
     // 调用 showRouteResults
     showRouteResults(routes);
 }
@@ -919,7 +930,6 @@ function findOptimalPath(start, end, optimizeFor = 'time', excludeAirport = fals
             if (graph[startNode] && graph[endNode]) {
                 const result = dijkstraFindShortestPath(graph, startNode, endNode, optimizeFor);
                 const fareData = calculateFare(result.path);
-
                 result.totalFare = fareData.totalFare;
                 result.fareSegments = fareData.segments;
 
