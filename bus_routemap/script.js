@@ -1121,28 +1121,68 @@ function findTransferRoutes(startStation, endStation) {
 
         // 修改后的 getTravelTime 函数
         const getTravelTime = r => {
+            let total = 0;
             if (r.type === 'direct') {
                 // 获取起点和终点在路线中的索引
                 const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === r.route);
                 const routeData = busRoutes[routeId];
                 const startIndex = routeData.stations.findIndex(s => s.name === r.stations[0].name);
                 const endIndex = routeData.stations.findIndex(s => s.name === r.stations[1].name);
+                console.log(routeId, '起点和终点索引：', startIndex, endIndex);
+                const isDownbound = endIndex > startIndex;
                 
-                // 计算总行驶时间
-                return routeData.stations.slice(startIndex, endIndex)
-                    .reduce((sum, station) => sum + (station.travelTime || 2), 0); // 默认2分钟/站
+                // 读取经过的每一站数据
+                if (isDownbound) {
+                    for (let i = startIndex; i < endIndex; i++) {
+                        const timeSource = isDownbound?routeData.stations[i]:routeData.stations[i+1];
+                        const travelTime = timeSource.travelTime || 2;
+                        //console.log(routeData.stations[i].name, '获取', timeSource.name, '行驶时间:', travelTime)
+                        total += travelTime;// 默认为2分钟
+                        console.log(routeData.stations[i].name, '累计行驶时间:', total)
+                    }
+                } else { 
+                    for (let i = endIndex; i < startIndex; i++) {
+                        const timeSource = isDownbound?routeData.stations[i]:routeData.stations[i+1];
+                        const travelTime = timeSource.travelTime || 2;
+                        //console.log(routeData.stations[i].name, '获取', timeSource.name, '行驶时间:', travelTime)
+                        total += travelTime;// 默认为2分钟
+                        console.log(routeData.stations[i].name, '累计行驶时间:', total)
+                    }
+                }
+
+                //console.log('累计行驶时间:', total)
+                return total;
             }
 
-            let total = 0;
             r.routes.forEach(segment => {
                 const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === segment.name);
                 const routeData = busRoutes[routeId];
                 const startIndex = routeData.stations.findIndex(s => s.name === segment.from);
                 const endIndex = routeData.stations.findIndex(s => s.name === segment.to);
                 
-                // 累加该路段所有站点的travelTime
-                total += routeData.stations.slice(startIndex, endIndex)
-                    .reduce((sum, station) => sum + (station.travelTime || 2), 0);
+                
+                const isDownbound = endIndex > startIndex;
+                
+                // 读取经过的每一站数据
+                if (isDownbound) {
+                    for (let i = startIndex; i < endIndex; i++) {
+                        const timeSource = isDownbound?routeData.stations[i]:routeData.stations[i+1];
+                        const travelTime = timeSource.travelTime || 2;
+                        //console.log(routeData.stations[i].name, '获取', timeSource.name, '行驶时间:', travelTime)
+                        total += travelTime;// 默认为2分钟
+                        console.log(routeData.stations[i].name, '累计行驶时间:', total)
+                    }
+                } else { 
+                    for (let i = endIndex; i < startIndex; i++) {
+                        const timeSource = isDownbound?routeData.stations[i]:routeData.stations[i+1];
+                        const travelTime = timeSource.travelTime || 2;
+                        //console.log(routeData.stations[i].name, '获取', timeSource.name, '行驶时间:', travelTime)
+                        total += travelTime;// 默认为2分钟
+                        console.log(routeData.stations[i].name, '累计行驶时间:', total)
+                    }
+                }
+
+                //console.log('累计行驶时间:', total)
             });
 
             return total;
