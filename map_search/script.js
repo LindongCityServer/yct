@@ -106,6 +106,7 @@ document.getElementById('search-input').addEventListener('input', async function
         console.error("搜索失败:", err);
         showToast(message);
     }
+    triggerSearch();
 });
 
 // 4. 搜索函数
@@ -272,6 +273,7 @@ async function triggerSearch() {
     try {
         const results = await searchMarkers(query, selectedCategory); // 传递分类筛选参数
         renderResults(results);
+        updatePreview();
     } catch (err) {
         console.error("搜索失败:", err);
         showToast(err.message);
@@ -371,7 +373,32 @@ function updatePreview() {
             };
         });
     });
-    
+
+    const pinLabel = document.querySelector('.pin-label');
+    const currentLocation = document.querySelector('.search-item.selected .search-item-name');
+    const locationDistance = document.querySelector('.search-item.selected .search-item-coordinate');
+    if (!currentLocation || !locationDistance) { 
+        //pinLabel.style.color = 'transparent';
+    } else {
+        const distance = locationDistance.textContent.match(/\d+/)[0];
+        //console.log(distance);
+        if (distance > 0) {
+            //pinLabel.style.color = 'transparent';
+            console.log('隐藏地址');
+            if (window.location.href.includes('map.html')) {
+                pinLabel.style.color = 'transparent';
+                pinLabel.style.textShadow = 'none';
+            }
+        } else {
+            pinLabel.textContent = currentLocation.textContent
+            console.log('显示地址',pinLabel.textContent)
+            // 对map.html执行以下代码
+            if (window.location.href.includes('map.html')) {
+                pinLabel.style.color = 'white';
+                pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+            }
+        }
+    }
     Promise.all(promises).then(() => {
         // 显示加载完成状态
         tileContainer.style.display = 'block';
@@ -400,7 +427,8 @@ document.getElementById('coordinates-z').addEventListener('input', function() {
     updatePreview();
 });
 document.querySelector('.preview-container').addEventListener('click', async () => {
-  await savePreviewImage();
+    const locationName = document.querySelector('.search-item.selected .search-item-name').textContent;
+    await savePreviewImage(locationName);
 });
 
 document.getElementById('share-btn').addEventListener('click', () => {
@@ -476,6 +504,15 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerSearch(); // 触发搜索逻辑
     }
 
+    const coordinateInputs = document.querySelectorAll('.coordinates');
+    coordinateInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            const x = xInput.value;
+            const z = zInput.value;
+            triggerSearch();
+        });
+    });
+
     // 触发初始搜索
     triggerSearch().then(() => {
         // 如果URL有搜索参数但没有坐标参数，设置第一个搜索结果的坐标
@@ -493,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 初始化预览
-    updatePreview();
+    triggerSearch();
 
     // 新增窗口大小监听
     window.addEventListener('resize', debounce(() => {
@@ -512,107 +549,33 @@ function updateURLCategory(category) {
     history.pushState(null, '', newUrl);
 }
 
-async function savePreviewImage() {
-    const preview = document.querySelector('.preview-container');
-    const x = document.getElementById('coordinates-x').value;
-    const z = document.getElementById('coordinates-z').value;
-
-    // 创建临时容器
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'fixed';
-    tempContainer.style.top = '0';
-    tempContainer.style.left = '0';
-    tempContainer.style.opacity = '0'; // 替代 visibility:hidden
-    tempContainer.style.width = '100vw'; // 全屏宽度
-    tempContainer.style.height = '100vh'; // 全屏高度
-    tempContainer.style.overflow = 'visible'; // 避免截断
-    document.body.appendChild(tempContainer);
-
-    // 复制预览内容
-    const previewClone = preview.cloneNode(true);
-    tempContainer.appendChild(previewClone);
-
-    // 在复制预览内容后：
-    previewClone.style.position = 'relative'; // 确保子元素绝对定位以它为基准
-    previewClone.style.width = preview.offsetWidth + 'px';
-    previewClone.style.height = preview.offsetHeight + 'px';
-    tempContainer.appendChild(previewClone);
-
-    // 创建临时容器时：
-    tempContainer.style.backgroundColor = 'rgba(255,0,0,0.1)'; // 半透明红色背景辅助定位
-    previewClone.style.backgroundColor = 'rgba(0,255,0,0.1)'; // 绿色背景辅助定位
-
-    // 添加坐标信息
-    const coordDiv = document.createElement('div');
-    coordDiv.className = 'temp-coords';
-    coordDiv.style.marginTop = '16px';
-    coordDiv.innerHTML = `坐标：X${x}, Z${z}`;
-    tempContainer.appendChild(coordDiv);
-
-    // 添加选中地名
-    const selectedName = document.querySelector('.search-item.selected')?.textContent;
-    if (selectedName) {
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'temp-name';
-        nameDiv.style.marginTop = '8px';
-        nameDiv.textContent = `地名：${selectedName}`;
-        tempContainer.appendChild(nameDiv);
+async function savePreviewImage(name) {
+    triggerSearch();
+    // 将.preview-container的图片下载
+    const previewContainer = document.querySelector('.preview-container');
+    const pinLabel = document.querySelector('.pin-label');
+    const previewFooter = document.querySelector('.preview-footer');
+    const locationDistance = document.querySelector('.search-item.selected .search-item-coordinate').textContent.match(/\d+/)[0];
+    console.log(locationDistance);
+    if (locationDistance == 0) {
+        pinLabel.style.color = 'white';
+        pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
     }
-
-    // 添加页脚
-    const footer = document.createElement('div');
-    footer.className = 'temp-footer';
-    footer.innerHTML = `
-        <div class="footer-content">
-        <div class="footer-left">
-            <img src="/UI/res/雨城通logo带文字浅色.png" class="footer-logo">
-            <p class="footer-caption">位置仅供参考,"临东"及相关组织品牌等均为虚构</p>
-        </div>
-        </div>
-    `;
-    footer.style.marginTop = '24px';
-    tempContainer.appendChild(footer);
-
-    let images;
-
-    // 等待所有图片加载
-    await new Promise(resolve => {
-        let loadedCount = 0;
-        images = tempContainer.querySelectorAll('img');
-        if (!images.length) return resolve();
-
-        images.forEach(img => {
-        if (img.complete) {
-            loadedCount++;
-            if (loadedCount === images.length) resolve();
-        } else {
-            img.onload = () => {
-            loadedCount++;
-            if (loadedCount === images.length) resolve();
-            };
-        }
-        });
+    previewFooter.style.display = 'flex';
+    html2canvas(previewContainer, {
+        backgroundColor: 'transparent',
+        lineHeight: 1,
+    }).then(canvas => {        
+        const imgData = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = `${name}${locationDistance > 0?'附近':''}卫星图像.png`;
+        link.click();
     });
-
-    // 渲染canvas
-    const canvas = await html2canvas(tempContainer, {
-        backgroundColor: null, // 保持透明背景
-        scale: 1, // 调整缩放比例测试
-        useCORS: true,
-        logging: true // 开启调试日志
-    });
-
-    // 在等待图片加载的Promise中：
-    console.log('所有图片加载完成:', tempContainer.querySelectorAll('img').length);
-    images.forEach((img, index) => {
-        console.log(`图片${index}路径: ${img.src}, 是否加载: ${img.complete}`);
-    });
-
-    // 清理
-    tempContainer.remove();
-
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `map_preview_${new Date().getTime()}.png`;
-    link.click();
+    // 不对map.html执行以下代码
+    if (window.location.href.indexOf('map.html') === -1) {
+        pinLabel.style.color = 'transparent';
+        previewFooter.style.display = 'none';
+        pinLabel.style.textShadow = 'none';
+    }
 }
