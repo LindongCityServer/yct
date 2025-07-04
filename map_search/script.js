@@ -118,7 +118,7 @@ async function searchMarkers(query, selectedCategory) {
         const processedText = marker.text 
             ? Array.from(marker.text).map(c => fullToHalf(c)).join('')
             : '';
-        const category = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
+        const category = categoryMap[marker.image.replace(/\.png$/, '').replace(/-\w+$/, '')] || '其他';
         return (
             processedText.toLowerCase().includes(normalizedQuery) &&
             (!selectedCategory || category === selectedCategory) // 使用分类筛选参数
@@ -169,6 +169,7 @@ const categoryMap = {
     'way-in': '入口',
     'way-out': '出口',
     'western-restaurant': '西餐',
+    'exit': '出口',
 };
 
 // 5. 结果渲染函数
@@ -202,7 +203,8 @@ function renderResults(results) {
             (marker.z - z) ** 2
         ).toFixed(0);
 
-        const categoryName = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
+        // 获取分类名称：除了去掉图标后缀名，还需要去掉-a、-b、-c1等文件名后缀
+        const categoryName = categoryMap[marker.image.replace(/\.png$/, '').replace(/-\w+$/, '')] || '其他';
         
         item.innerHTML = `
             <div class="search-item-name">${marker.text}</div>
@@ -502,6 +504,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (categoryParam) {
         categoryFilter.value = categoryParam;
         triggerSearch(); // 触发搜索逻辑
+        if (!queryParam) {
+            setTimeout(() => {
+                showToast('需要输入查询参数（q=）才能触发按分类搜索', 5000);
+            }, 1000);
+        }
     }
 
     const coordinateInputs = document.querySelectorAll('.coordinates');
