@@ -1563,6 +1563,10 @@ function playAnnouncement() {
     const metroName = window.metro_name;
     const metroNameEN = window.metro_name_en;
 
+    // 获取当前线路最后一站
+    const lastStation = currentLine.stations[currentLine.stations.length - 1];
+    const isLastStation = terminalStation === lastStation;
+
     // 获取当前站的 platformSide 值
     const platformSideEN = currentStation.platformSide || 'left';  // 默认为左侧车门
     const platformSide = platformSideEN === 'right' ? '右侧' : '左侧';
@@ -1579,42 +1583,47 @@ function playAnnouncement() {
     // 初始化 transfers 变量
     const transfers = findTransferLine(currentStation.name);
 
+    // 中文报站
     if (isStartStation) {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
                 { text: `欢迎乘坐${metroName}，祝您出行愉快！本次列车终点站：${terminalStation.name}，`, gender: 'female' },
                 { text: `下一站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，请下车的乘客做好准备。`, gender: 'female' },
-                { text: `Welcome to take ${metroNameEN || metroName}. We wish you have a pleasant trip. The destination of the train is ${terminalStation.nameEN || terminalStation.name}.`, gender: 'male' },
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
             announcements.push(
                 { text: `${currentStation.name}到了，请从列车前进方向${actualDoorSide}车门下车。`, gender: 'female' },
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+            );
+        }
+    } else if (isEndStation && !isLastStation) {
+        if (document.querySelector('input[name="display"]:checked').value === 'route') {
+            announcements.push(
+                { text: `列车启动，请扶好站稳。下一站为本次列车的终点站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，`, gender: 'female' },
+                { text: `请前往${lastStation.name}方向的乘客在该站下车搭乘后续列车，请全体乘客做好下车准备。`, gender: 'female' },
+            );
+        } else if (document.querySelector('input[name="display"]:checked').value === 'detail') {
+            announcements.push(
+                { text: `终点站${currentStation.name}到了，前往${lastStation.name}方向的乘客请在该站下车搭乘后续列车，欢迎您再次乘坐${metroName}。`, gender: 'female' },
             );
         }
     } else if (isEndStation) {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
                 { text: `列车启动，请扶好站稳。下一站为本次列车的终点站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，请全体乘客做好下车准备。`, gender: 'female' },
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}, the destination of the train. All the passengers, please prepare to get off.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail') {
             announcements.push(
                 { text: `终点站${currentStation.name}到了，欢迎您再次乘坐${metroName}。`, gender: 'female' },
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, the destination of the train. Welcome to take ${metroNameEN || metroName} again.`, gender: 'male' },
             );
         }
     } else {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
                 { text: `列车启动，请扶好站稳。下一站：${currentStation.name}。列车开启前进方向${actualDoorSide}车门，请下车的乘客做好准备。`, gender: 'female' },
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
             announcements.push(
                 { text: `${currentStation.name}到了，请从列车前进方向${actualDoorSide}车门下车`, gender: 'female' },
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, The ${actualDoorSideEN} door will be used.`, gender: 'male' },
             );
         }
     }
@@ -1631,11 +1640,77 @@ function playAnnouncement() {
             if (document.querySelector('input[name="display"]:checked').value === 'route') {
                 announcements.push(
                     { text: `换乘${transferLineName}的乘客请在该站下车，请您注意换乘时间，合理安排行程。`, gender: 'female' },
-                    { text: `Passengers for ${transferLineNameEN}, please prepare to get off. Please pay attention to transfer time,and arrange your travel properly.`, gender: 'male' },
                 );
             } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && !isEndStation) {
                 announcements.push(
                     { text: `${currentStation.name}到了，换乘${transferLineName}的乘客，请从列车前进方向${actualDoorSide}车门下车。`, gender: 'female' },
+                );
+            }
+        });
+    }
+
+    // 英文报站
+    if (isStartStation) {
+        if (document.querySelector('input[name="display"]:checked').value === 'route') {
+            announcements.push(
+                { text: `Welcome to take ${metroNameEN || metroName}. We wish you have a pleasant trip. The destination of the train is ${terminalStation.nameEN || terminalStation.name}.`, gender: 'male' },
+                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+            );
+        } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
+            announcements.push(
+                { text: `${currentStation.name}到了，请从列车前进方向${actualDoorSide}车门下车。`, gender: 'female' },
+                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+            );
+        }
+    } else if (isEndStation && !isLastStation) {
+        if (document.querySelector('input[name="display"]:checked').value === 'route') {
+            announcements.push(
+                { text: `The next station is ${currentStation.nameEN || currentStation.name}, the destination of the train. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `Passengers heading towards ${lastStation.nameEN || lastStation.name} pleas alight at this station, and transfer to the following service. All the passengers, please prepare to get off.`, gender: 'male' },
+            );
+        } else if (document.querySelector('input[name="display"]:checked').value === 'detail') {
+            announcements.push(
+                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, the destination of the train. Passengers heading towards ${lastStation.nameEN || lastStation.name} pleas alight at this station, `, gender: 'male' },
+                { text: `and transfer to the following service. Welcome to take ${metroNameEN || metroName} again.`, gender: 'male' },
+            );
+        }
+    } else if (isEndStation) {
+        if (document.querySelector('input[name="display"]:checked').value === 'route') {
+            announcements.push(
+                { text: `The next station is ${currentStation.nameEN || currentStation.name}, the destination of the train. All the passengers, please prepare to get off.`, gender: 'male' },
+            );
+        } else if (document.querySelector('input[name="display"]:checked').value === 'detail') {
+            announcements.push(
+                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, the destination of the train. Welcome to take ${metroNameEN || metroName} again.`, gender: 'male' },
+            );
+        }
+    } else {
+        if (document.querySelector('input[name="display"]:checked').value === 'route') {
+            announcements.push(
+                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+            );
+        } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
+            announcements.push(
+                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+            );
+        }
+    }
+
+    // 处理换乘信息
+    if (transfers.length > 0) {
+        transfers.forEach(transfer => {
+            const transferLineName = transfer.name;
+            let transferLineNameEN = transfer.nameEN || transfer.name;
+
+            // 将 transferLineNameEN 中的数字转换为英文单词
+            transferLineNameEN = replaceNumbersWithWords(transferLineNameEN);
+
+            if (document.querySelector('input[name="display"]:checked').value === 'route') {
+                announcements.push(
+                    { text: `Passengers for ${transferLineNameEN}, please prepare to get off. Please pay attention to transfer time,and arrange your travel properly.`, gender: 'male' },
+                );
+            } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && !isEndStation) {
+                announcements.push(
                     { text: `We are arriving at ${currentStation.nameEN || currentStation.name}. Passengers for ${transferLineNameEN} please get off at this station. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
                 );
             }
@@ -1655,6 +1730,12 @@ function playAnnouncement() {
         }
         return announcement;
     });
+    announcements = announcements.map(announcement => {
+        if (lastStation.nameEN === lastStation.nameEN.toUpperCase()) {
+            return { text: announcement.text.replace(lastStation.nameEN, lastStation.name), gender: announcement.gender };
+        }
+        return announcement;
+    });
 
     console.log('线网名称：' + window.metro_name);  // 应该输出 "临东地铁"
     console.log('线网英文名：' + window.metro_name_en);  // 应该输出 "Lindong Metro"
@@ -1664,7 +1745,7 @@ function playAnnouncement() {
         setTimeout(() => {
             speak(announcement.text, index, announcement.gender);
             showToast(announcement.text);
-        }, index * 2000); // 每条播报间隔2秒
+        }, index * 1500); // 每条播报间隔1.5秒
     });
 }
 
