@@ -663,6 +663,8 @@ function findTransferLine(stationName) {
             });
         }
     });
+    // 排除透明线路（颜色编号为六位十六进制数后面加00）
+    transfers = transfers.filter(line => line.color.slice(-2) !== '00');
     return transfers;
 }
 
@@ -1567,6 +1569,12 @@ function playAnnouncement() {
     const lastStation = currentLine.stations[currentLine.stations.length - 1];
     const isLastStation = terminalStation === lastStation;
 
+    const currentStationNameEN = replaceAbbreviationsWithWords(currentStation.nameEN);
+    const terminalStationNameEN = replaceAbbreviationsWithWords(terminalStation.nameEN);
+    const lastStationNameEN = replaceAbbreviationsWithWords(lastStation.nameEN);
+
+    //console.log(currentStationNameEN, terminalStationNameEN, lastStationNameEN);
+
     // 获取当前站的 platformSide 值
     const platformSideEN = currentStation.platformSide || 'left';  // 默认为左侧车门
     const platformSide = platformSideEN === 'right' ? '右侧' : '左侧';
@@ -1630,23 +1638,21 @@ function playAnnouncement() {
 
     // 处理换乘信息
     if (transfers.length > 0) {
-        transfers.forEach(transfer => {
-            const transferLineName = transfer.name;
-            let transferLineNameEN = transfer.nameEN || transfer.name;
+        const transferLineName = transfers.map(transfer => transfer.name).join('、');
+        let transferLineNameEN = transfers.map(transfer => transfer.nameEN || transfer.name).join(',');
 
-            // 将 transferLineNameEN 中的数字转换为英文单词
-            transferLineNameEN = replaceNumbersWithWords(transferLineNameEN);
+        // 将 transferLineNameEN 中的数字转换为英文单词
+        transferLineNameEN = replaceNumbersWithWords(transferLineNameEN);
 
-            if (document.querySelector('input[name="display"]:checked').value === 'route') {
-                announcements.push(
-                    { text: `换乘${transferLineName}的乘客请在该站下车，请您注意换乘时间，合理安排行程。`, gender: 'female' },
-                );
-            } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && !isEndStation) {
-                announcements.push(
-                    { text: `${currentStation.name}到了，换乘${transferLineName}的乘客，请从列车前进方向${actualDoorSide}车门下车。`, gender: 'female' },
-                );
-            }
-        });
+        if (document.querySelector('input[name="display"]:checked').value === 'route') {
+            announcements.push(
+                { text: `换乘${transferLineName}的乘客请在该站下车，请您注意换乘时间，合理安排行程。`, gender: 'female' },
+            );
+        } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && !isEndStation) {
+            announcements.push(
+                { text: `${currentStation.name}到了，换乘${transferLineName}的乘客，请从列车前进方向${actualDoorSide}车门下车。`, gender: 'female' },
+            );
+        }
     }
 
     // 英文报站
@@ -1654,85 +1660,83 @@ function playAnnouncement() {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
                 { text: `Welcome to take ${metroNameEN || metroName}. We wish you have a pleasant trip. The destination of the train is ${terminalStation.nameEN || terminalStation.name}.`, gender: 'male' },
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `The next station is ${currentStationNameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
             announcements.push(
                 { text: `${currentStation.name}到了，请从列车前进方向${actualDoorSide}车门下车。`, gender: 'female' },
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `We are arriving at ${currentStationNameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
             );
         }
     } else if (isEndStation && !isLastStation) {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}, the destination of the train. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
-                { text: `Passengers heading towards ${lastStation.nameEN || lastStation.name} pleas alight at this station, and transfer to the following service. All the passengers, please prepare to get off.`, gender: 'male' },
+                { text: `The next station is ${currentStationNameEN || currentStation.name}, the destination of the train. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `Passengers heading towards ${lastStationNameEN || lastStation.name} pleas alight at this station, and transfer to the following service. All the passengers, please prepare to get off.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail') {
             announcements.push(
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, the destination of the train. Passengers heading towards ${lastStation.nameEN || lastStation.name} pleas alight at this station, `, gender: 'male' },
+                { text: `We are arriving at ${currentStationNameEN || currentStation.name}, the destination of the train. Passengers heading towards ${lastStationNameEN || lastStation.name} pleas alight at this station, `, gender: 'male' },
                 { text: `and transfer to the following service. Welcome to take ${metroNameEN || metroName} again.`, gender: 'male' },
             );
         }
     } else if (isEndStation) {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}, the destination of the train. All the passengers, please prepare to get off.`, gender: 'male' },
+                { text: `The next station is ${currentStationNameEN || currentStation.name}, the destination of the train. All the passengers, please prepare to get off.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail') {
             announcements.push(
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, the destination of the train. Welcome to take ${metroNameEN || metroName} again.`, gender: 'male' },
+                { text: `We are arriving at ${currentStationNameEN || currentStation.name}, the destination of the train. Welcome to take ${metroNameEN || metroName} again.`, gender: 'male' },
             );
         }
     } else {
         if (document.querySelector('input[name="display"]:checked').value === 'route') {
             announcements.push(
-                { text: `The next station is ${currentStation.nameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `The next station is ${currentStationNameEN || currentStation.name}. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
             );
         } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && transfers.length === 0) {
             announcements.push(
-                { text: `We are arriving at ${currentStation.nameEN || currentStation.name}, The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+                { text: `We are arriving at ${currentStationNameEN || currentStation.name}, The ${actualDoorSideEN} door will be used.`, gender: 'male' },
             );
         }
     }
 
     // 处理换乘信息
     if (transfers.length > 0) {
-        transfers.forEach(transfer => {
-            const transferLineName = transfer.name;
-            let transferLineNameEN = transfer.nameEN || transfer.name;
+        const transferLineName = transfers.map(transfer => transfer.name).join('、');
+        let transferLineNameEN = transfers.map(transfer => transfer.nameEN || transfer.name).join(',');
 
-            // 将 transferLineNameEN 中的数字转换为英文单词
-            transferLineNameEN = replaceNumbersWithWords(transferLineNameEN);
+        // 将 transferLineNameEN 中的数字转换为英文单词
+        transferLineNameEN = replaceNumbersWithWords(transferLineNameEN);
 
-            if (document.querySelector('input[name="display"]:checked').value === 'route') {
-                announcements.push(
-                    { text: `Passengers for ${transferLineNameEN}, please prepare to get off. Please pay attention to transfer time,and arrange your travel properly.`, gender: 'male' },
-                );
-            } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && !isEndStation) {
-                announcements.push(
-                    { text: `We are arriving at ${currentStation.nameEN || currentStation.name}. Passengers for ${transferLineNameEN} please get off at this station. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
-                );
-            }
-        });
+        if (document.querySelector('input[name="display"]:checked').value === 'route') {
+            announcements.push(
+                { text: `Passengers for ${transferLineNameEN}, please prepare to get off. Please pay attention to transfer time,and arrange your travel properly.`, gender: 'male' },
+            );
+        } else if (document.querySelector('input[name="display"]:checked').value === 'detail' && !isEndStation) {
+            announcements.push(
+                { text: `We are arriving at ${currentStationNameEN || currentStation.name}. Passengers for ${transferLineNameEN} please get off at this station. The ${actualDoorSideEN} door will be used.`, gender: 'male' },
+            );
+        }
     }
 
     // 处理车站英文名
     announcements = announcements.map(announcement => {
-        if (currentStation.nameEN === currentStation.nameEN.toUpperCase() && /^[A-Z0-9'-]+$/.test(currentStation.nameEN)) {
-            return { text: announcement.text.replace(currentStation.nameEN, currentStation.name), gender: announcement.gender };
+        if (currentStationNameEN === currentStationNameEN.toUpperCase() && /^[A-Z0-9'-]+$/.test(currentStationNameEN)) {
+            return { text: announcement.text.replace(currentStationNameEN, currentStation.name), gender: announcement.gender };
         }
         return announcement;
     });
     announcements = announcements.map(announcement => {
-        if (terminalStation.nameEN === terminalStation.nameEN.toUpperCase()) {
-            return { text: announcement.text.replace(terminalStation.nameEN, terminalStation.name), gender: announcement.gender };
+        if (terminalStationNameEN === terminalStationNameEN.toUpperCase()) {
+            return { text: announcement.text.replace(terminalStationNameEN, terminalStation.name), gender: announcement.gender };
         }
         return announcement;
     });
     announcements = announcements.map(announcement => {
-        if (lastStation.nameEN === lastStation.nameEN.toUpperCase()) {
-            return { text: announcement.text.replace(lastStation.nameEN, lastStation.name), gender: announcement.gender };
+        if (lastStationNameEN === lastStationNameEN.toUpperCase()) {
+            return { text: announcement.text.replace(lastStationNameEN, lastStation.name), gender: announcement.gender };
         }
         return announcement;
     });
@@ -1794,6 +1798,28 @@ function numberToWords(number) {
     }
 
     return convertNumber(number);
+}
+
+function replaceAbbreviationsWithWords(text) {
+    const abbreviations = {
+        " Sta": " Station",
+        " St": " Street",
+        " Ave": " Avenue",
+        " Blvd": " Boulevard",
+        " Rd": " Road",
+        " Ln": " Lane",
+        " Sq": " Square",
+        " Termin": " Terminal",
+        " N": " North",
+        " S": " South",
+        " E": " East",
+        " W": " West",
+    }
+    for (const [abbreviation, word] of Object.entries(abbreviations)) {
+        // 被替换的词只能在末尾或后面紧接着一个空格
+        text = text.replace(new RegExp(`${abbreviation}(?=\\s|$)`, "g"), word);
+    }
+    return text;
 }
 
 // 语音播报函数
