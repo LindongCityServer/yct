@@ -86,12 +86,13 @@ body {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -1px;
+    top: 18px;
     padding: 0 24px;
-    width: calc(100% - 48px);
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    transform-origin: center left;
 }
 
 .station {
@@ -112,6 +113,9 @@ body {
     background: white;
     position: relative;
     margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .station-labels {
@@ -242,15 +246,26 @@ body {
 }
 
 @keyframes blinkText {
-    0% { font-size: 9px; }
-    50% { font-size: 10.5px; }
-    100% { font-size: 9px; }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
 }
 
-@keyframes blinkTextEn {
-    0% { font-size: 4.8px; }
-    50% { font-size: 5.6px; }
-    100% { font-size: 4.8px; }
+@keyframes blinkTextForStationSequence {
+    0% { transform: scale(1) translateX(-50%); }
+    50% { transform: scale(1.2) translateX(-50%); }
+    100% { transform: scale(1) translateX(-50%); }
+}
+
+@keyframes blinkTiltedText {
+    0% { transform: scale(1) rotate(-45deg); }
+    50% { transform: scale(1.2) rotate(-45deg); }
+    100% { transform: scale(1) rotate(-45deg); }
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }    
 }
 
 .current-station-active .station-circle {
@@ -258,14 +273,12 @@ body {
     border-color: #850000;
 }
 
-.current-station-active .station-name {
-    animation: blinkText 1s ease-in-out infinite;
-    font-weight: bold;
-    color: #FF0000;
+.current-station-active .station-circle svg {
+    animation: rotate 2s linear infinite;
 }
 
-.current-station-active .station-name-en {
-    animation: blinkTextEn 1s ease-in-out infinite;
+.current-station-active .station-labels {
+    animation: blinkTiltedText 1s ease-in-out infinite;
     font-weight: bold;
     color: #FF0000;
 }
@@ -328,8 +341,12 @@ body {
     font-size: 16px;
 }
 
-.terminal-station.long-text {
+.terminal-station .terminal-station-name.long-text {
     font-size: min(18px, calc(150px / var(--text-length)));
+}
+
+.terminal-station .terminal-station-name-en.long-text {
+    font-size: min(10px, calc(150px / var(--text-length-en)));
 }
 
 .train-status {
@@ -512,6 +529,7 @@ input[type="radio"]:checked + label {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    transform-origin: bottom left;
 }
 
 .mini-route .station:nth-child(even) .station-labels {
@@ -520,6 +538,7 @@ input[type="radio"]:checked + label {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    transform-origin: top left;
 }
 
 .mini-route .station:nth-child(even) .transfer-line {
@@ -580,18 +599,6 @@ input[type="radio"]:checked + label {
     100% { background-color: white; }
 }
 
-@keyframes miniBlinkText {
-    0% { font-size: 10px; }
-    50% { font-size: 12px; }
-    100% { font-size: 10px; }
-}
-
-@keyframes miniBlinkTextEn {
-    0% { font-size: 6px; }
-    50% { font-size: 7px; }
-    100% { font-size: 6px; }
-}
-
 @keyframes miniBlinkArrow {
     0% { border-left-color: white; }
     50% { border-left-color: #FF0000; }
@@ -603,14 +610,8 @@ input[type="radio"]:checked + label {
     border-color: #850000;
 }
 
-.mini-route .current-station-active .station-name {
-    animation: miniBlinkText 1s ease-in-out infinite;
-    font-weight: bold;
-    color: #FF0000;
-}
-
-.mini-route .current-station-active .station-name-en {
-    animation: miniBlinkTextEn 1s ease-in-out infinite;
+.mini-route .current-station-active .station-labels {
+    animation: BlinkText 1s ease-in-out infinite;
     font-weight: bold;
     color: #FF0000;
 }
@@ -838,7 +839,7 @@ input[type="radio"]:checked + label {
 }
 
 .caption a {
-    color: #2c9678;
+    color: var(--primary-color);
     text-decoration: none;
 }
 
@@ -1070,15 +1071,19 @@ input[type="radio"]:checked + label {
                blinkCircleFill 1s ease-in-out infinite;
 }
 
+.station-sequence .current-station-active .station-labels {
+    animation: blinkTextForStationSequence 1s ease-in-out infinite;
+}
+
 .station-sequence .current-station-active .station-name {
     font-size: 10px;
     margin-bottom: 2px;
-    animation: blinkStationName 1s ease-in-out infinite;
+    color: #FF0000;
 }
 
 .station-sequence .current-station-active .station-name-en {
     font-size: 6px;
-    animation: blinkStationNameEn 1s ease-in-out infinite;
+    color: #FF0000;
 }
 
 .station-sequence .station-labels {
@@ -1088,7 +1093,6 @@ input[type="radio"]:checked + label {
     line-height: 1;
     width: 120px;
     left: 50%;
-    transform: translateX(-50%);
     transition: color 0.3s;
 }
 
@@ -1108,29 +1112,28 @@ input[type="radio"]:checked + label {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
+    transform-origin: top left;
 }
 
-.station-sequence .station:nth-child(even) .transfer-line {
-    bottom: auto;
-    top: 100%;
+.station-sequence .station:nth-child(even) .transfer-container{
+    top: -300%;
     margin-top: 24px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
 }
 
-.station-sequence .station:nth-child(odd) .transfer-line {
-    top: auto;
-    bottom: 100%;
+.station-sequence .station:nth-child(odd) .transfer-container {
+    top: 100%;
     margin-bottom: 24px;
 }
 
 .station-sequence .station-name {
-    font-size: 12px;
+    font-size: 10px;
 }
 
 .station-sequence .station-name-en {
-    font-size: 8px;
+    font-size: 6px;
 }
 
 .station-sequence .connection-line {
@@ -1183,6 +1186,7 @@ input[type="radio"]:checked + label {
     margin-top: 4px;
     bottom: auto;
     margin-bottom: 0;
+    transform-origin: top left;
 }
 
 .station-sequence .station:nth-child(1) .station-labels,
@@ -1194,6 +1198,7 @@ input[type="radio"]:checked + label {
     margin-top: 0;
     text-align: center;
     vertical-align: bottom;
+    transform-origin: bottom left;
 }
 
 @keyframes blinkStationName {
@@ -1227,11 +1232,12 @@ input[type="radio"]:checked + label {
 }
 
 .control-panel .action-button {
-    background-color: #2c9678;
+    background-color: var(--primary-color);
     color: white;
     font-weight: bold;
     border: none;
     padding: 6px 8px;
+    margin: 0;
     cursor: pointer;
     transition: background-color 0.3s;
     width: 96px;
@@ -1240,11 +1246,11 @@ input[type="radio"]:checked + label {
 }
 
 .action-button:hover {
-    background-color: #237c63;
+    background-color: var(--primary-color-hover);
 }
 
 .action-button:active {
-    background-color: #1b6b54;
+    background-color: var(--primary-color-hover);
 }
 
 .train-detail-container {
@@ -1415,4 +1421,13 @@ body.immersive {
         border-color: var(--control-border);
         color: var(--control-text);
     }
+}
+
+.time {
+    font-size: 10px;
+    right: 12px;
+    top: 4px;
+    position: absolute;
+    color: black;
+    display: none;
 }

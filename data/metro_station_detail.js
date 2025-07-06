@@ -282,8 +282,8 @@ window.stationDetail = [
                     { type: "escalator_and_stairs", location: 4, endFloor: "B1", direction: "downwards", oneWay:"up" },
                 ],
                 transfer: [
-                    { floor: "B1", direction: "here", location: 1.5, line: "10号线", transferDirection: "downwards" },
-                    { floor: "B1", direction: "here", location: 4.5, line: "10号线", transferDirection: "upwards" },
+                    { floor: "B1", direction: "here", location: 1.5, line: "10号线", transferDirection: "upwards" },
+                    { floor: "B1", direction: "here", location: 4.5, line: "10号线", transferDirection: "downwards" },
                 ],
                 exits: [
                     {
@@ -466,13 +466,13 @@ window.stationDetail = [
                 ],
                 overGround: false,
                 facilities: [
-                    { type: "escalator_and_stairs", location: 3, endFloor: "B2", direction: "downwards", oneWay:"none", },
+                    { type: "escalator_and_stairs", location: 3, endFloor: "B4", direction: "downwards", oneWay:"none", },
                     { type: "toilet", location: 5.5, },
                     { type: "nursing_room", location: 6, },
                 ],
                 facilitiesUpwards: [
                     { type: "police", location:1.5, },
-                    { type: "escalator_and_stairs", location: 3, endFloor: "B2", direction: "downwards", oneWay:"none", },
+                    { type: "escalator_and_stairs", location: 3, endFloor: "B4", direction: "downwards", oneWay:"none", },
                     { type: "toilet", location: 5.5, },
                     { type: "nursing_room", location: 6, },
                 ],

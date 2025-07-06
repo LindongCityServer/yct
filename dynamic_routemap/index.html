@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>动态线路图</title>
     <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../mainpage.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="../UI/toast.css">
     <link rel="stylesheet" href="station-section.css">
@@ -17,6 +18,7 @@
 
     <!-- 主展示容器 -->
     <div class="display-container">
+        <div class="time"></div>
         <!-- 动态线路图区域 -->
         <div class="route-map" id="routeMap">
             <!-- 动态生成的站点将在这里显示 -->
@@ -68,6 +70,9 @@
     <!-- 控制面板 -->
     <div class="control-panel">
         <div class="train-status">
+            <button id="toggleTime" class="toggle-button">时间</button>
+            <button id="toggleInstruction" class="toggle-button">前缀</button>
+            
             <!--车厢数量控制-->
             <div class="car-count">
                 <button id="decreaseCars">-</button>

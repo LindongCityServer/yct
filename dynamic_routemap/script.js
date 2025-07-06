@@ -437,15 +437,50 @@ function updateRouteMap() {
 
     const stations = effectiveDirection ? [...currentLine.stations].reverse() : currentLine.stations;
     const totalStations = stations.length;
-    const spacing = (routeMap.clientWidth - 72) / (totalStations - 1);  // 84 = 左12px + 右72px (60+12)
+
+    const lastStation = stations[totalStations - 1];
+    // 用getBoundingClientRect测量其中.station-name和.station-name-en的宽度
+    const lastStationLabel = document.createElement('div');
+    lastStationLabel.className = 'station-labels';
+    const lastStationName = lastStation.name;
+    const lastStationNameEN = lastStation.nameEN;
+    lastStationLabel.innerHTML = `
+        <div class="station-name">${lastStationName}</div>
+        <div class="station-name-en">${lastStationNameEN}</div>
+    `;
+    console.log('最后一站标签内容:', lastStationLabel.innerHTML);
+    // 插入到 body 中
+    document.body.appendChild(lastStationLabel);
+
+    // 获取宽度
+    const lastStationNameWidth = lastStationLabel.getBoundingClientRect().width;
+
+    // 清理 DOM
+    document.body.removeChild(lastStationLabel);
+    console.log('最后一站标签长度:', lastStationNameWidth, 'px');
+
+    let spacing = (routeMap.clientWidth - lastStationNameWidth - 12) / (totalStations - 1);
+    const mapScale = spacing < 24 ? spacing / 24 : 1;
+    if (mapScale !== 1) { 
+        spacing = 24 / mapScale;
+    }
 
     stations.forEach((station, index) => {
         const originalIndex = effectiveDirection ? stations.length - 1 - index : index;
-        const stationElement = createStationElement(station, index * spacing + 12);
+        const stationElement = createStationElement(station, index * spacing * mapScale + 12 / mapScale);
         
         // 设置站点状态
         if (originalIndex === currentStationIndex) {
             stationElement.classList.add('current-station-active');
+            // 如果有换乘线路则执行函数
+            const transferLines = findTransferLine(station.name);
+            console.log(transferLines, station.name, '换乘线路');
+            const circle = stationElement.querySelector('.station-circle');
+            if (transferLines.length > 0) {
+                circle.style.width = '11px';
+                circle.style.height = '11px';
+                addTransferArrows(circle, transferLines, currentLine.color);
+            }
         } else if (shouldReverse ? 
             (originalIndex < currentStationIndex && originalIndex >= endIndex) ||
             (originalIndex === endIndex) :
@@ -465,7 +500,7 @@ function updateRouteMap() {
 
         // 创建连接线
         if (index < totalStations - 1) {
-            const connectionLine = createConnectionLine(index * spacing + 36, spacing - 11);
+            const connectionLine = createConnectionLine(index * spacing * mapScale + 36, spacing * mapScale - 11 * mapScale);
             
             // 获取这条连接线实际连接的两个站点的原始索引
             const leftStationIndex = effectiveDirection ? stations.length - 1 - index : index;
@@ -507,6 +542,22 @@ function updateRouteMap() {
             routeMap.appendChild(connectionLine);
         }
     });
+
+    // 计算每一个station-labels的高度，找出最大值
+    const stationLabels = routeMap.querySelectorAll('.station-labels');
+    let maxLabelHeight = 0;
+    stationLabels.forEach(label => {
+        const labelHeight = label.getBoundingClientRect().height;
+        maxLabelHeight = Math.max(maxLabelHeight, labelHeight);
+    });
+
+    let routeMapTopOffset = maxLabelHeight - 40; // 减去64px的底部间距
+    // 设定routeMapTopOffset最小值为18，最大值为32
+    routeMapTopOffset = Math.min(Math.max(routeMapTopOffset, 20), 32);
+
+    routeMap.style.top = `${routeMapTopOffset * mapScale}px`;
+
+    routeMap.style.transform = `scale(${mapScale})`
 
     // 箭头方向只受direction选项影响
     document.getElementById('routeMap').classList.toggle('direction-reverse', currentDirection);
@@ -614,6 +665,8 @@ function updateInfoBar() {
     const currentStationElement = infoBar.querySelector('.current-station');
     const terminalStationElement = infoBar.querySelector('.terminal-station');
 
+    const showInstructions = document.getElementById('toggleInstruction').classList.contains('active');
+
     if (!currentStationElement || !terminalStationElement) return;
 
     infoBar.style.backgroundColor = currentLine.color;
@@ -629,25 +682,54 @@ function updateInfoBar() {
             </div>
         </div>
     `;
+
+    const mapRadio = document.getElementById('showRoute');
+    const detailRadio = document.getElementById('showDetail');
+    const currentStationInstruction = mapRadio.checked ? '下一站:' : '停靠站:';
+    const currentStationInstructionEN = mapRadio.checked ? 'Next station: ' : 'This station: ';
     
     const currentStation = currentLine.stations[currentStationIndex];
     currentStationElement.innerHTML = `
-        <div class="station-name">${currentStation.name}</div>
-        <div class="station-name-en">${currentStation.nameEN}</div>
+        <div class="station-name">${(showInstructions?currentStationInstruction:'')+currentStation.name}</div>
+        <div class="station-name-en">${(showInstructions?currentStationInstructionEN:'')+currentStation.nameEN}</div>
     `;
     
     const endIndex = parseInt(document.getElementById('endStation').value);
     const terminalStation = currentLine.stations[endIndex];
-    terminalStationElement.textContent = `开往: ${terminalStation.name}`;
+    terminalStationElement.innerHTML = `
+        <div class="terminal-station-name">开往: ${terminalStation.name}</div>${showInstructions?`
+        <div class="terminal-station-name-en">Destination: ${terminalStation.nameEN}</div>`: ''}
+    `;
     
     // 调整终点站字号
-    const textLength = terminalStationElement.textContent.length;
-    if (textLength * 18 > 144) {  // 18px 是默认字号
-        terminalStationElement.classList.add('long-text');
-        terminalStationElement.style.setProperty('--text-length', textLength);
+    const textLength = terminalStation.name.length;
+    const terminalStationNameElement = terminalStationElement.querySelector('.terminal-station-name');
+    if (showInstructions) {
+        terminalStationElement.style.fontSize = '12px';
+        terminalStationElement.style.lineHeight = '1';
+        const textLengthEN = terminalStation.nameEN.length;
+        const terminalStationNameENElement = terminalStationElement.querySelector('.terminal-station-name-en');
+        terminalStationNameENElement.style.fontSize = '8px';
+        if (textLength * 14 > 144) {
+            terminalStationNameElement.classList.add('long-text');
+            terminalStationNameElement.style.setProperty('--text-length', textLength);
+        } else {
+            terminalStationNameElement.classList.remove('long-text');
+        }
+        if (textLengthEN * 8 > 144) {
+            terminalStationNameENElement.classList.add('long-text');
+            terminalStationNameENElement.style.setProperty('--text-length-en', textLengthEN);
+        } else {
+            terminalStationNameENElement.classList.remove('long-text');
+        }
     } else {
-        terminalStationElement.classList.remove('long-text');
-        terminalStationElement.style.removeProperty('--text-length');
+        terminalStationElement.style.fontSize = '16px';
+        if (textLength * 14 > 144) {
+            terminalStationNameElement.classList.add('long-text');
+            terminalStationNameElement.style.setProperty('--text-length', textLength);
+        } else {
+            terminalStationNameElement.classList.remove('long-text');
+        }
     }
 }
 
@@ -1147,14 +1229,131 @@ function updateStationSequence() {
         const nameEnDiv = document.createElement('div');
         nameEnDiv.className = 'station-name-en';
         nameEnDiv.textContent = station.nameEN;
-        
+
+         // 检查换乘线路
+        const transferLines = findTransferLine(station.name);
+        if (transferLines.length > 0) {
+            // 创建一个容器来水平排列换乘线路
+            const transferContainer = document.createElement('div');
+            transferContainer.className = 'transfer-container';
+            transferContainer.style.display = 'flex';  // 使用 flex 布局
+            transferContainer.style.flexDirection = 'row';  // 水平排列
+            transferContainer.style.justifyContent = 'center';  // 居中对齐
+            transferContainer.style.gap = '2px';  // 设置间距
+            
+            transferLines.forEach(line => {
+                // 检查是否为透明颜色
+                const isTransparent = /^#[0-9A-Fa-f]{6}00$/.test(line.color);
+                // 如果不是透明的才创建transfer-line元素
+                if (!isTransparent) {
+                const transferLine = document.createElement('div');
+                transferLine.className = 'transfer-line';
+                // 根据站点状态设置transfer-line的颜色
+                if (div.classList.contains('station-inactive')) {
+                    transferLine.style.backgroundColor = '#6E7E81';
+                } else {
+                    transferLine.style.backgroundColor = line.color;
+                }
+                transferLine.textContent = line.name.replace(/([0-9A-Z]+)(线|号线|路)$/, '$1');  // 仅在符合格式时去掉"线"、"号线"或"路"
+                    transferContainer.appendChild(transferLine);
+                }
+            });
+            
+            if (index === currentStationIndex) {
+                addTransferArrows(circle, transferLines, currentLine.color);
+                console.log(`当前站 ${station.name} 有换乘线路:`, transferLines.map(l => l.name));
+            }
+
+            // 将换乘线路容器添加到站点元素中
+            div.appendChild(transferContainer);
+        }        
+
         labels.appendChild(nameDiv);
         labels.appendChild(nameEnDiv);
         div.appendChild(circle);
         div.appendChild(labels);
         
         stationList.appendChild(div);
+
     });
+}
+
+function addTransferArrows(container, transfers, mainLineColor) {
+    console.log('添加换乘箭头:', transfers);
+    const radius = 3; // 弧的半径
+    const totalSegments = transfers.length + 1; // 包括当前线路
+    const colors = [mainLineColor, ...transfers.map(t => t.color)]; // 颜色数组
+
+    // 添加一个svg区域到container
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    svg.style.position = 'absolute';
+    svg.style.zIndex = '1';
+    container.appendChild(svg);
+
+
+    for (let i = 0; i < totalSegments; i++) {
+        const angleStart = (360 / totalSegments) * i;
+        const angleEnd = angleStart + (360 / totalSegments) - 20;
+
+        // 创建弧形路径
+        const arcPath = createArcPath(radius, angleStart, angleEnd, colors[i]);
+        svg.appendChild(arcPath);
+
+        // 创建三角形箭头
+        const arrowHead = createArrowHead(radius + 1, angleEnd - 5, colors[i]);
+        svg.appendChild(arrowHead);
+    }
+
+    // 设置容器样式
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.alignItems = 'center';
+    container.style.position = 'relative';
+    container.style.backgroundColor = 'white';
+    container.style.animation = 'none'; // 禁用动画
+}
+
+function createArcPath(radius, startAngle, endAngle, color) {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
+    const x1 = radius * Math.cos((startAngle - 90) * Math.PI / 180);
+    const y1 = radius * Math.sin((startAngle - 90) * Math.PI / 180);
+    const x2 = radius * Math.cos((endAngle - 90) * Math.PI / 180);
+    const y2 = radius * Math.sin((endAngle - 90) * Math.PI / 180);
+
+    const d = `
+        M ${x1 - 0.7} ${y1 - 0.7}
+        A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2 - 0.7} ${y2 - 0.7}
+    `;
+
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", color);
+    path.setAttribute("stroke-width", 1);
+    path.setAttribute("transform", "translate(5,5)");
+
+    return path;
+}
+
+function createArrowHead(radius, angle, color) {
+    const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    const radianAngle = (angle - 90) * Math.PI / 180;
+    const x = radius * Math.cos(radianAngle);
+    const y = radius * Math.sin(radianAngle);
+
+    const points = [
+        [x - 0.7, y - 0.7],
+        [x - 2 * Math.cos(radianAngle + Math.PI / 6) - 0.7, y - 2 * Math.sin(radianAngle + Math.PI / 6) - 0.7],
+        [x - 2 * Math.cos(radianAngle - Math.PI / 6) - 0.7, y - 2 * Math.sin(radianAngle - Math.PI / 6) - 0.7]
+    ];
+
+    polygon.setAttribute("points", points.map(p => p.join(",")).join(" "));
+    polygon.setAttribute("fill", color);
+    polygon.setAttribute("transform", "translate(5,5)");
+
+    return polygon;
 }
 
 // 更新当前站点
@@ -1357,6 +1556,8 @@ function initializeToggleButtons() {
     const immersiveButton = document.getElementById('toggleImmersive');
     const trainStatus = document.querySelector('.train-status');
     const lineStatus = document.querySelector('.line-status');
+    const timeButton = document.getElementById('toggleTime');
+    const instructionButton = document.getElementById('toggleInstruction');
     
     // 初始化沉浸模式状态
     let isImmersive = false;
@@ -1450,6 +1651,23 @@ function initializeToggleButtons() {
 
     // 监听窗口大小变化
     window.addEventListener('resize', updateInitialState);
+
+    
+    timeButton.addEventListener('click', function() {
+        const time = document.querySelector('.time');
+        time.style.display = time.style.display === 'none' ? 'block' : 'none';
+        updateTime(); // 切换时也更新一次时间显示
+        setInterval(updateTime, 1000);
+    });
+
+    instructionButton.addEventListener('click', function() {
+        if (instructionButton.classList.contains('active')) {
+            instructionButton.classList.remove('active');
+        } else {
+            instructionButton.classList.add('active');
+        }
+        updateInfoBar();
+    });
 }
 
 // 初始化动作按钮
@@ -1497,6 +1715,7 @@ function updateActionButtonText() {
     }
     // 添加快捷键提示
     actionButton.innerHTML = actionButton.textContent + '<span class="shortcut-key" style="color: white">↵</span>';
+    updateInfoBar();
 }
 
 // 在显示模式切换时更新按钮文本
@@ -1867,7 +2086,7 @@ function renderStationSection(stationName, lineName) {
 
     // 显示功能测试提示（仅第一次）
     if (!hasShownSectionNotice) {
-        showToast('车站剖面图功能测试中，如有问题请及时反馈', 5000);
+        //showToast('车站剖面图功能测试中，如有问题请及时反馈', 5000);
         hasShownSectionNotice = true;
     }
 
@@ -2014,7 +2233,7 @@ function renderStationSection(stationName, lineName) {
         infoDiv.style.flexDirection = stationInfo.overGround ? 'column' : 'column-reverse';
 
         // 根据显示方向决定是否翻转内容
-        if (shouldReverseDisplay) {
+        if (shouldReverseDisplay ^ isUpward) {
             infoDiv.style.transform = 'scaleX(-1)';
         }
 
@@ -2036,7 +2255,8 @@ function renderStationSection(stationName, lineName) {
             for (let i = 0; i < carCount; i++) {
                 const car = document.createElement('div');
                 car.className = 'car';
-                car.style.width = 290 / maxCarCount + 'px';
+                const carWidth = 290 / maxCarCount + 'px';
+                car.style.width = carWidth;
                 
                 // 创建车厢号码
                 const carNumber = document.createElement('div');
@@ -2049,16 +2269,28 @@ function renderStationSection(stationName, lineName) {
                 const number = isHeadFirst ? (carCount - i) : (i + 1);
                 carNumber.textContent = number;
                 
-                // 如果是当前选中的车厢，设置特殊样式
+                // 如果是当前选中的车厢，设置特殊样式和闪烁动画
                 if (number === selectedCar) {
-                    car.style.backgroundColor = currentLine.color;
-                    carNumber.style.color = '#FFFFFF';
-                    carNumber.style.fontWeight = 'bold';
+                    // 将--line-color变量设定为当前线路颜色
+                    car.style.setProperty('--line-color', currentLine.color);
+                    car.style.setProperty('--car-width', carWidth);
+                    car.classList.add('selected');
                 }
 
                 // 如果是右侧车门，让文字保持正向
+                console.log('车门方向:', isRightDoor, '是否上行:', isUpward);
+                if (isUpward) {
+                    carGroup.style.transform = 'scaleX(-1)';
+                    //carNumber.style.transform = 'scaleX(-1)';
+                } else { 
+                    carGroup.style.transform = 'scaleX(1)';
+                    //carNumber.style.transform = 'scaleX(1)';
+                }
                 if (isRightDoor) {
                     carNumber.style.transform = 'scaleX(-1)';
+                    car.classList.add('right-door');
+                } else { 
+                    carNumber.style.transform = 'scaleX(1)';
                 }
                 
                 car.appendChild(carNumber);
@@ -2161,6 +2393,7 @@ function renderStationSection(stationName, lineName) {
                         current: stationInfo.layers.findIndex(l => l.floor === layer.floor),
                         end: stationInfo.layers.findIndex(l => l.floor === facility.endFloor)
                     };
+                    console.log('当前层索引:', layerIndices.current, '终点层索引:', layerIndices.end);
                     stairsImg.src = layerIndices.end < layerIndices.current ? 'res/stairs.png' : 'res/stairs_down.png';
                     stairsImg.style.width = '14px';
                     stairsImg.style.height = '14px';
@@ -2236,6 +2469,13 @@ function renderStationSection(stationName, lineName) {
                             } else {
                                 imgElement.src = src;
                             }
+                        } else if (src.includes('stairs')) {
+                            // 如果是楼梯，根据终点楼层选择图片
+                            if (endLayerIndex < currentLayerIndex) {
+                                imgElement.src = 'res/stairs.png';
+                            } else {
+                                imgElement.src = 'res/stairs_down.png';
+                            }
                         } else {
                             imgElement.src = src;
                         }
@@ -2308,8 +2548,10 @@ function renderStationSection(stationName, lineName) {
                 const lineNameDiv = document.createElement('div');
                 lineNameDiv.textContent = transfer.line;
                 // 如果是右侧车门，翻转文字以保持可读性
-                if (isRightDoor) {
+                if (isRightDoor ^ isUpward) {
                     lineNameDiv.style.transform = 'scaleX(-1)';
+                } else {
+                    lineNameDiv.style.transform = 'scaleX(1)';
                 }
                 lineInfo.appendChild(lineNameDiv);
                 
@@ -2336,7 +2578,7 @@ function renderStationSection(stationName, lineName) {
                         textAlign: 'right',
                         position: 'absolute',
                         top: '50%',
-                        transform: isRightDoor ? 'translate(calc(-100%), -50%) scaleX(-1)' : 'translate(calc(-100%), -50%)',
+                        transform: isRightDoor ^ isUpward ? 'translate(calc(-100%), -50%) scaleX(-1)' : 'translate(calc(-100%), -50%)',
                     });
                     wrapper.appendChild(stationName);
 
@@ -2400,16 +2642,20 @@ function renderStationSection(stationName, lineName) {
                         alignItems: 'center',
                     });
                     // 如果是右侧车门，翻转文字以保持可读性
-                    if (isRightDoor) {
+                    if (isRightDoor ^ isUpward) {
                         codeBox.style.transform = 'scaleX(-1)';
+                    } else { 
+                        codeBox.style.transform = 'scaleX(1)';
                     }
 
                     const description = document.createElement('div');
                     description.textContent = exit.description;
                     description.style.color = '#000000';
                     // 如果是右侧车门，翻转文字以保持可读性
-                    if (isRightDoor) {
+                    if (isRightDoor ^ isUpward) {
                         description.style.transform = 'scaleX(-1)';
+                    } else { 
+                        description.style.transform = 'scaleX(1)';
                     }
 
                     exitDiv.appendChild(codeBox);
@@ -2430,8 +2676,10 @@ function renderStationSection(stationName, lineName) {
                     description.textContent = exit.description;
                     description.style.color = '#000000';
                     // 如果是右侧车门，翻转文字以保持可读性
-                    if (isRightDoor) {
+                    if (isRightDoor ^ isUpward) {
                         description.style.transform = 'scaleX(-1)';
+                    } else { 
+                        description.style.transform = 'scaleX(1)';
                     }
 
                     const codeBox = document.createElement('div');
@@ -2449,8 +2697,10 @@ function renderStationSection(stationName, lineName) {
                         alignItems: 'center',
                     });
                     // 如果是右侧车门，翻转文字以保持可读性
-                    if (isRightDoor) {
+                    if (isRightDoor ^ isUpward) {
                         codeBox.style.transform = 'scaleX(-1)';
+                    } else { 
+                        codeBox.style.transform = 'scaleX(1)';
                     }
 
                     exitDiv.appendChild(description);
@@ -2476,4 +2726,19 @@ function renderStationSection(stationName, lineName) {
         floorDiv.appendChild(infoDiv);
         stationSection.appendChild(floorDiv);
     });
+}
+
+function updateTime() {
+    const timeElement = document.querySelector('.time');
+    const now = new Date();
+    // 格式化时间为 yyyy.MM.dd（空一格）EEEE（空一格）HH:mm
+    const formattedTime = 
+        now.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        }).replace(/\//g, '.') + ' ' +
+        now.toLocaleString('zh-CN', { weekday: 'long' }) + ' ' +
+        now.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    timeElement.textContent = formattedTime;
 }
