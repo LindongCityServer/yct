@@ -799,11 +799,13 @@ input[type="radio"]:checked + label {
     justify-content: space-between;
     padding: 4px 6px;
     box-sizing: border-box;
+    color: black;
+    font-size: 10px;
+    font-weight: bold;
 }
 
 .line-name-container img {
     height: 18px;
-    width: auto;
     object-fit: contain;
     margin-left: 2px;
 }

@@ -20,9 +20,9 @@ window.addEventListener('DOMContentLoaded', function() {
         window.metro_logo = metro_logo;
         // 确保正确加载默认数据
         if (typeof lines !== 'undefined') {
-        lineData = { lines: lines };
-            // 初始化各个组件
-        initializeLineSelect();
+            lineData = { lines: lines };
+                // 初始化各个组件
+            initializeLineSelect();
             initializeCarControls();
             initializeDisplayMode();
             initializeDoorButtons();
@@ -675,13 +675,38 @@ function updateInfoBar() {
     lineName.innerHTML = `
         <div class="line-name-container">
             ${window.metro_logo ? 
-                `<img src="${window.metro_logo}" alt="地铁标识">` : 
+                `<img class="metro-logo" src="${window.metro_logo}" alt="地铁标识">` : 
                 ''}
+            <div class="metro-name-text" style="padding-right:4px">${window.metro_name}</div>
             <div class="line-name-text" style="background-color: ${currentLine.color}">
                 ${currentLine.name.replace(/([0-9A-Z]+)(线|号线|路)$/, '$1')}
             </div>
         </div>
     `;
+    
+    const metroLogo = document.querySelector('.metro-logo');
+    const metroNameText = document.querySelector('.metro-name-text');
+    let showMetroName = false;
+    
+    if (metroLogo) {
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            const width = entry.contentRect.width;
+            console.log('当前宽度:', width);
+            const height = entry.contentRect.height;
+            const aspectRatio = width / height;
+            showMetroName = aspectRatio < 1.5;
+            metroNameText.style.display = showMetroName ? 'block' : 'none';
+            console.log(`显示地铁名称: ${showMetroName}, logo宽: ${width.toFixed(2)}`);
+
+        }
+    
+    });
+    resizeObserver.observe(metroLogo);
+    } else {
+        console.log('显示地铁名称: false, logo宽高比: 无logo');
+    }
+
 
     const mapRadio = document.getElementById('showRoute');
     const detailRadio = document.getElementById('showDetail');
