@@ -440,30 +440,53 @@ function updateRouteMap() {
 
     const lastStation = stations[totalStations - 1];
     // 用getBoundingClientRect测量其中.station-name和.station-name-en的宽度
-    const lastStationLabel = document.createElement('div');
-    lastStationLabel.className = 'station-labels';
     const lastStationName = lastStation.name;
     const lastStationNameEN = lastStation.nameEN;
-    lastStationLabel.innerHTML = `
-        <div class="station-name">${lastStationName}</div>
-        <div class="station-name-en">${lastStationNameEN}</div>
-    `;
-    console.log('最后一站标签内容:', lastStationLabel.innerHTML);
-    // 插入到 body 中
-    document.body.appendChild(lastStationLabel);
 
-    // 获取宽度
-    const lastStationNameWidth = lastStationLabel.getBoundingClientRect().width;
+    function getStationNameWidth(name, nameEN) {
+        const lastStationLabel = document.createElement('div');
+        lastStationLabel.className = 'station-labels';
+        lastStationLabel.innerHTML = `
+            <div class="station-name">${name}</div>
+            <div class="station-name-en">${nameEN}</div>
+        `;
+        //console.log('最后一站标签内容:', lastStationLabel.innerHTML);
+        // 插入到 body 中
+        document.body.appendChild(lastStationLabel);
 
-    // 清理 DOM
-    document.body.removeChild(lastStationLabel);
-    console.log('最后一站标签长度:', lastStationNameWidth, 'px');
+        // 获取宽度
+        const lastStationNameElement = lastStationLabel.querySelector('.station-name');
+        const lastStationNameENElement = lastStationLabel.querySelector('.station-name-en');
+        const lastStationNameWidth = Math.max(lastStationNameElement.getBoundingClientRect().width * 0.5, lastStationNameENElement.getBoundingClientRect().width * 0.6);
 
-    let spacing = (routeMap.clientWidth - lastStationNameWidth - 12) / (totalStations - 1);
-    const mapScale = spacing < 24 ? spacing / 24 : 1;
-    if (mapScale !== 1) { 
-        spacing = 24 / mapScale;
+        // 清理 DOM
+        document.body.removeChild(lastStationLabel);
+        //console.log('最后一站标签长度:', lastStationNameWidth, 'px');
+
+        return lastStationNameWidth;
     }
+
+    const lastStationNameWidth = getStationNameWidth(lastStationName, lastStationNameEN);
+
+    let spacing = (routeMap.clientWidth - lastStationNameWidth * 0.8 - 12) / (totalStations - 1);
+    let mapScale = spacing < 28 ? spacing / 28 : 1;
+    console.log('初始间距:', spacing, 'px, 缩放比例:', mapScale);
+    if (mapScale !== 1) { 
+        spacing = 28 / mapScale;
+    }
+
+    // 更新mapScale
+    stations.forEach((station, index) => {
+        const stationNameWidth = getStationNameWidth(station.name, station.nameEN) - (spacing + 12) * (totalStations - index - 1) * 0.8;
+        if (stationNameWidth > lastStationNameWidth) {
+            const spacingForStation = (routeMap.clientWidth - stationNameWidth * 0.8 - 12) / (totalStations - 1);
+            if (spacingForStation < spacing) { 
+                mapScale = spacingForStation / 28;
+                spacing = 28 / mapScale;
+                console.log('间距:', spacingForStation, 'px, 缩放比例:', mapScale, '车站:', station.name, '宽度:', stationNameWidth);
+            }
+        }
+    });
 
     stations.forEach((station, index) => {
         const originalIndex = effectiveDirection ? stations.length - 1 - index : index;
@@ -545,17 +568,28 @@ function updateRouteMap() {
 
     // 计算每一个station-labels的高度，找出最大值
     const stationLabels = routeMap.querySelectorAll('.station-labels');
+    console.log('站点标签数量:', stationLabels.length);
     let maxLabelHeight = 0;
+    // 执行两次以确保获取所有标签的高度
     stationLabels.forEach(label => {
         const labelHeight = label.getBoundingClientRect().height;
         maxLabelHeight = Math.max(maxLabelHeight, labelHeight);
+        console.log('第一次获取最大站点标签高度:', maxLabelHeight, 'px');
+    });
+    stationLabels.forEach(label => {
+        const labelHeight = label.getBoundingClientRect().height;
+        maxLabelHeight = Math.max(maxLabelHeight, labelHeight);
+        console.log('第二次获取最大站点标签高度:', maxLabelHeight, 'px');
     });
 
-    let routeMapTopOffset = maxLabelHeight - 40; // 减去64px的底部间距
+
+    let routeMapTopOffset = maxLabelHeight - 30; // 减去64px的底部间距
     // 设定routeMapTopOffset最小值为18，最大值为32
     routeMapTopOffset = Math.min(Math.max(routeMapTopOffset, 20), 32);
 
+    // 当routeMapTopOffset更新时从上一个位置平滑移动
     routeMap.style.top = `${routeMapTopOffset * mapScale}px`;
+
 
     routeMap.style.transform = `scale(${mapScale})`
 
@@ -677,7 +711,7 @@ function updateInfoBar() {
             ${window.metro_logo ? 
                 `<img class="metro-logo" src="${window.metro_logo}" alt="地铁标识">` : 
                 ''}
-            <div class="metro-name-text" style="padding-right:4px">${window.metro_name}</div>
+            <div class="metro-name-text" style="padding-right:4px">${window.metro_name || '动态线路图'}</div>
             <div class="line-name-text" style="background-color: ${currentLine.color}">
                 ${currentLine.name.replace(/([0-9A-Z]+)(线|号线|路)$/, '$1')}
             </div>
@@ -688,23 +722,47 @@ function updateInfoBar() {
     const metroNameText = document.querySelector('.metro-name-text');
     let showMetroName = false;
     
-    if (metroLogo) {
-    const resizeObserver = new ResizeObserver(entries => {
-        for (let entry of entries) {
-            const width = entry.contentRect.width;
-            console.log('当前宽度:', width);
-            const height = entry.contentRect.height;
-            const aspectRatio = width / height;
-            showMetroName = aspectRatio < 1.5;
-            metroNameText.style.display = showMetroName ? 'block' : 'none';
-            console.log(`显示地铁名称: ${showMetroName}, logo宽: ${width.toFixed(2)}`);
+    // 当metroLogo提示404时跳过监听
+    if (metroLogo && metroLogo.complete) {
+        metroLogo.style.display = 'block';
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const width = entry.contentRect.width;
+                console.log('当前宽度:', width);
+                const height = entry.contentRect.height;
+                const aspectRatio = width / height;
+                showMetroName = aspectRatio < 1.5;
+                metroNameText.style.display = showMetroName ? 'block' : 'none';
+                console.log(`显示地铁名称: ${showMetroName}, logo宽: ${width.toFixed(2)}`);
 
-        }
-    
-    });
-    resizeObserver.observe(metroLogo);
+            }
+        });
+        resizeObserver.observe(metroLogo);
     } else {
-        console.log('显示地铁名称: false, logo宽高比: 无logo');
+        metroLogo.style.display = 'none';
+        //console.log('显示地铁名称: false, logo宽高比: 无logo');
+        // 如果logo没有404错误则每秒更新一次
+        try {
+            setTimeout(() => {
+                metroLogo.style.display = 'block';
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        const width = entry.contentRect.width;
+                        console.log('当前宽度:', width);
+                        const height = entry.contentRect.height;
+                        const aspectRatio = width / height;
+                        showMetroName = aspectRatio < 1.5;
+                        metroNameText.style.display = showMetroName ? 'block' : 'none';
+                        console.log(`显示地铁名称: ${showMetroName}, logo宽: ${width.toFixed(2)}`);
+
+                    }
+                });
+                resizeObserver.observe(metroLogo);
+            }, 1000);
+        } catch (error) {
+            console.error('更新logo显示状态时出错:', error);
+            metroLogo.style.display = 'none';
+        }
     }
 
 
@@ -771,7 +829,7 @@ function findTransferLine(stationName) {
         }
     });
     // 排除透明线路（颜色编号为六位十六进制数后面加00）
-    transfers = transfers.filter(line => line.color.slice(-2) !== '00');
+    transfers = transfers.filter(line => line.color.match(/^#[0-9A-Fa-f]{6}00$/) === null);
     return transfers;
 }
 
@@ -866,17 +924,29 @@ function initializeDisplayMode() {
     function updateDisplay() {
         if (routeRadio.checked) {
             routeMap.style.display = 'flex';
-            stationDetail.style.display = 'none';
+            routeMap.style.transition = 'opacity 0.2s ease-out';
+            setTimeout(() => {routeMap.style.opacity = '1';}, 10);
+            setTimeout(() => {
+                stationDetail.style.opacity = '0';
+                stationDetail.style.display = 'none';
+            }, 600);
+            stationDetail.style.transition = 'opacity 0.3s ease-in';
             shouldAnimate = false;  // 切换到路线图时重置标记
             // 强制重新计算路线图布局
             if (currentLine) {
                 setTimeout(() => {
-            updateRouteMap();
+                    updateRouteMap();
                 }, 0);
             }
         } else {
-            routeMap.style.display = 'none';
+            setTimeout(() => {
+                routeMap.style.opacity = '0';
+                routeMap.style.display = 'none';
+            }, 100);
+            routeMap.style.transition = 'opacity 0.3s ease-in';
             stationDetail.style.display = 'flex';
+            setTimeout(() => {stationDetail.style.opacity = '1';}, 100);
+            stationDetail.style.transition = 'opacity 0.2s ease-out';
             shouldAnimate = true;   // 切换到站点详情时设置标记
             // 更新站点详情
             if (currentLine) {
@@ -1042,20 +1112,27 @@ function updateStationSequence() {
             // 其他情况：显示当前站及其前后站
             indices = [currentStationIndex - 1, currentStationIndex, currentStationIndex + 1];
         }
-    } else {
-        // 不显示详情时显示5站
+    } else if (currentLine.stations.length > stationCount) {
+        // 不显示详情时显示5站(需要线路多于5站)
         if (currentStationIndex <= sideStationCount) {
             // 如果是开头几站，显示前5站
             indices = Array.from({length: stationCount}, (_, i) => i);
+            //console.log('indices:', indices, '当前站索引:', currentStationIndex, '线路站数:', currentLine.stations.length);
         } else if (currentStationIndex >= currentLine.stations.length - sideStationCount) {
             // 如果是末尾几站，显示后5站
             indices = Array.from({length: stationCount}, (_, i) => currentLine.stations.length - stationCount + i);
+            //console.log('indices:', indices, '当前站索引:', currentStationIndex, '线路站数:', currentLine.stations.length);
         } else {
             // 否则显示当前站及其前后两站
             for (let i = -sideStationCount; i <= sideStationCount; i++) {
                 indices.push(currentStationIndex + i);
+                //console.log('indices:', indices, '当前站索引:', currentStationIndex, '线路站数:', currentLine.stations.length);
             }
         }
+    } else {
+        // 如果线路站数少于等于5站，显示全部站点
+        indices = Array.from({length: currentLine.stations.length}, (_, i) => i);
+        //console.log('indices:', indices, '当前站索引:', currentStationIndex, '线路站数:', currentLine.stations.length);
     }
     
     // 如果需要反转顺序
@@ -1069,7 +1146,9 @@ function updateStationSequence() {
         // 显示3站时使用更大的间距（将总宽度除以3，这样两端和站点间的间距都相等）
         totalWidth / 3 : 
         // 显示5站时保持原有间距
-        totalWidth / 6;
+        currentLine.stations.length >= 5 ? 
+        totalWidth / 6 :
+        totalWidth / (currentLine.stations.length + 1);
     
     // 创建连接线（包括两端）
     for (let i = 0; i <= indices.length; i++) {
@@ -1602,7 +1681,8 @@ function initializeToggleButtons() {
         if (document.activeElement.tagName !== 'INPUT' && 
             document.activeElement.tagName !== 'SELECT' && 
             document.activeElement.tagName !== 'TEXTAREA') {
-            if (e.key.toLowerCase() === 'i') {
+            // 修改快捷键为Alt+I
+            if (e.altKey && e.key.toLowerCase() === 'i') {
                 toggleImmersive();
             }
         }
@@ -1741,6 +1821,7 @@ function updateActionButtonText() {
     // 添加快捷键提示
     actionButton.innerHTML = actionButton.textContent + '<span class="shortcut-key" style="color: white">↵</span>';
     updateInfoBar();
+    updateRouteMap();
 }
 
 // 在显示模式切换时更新按钮文本

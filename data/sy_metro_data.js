@@ -26,7 +26,17 @@ const lines = [
             { name:"中街", nameEN:"ZHONGJIE" },
             { name:"东中街", nameEN:"DONGZHONGJIE" },
             { name:"滂江街", nameEN:"PANGJIANGJIE" },
-            { name:"黎明广场", nameEN:"LIMINGGUANGCHANG", platformSide:"right" }
+            { name:"黎明广场", nameEN:"LIMINGGUANGCHANG", platformSide:"right" },
+            { name:"新惠街", nameEN:"XINHUIJIE"},
+            { name:"新宁街", nameEN:"XINNINGJIE" },
+            { name:"东大营街", nameEN:"DONGDAYINGJIE" },
+            { name:"农业大学", nameEN:"NONGYEDAXUE" },
+            { name:"前陵", nameEN:"QIANLING" },
+            { name:"东陵公园", nameEN:"DONGLINGGONGYUAN" },
+            { name:"水泉", nameEN:"SHUIQUAN" },
+            { name:"伯官北大街", nameEN:"BOGUANBEIDAJIE" },
+            { name:"植物园", nameEN:"ZHIWUYUAN" },
+            { name:"双马", nameEN:"SHUANGMA" },
         ]
     },
     {
@@ -99,7 +109,10 @@ const lines = [
             { name:"文富路", nameEN:"WENFULU" },
             { name:"富民街", nameEN:"FUMINJIE" },
             { name:"江东街", nameEN:"JIANGDONGJIE" },
-            { name:"方家栏", nameEN:"FANGJIALAN" }
+            { name:"方家栏", nameEN:"FANGJIALAN" },
+            { name:"东塔", nameEN:"DONGTA" },
+            { name: "凌云街", nameEN:"LINGYUNJIE" },
+            { name:"新泰街", nameEN:"XINTAIJIE" },
         ]
     },
     {
@@ -122,13 +135,40 @@ const lines = [
             { name:"砂阳", nameEN:"SHAYANG" },
             { name:"南京桥", nameEN:"NANJINGQIAO" },
             { name:"长白岛", nameEN:"CHANGBAIDAO" },
-            { name:"长白南", nameEN:"CHANGBANAN" },
+            { name:"长白南", nameEN:"CHANGBAINAN" },
             { name:"金仓路", nameEN:"JINCANGLU" },
             { name:"云杉路", nameEN:"YUNSHANLU" },
             { name:"红椿路", nameEN:"HONGCHUNLU" },
             { name:"城建学院", nameEN:"CHENJIANXUEYUAN" },
             { name:"沈阳南站", nameEN:"SHENYANGNANZHAN" },
-            { name:"创新路", nameEN:"CHUANGXINLU" }
+            { name:"创新路", nameEN:"CHUANGXINLU" },
+        ]
+    },
+    {
+        name: "5号线",
+        color: "rgb(68, 31, 8)",
+        stations: [
+            {name: "国际物流园", nameEN:"GUOJIWULIYUAN" },
+            {name: "大兴", nameEN:"DAXING" },
+            {name: "旺港大街", nameEN:"WANGGANGDAJIE" },
+            {name: "沙岗子", nameEN:"SHAGANGZI" },
+            {name: "红旗台", nameEN:"HONGQITAI" },
+            {name: "金谷", nameEN:"JINGU" },
+            {name: "肇工街", nameEN:"ZHAOGONGJIE" },
+            { name: "保工北街", nameEN:"BAOGONGBEIJIE" },
+            { name: "北二路", nameEN:"BEIERLU" },
+            { name: "沈阳站", nameEN:"SHENYANGZHAN" },
+            { name: "南五马路", nameEN:"NANWUMALU" },
+            { name: "十三纬路", nameEN:"SHISANWEILU" },
+            { name: "青年公园", nameEN:"QINGNIANGONGYUAN" },
+            { name: "市妇婴医院", nameEN:"SHIFUYINGYIYUAN" },
+            { name: "小河沿", nameEN:"XIAOHEYAN" },
+            { name: "长安路", nameEN:"CHANG'ANLU" },
+            { name: "大东公园", nameEN:"DADONGGONGYUAN" },
+            { name: "凌云街", nameEN:"LINGYUNJIE" },
+            { name: "长安桥南街", nameEN:"CHANG'ANQIAONANJIE" },
+            { name: "李巴彦", nameEN:"LIBAYAN" },
+            { name: "新园站", nameEN:"XINYUANZHAN" },
         ]
     },
     {
@@ -176,21 +216,47 @@ const lines = [
             { name:"东建街", nameEN:"DONGJIANJIE" },
             { name:"沈阳东站", nameEN:"SHENYANGDONGZHAN" },
             { name:"东北大马路", nameEN:"DONGBEIDAMALU" },
-            { name:"第五中学", nameEN:"DIWUZHONGXUE" },
+            { name:"大北边门", nameEN:"DABEIBIANMEN" },
             { name:"中街", nameEN:"ZHONGJIE" },
-            { name:"太清宫", nameEN:"TAIQINGGONG" },
+            //{ name:"太清宫", nameEN:"TAIQINGGONG" },
             { name:"人民广场", nameEN:"RENMINGUANGCHANG" },
-            { name:"北市场", nameEN:"BEISHICHANG" },
+            //{ name:"北市场", nameEN:"BEISHICHANG" },
             { name:"市府大路", nameEN:"SHIFUDALU" },
-            { name:"西塔", nameEN:"XITA" },
+            //{ name:"西塔", nameEN:"XITA" },
             { name:"沈阳站", nameEN:"SHENYANGZHAN" },
-            { name:"胜利南街", nameEN:"SHENGLINANJIE" },
+            //{ name:"胜利南街", nameEN:"SHENGLINANJIE" },
             { name:"兴工南街", nameEN:"XINGGONGNANJIE" },
-            { name:"仙女湖公园", nameEN:"XIANNÜHUGONGYUAN" },
+            { name:"沈辽路", nameEN:"SHENLIAOLU" },
             { name:"长客西站", nameEN:"CHANGKEXIZHAN" },
             { name:"洪湖街", nameEN:"HONGHUJIE" },
             { name:"开发大道", nameEN:"KAIFADADAO" },
             { name:"昆明湖街", nameEN:"KUNMINGHUJIE" },
+            { name:"六号街", nameEN:"LUHAOJIE" }
+        ]
+    },
+    { 
+        name: "8号线",
+        color: "rgb(193, 18, 120)",
+        stations: [
+            { name:"文大路", nameEN:"WENDALU" },
+            { name:"塔北村", nameEN:"TABEICUN" },
+            { name:"大韩屯", nameEN:"DAHANTUN" },
+            { name:"观音寺", nameEN:"GUANYINSI" },
+            { name:"下坎子", nameEN:"XIAKANZI" },
+            { name:"百鸟公园", nameEN:"BAINIAOGONGYUAN" },
+            { name:"珠江街", nameEN:"ZHUJIANGJIE" },
+            { name:"皇寺路", nameEN:"HUANGSILU" },
+            { name:"北市场", nameEN:"BEISHICHANG" },
+            { name: "十三纬路", nameEN:"SHISANWEILU" },
+            { name:"三好街", nameEN:"SANHAOJIE" },
+            { name:"三好桥", nameEN:"SANHAOQIAO", platformSide:"left", swapPlatform:true },
+            { name:"长白东", nameEN:"CHANGBAIDONG" },
+            { name:"金阳大街", nameEN:"JINYANGDAJIE" },
+            { name:"新才街", nameEN:"XINCAIJIE" },
+            { name:"白塔河二路", nameEN:"BAITAHEERLU" },
+            { name:"省图书馆", nameEN:"SHENGTUSHUGUAN" },
+            { name:"智慧大街", nameEN:"ZHIHUIDAJIE" },
+            { name:"创新五路", nameEN:"CHUANGXINWULU" },
         ]
     },
     {
@@ -211,7 +277,7 @@ const lines = [
             { name:"曹仲", nameEN:"CAOZHONG" },
             { name:"浑河站", nameEN:"HUNHEZHAN" },
             { name:"胜利南街", nameEN:"SHENGLISHENANJIE" },
-            { name:"长白南", nameEN:"CHANGBANAN" },
+            { name:"长白南", nameEN:"CHANGBAINAN" },
             { name:"榆树台", nameEN:"YUSHUTAI" },
             { name:"金阳大街", nameEN:"JINYANGDAJIE" },
             { name:"彩霞街", nameEN:"CAIXIAJIE" },
@@ -292,4 +358,301 @@ const lines = [
     // 更多线路...
 ];
 
+window.stationDetail = [    
+    {
+        name: "3号线",
+        maxCarCount: 6,
+        stationTemplate: [
+            {
+                name: "地上站",
+                overGround: true,
+                layers: [
+                    { floor: "3F", type: "platform", },
+                    { floor: "2F", type: "concourse", },
+                ],
+                facilities: [
+                    { type: "escalator", location: 1, endFloor: "2F", direction: "downwards", oneWay: "none" },
+                    { type: "waiting_room", location: 3, },
+                    { type: "elevator", location: 3.5, endFloor: "2F", },
+                    { type: "escalator_and_stairs", location: 5, endFloor: "2F", direction: "upwards", oneWay: "up" },
+                ],
+            },
+            {
+                name: "地下站",
+                overGround: false,
+                layers: [
+                    { floor: "B1", type: "concourse", },
+                    { floor: "B2", type: "platform", },
+                ],
+                facilities: [
+                    { type: "escalator", location: 1.5, endFloor: "B1", direction: "downwards", oneWay: "none" },
+                    { type: "elevator", location: 2.8, endFloor: "B1", },
+                    { type: "stairs", location: 3.2, endFloor: "B1", },
+                    { type: "escalator", location: 4.5, endFloor: "B1", direction: "downwards", oneWay: "none" },
+                    { type: "toilet", location: 6, },
+                ],
+            },
+        ],
+        stations: [
+            { 
+                name: "李达", template: "地上站",
+                exits: [
+                    {
+                        floor: "2F",
+                        upwards: [
+                            {code:"B",description:""},                            
+                        ],     
+                        downwards: [
+                            {code:"A",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "铁西汽车工厂", template: "地上站",
+                exits: [
+                    {
+                        floor: "2F",
+                        upwards: [
+                            {code:"B",description:""},
+                        ],     
+                        downwards: [
+                            {code:"A",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "马贝", template: "地上站", swapTemplateFacilitiesForDoors: true,
+                exits: [
+                    {
+                        floor: "2F",
+                        upwards: [
+                            {code:"A",description:""},
+                        ],     
+                        downwards: [
+                            {code:"B",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "中德大街", template: "地上站",
+                exits: [
+                    {
+                        floor: "2F",
+                        upwards: [
+                            {code:"A",description:""},
+                        ],     
+                        downwards: [
+                            {code:"B",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "细河悠谷", template: "地上站", swapTemplateFacilitiesForDoors: true,
+                exits: [
+                    {
+                        floor: "2F",
+                        upwards: [
+                            {code:"A",description:""},
+                        ],     
+                        downwards: [
+                            {code:"B",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "翟家", template: "地上站",
+                exits: [
+                    {
+                        floor: "2F",
+                        upwards: [
+                            {code:"B",description:""},
+                        ],     
+                        downwards: [
+                            {code:"A",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "工业大学", 
+                overGround: true,
+                layers: [
+                    { floor: "3F", type: "platform", },
+                    { floor: "2F", type: "concourse", },
+                ],
+                facilities: [
+                    { type: "escalator", location: 1, endFloor: "2F", direction: "upwards", oneWay: "none" },
+                    { type: "waiting_room", location: 3, },
+                    { type: "elevator", location: 3.5, endFloor: "2F", },
+                    { type: "escalator_and_stairs", location: 5, endFloor: "2F", direction: "upwards", oneWay: "up" },
+                ],
+                exits: [
+                    {
+                        floor: "2F",
+                        upwards: [
+                            {code:"B",description:""},
+                        ],     
+                        downwards: [
+                            {code:"A",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "宁官", template: "地上站",
+                exits: [
+                    {
+                        floor: "2F",
+                        upwards: [
+                            {code:"A",description:""},
+                        ],     
+                        downwards: [
+                            {code:"B",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "余良", template: "地上站",
+                exits: [
+                    {
+                        floor: "2F",
+                        upwards: [
+                            {code:"B",description:""},
+                        ],     
+                        downwards: [
+                            {code:"A",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "甘官", template: "地下站",
+                exits: [
+                    {
+                        floor: "B1",
+                        upwards: [
+                            {code:"B",description:""},
+                            {code:"C",description:""},
+                        ],     
+                        downwards: [
+                            {code:"A",description:""},
+                            {code:"D",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "千岛湖街", template: "地下站",
+                exits: [
+                    {
+                        floor: "B1",
+                        upwards: [
+                            {code:"B",description:""},
+                            {code:"C",description:""},
+                        ],     
+                        downwards: [
+                            {code:"A",description:""},
+                            {code:"D",description:""},
+                        ],
+                    },
+                ]
+            },  
+            { 
+                name: "南阳湖街", template: "地下站",
+                exits: [
+                    {
+                        floor: "B1",
+                        upwards: [
+                            {code:"B",description:""},
+                            {code:"C",description:""},
+                        ],     
+                        downwards: [
+                            {code:"A",description:""},
+                            {code:"D",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "大通湖街", 
+                overGround: false,
+                layers: [
+                    { floor: "B1", type: "concourse", },
+                    { floor: "B2", type: "platform", },
+                ],
+                facilities: [
+                    { type: "toilet", location: 0, },
+                    { type: "nursing_room", location: 0.5, },
+                    { type: "escalator_and_stairs", location: 1, endFloor: "B1", direction: "upwards", oneWay: "none" },
+                    { type: "elevator", location: 2.5, endFloor: "B1", },
+                    { type: "escalator", location: 3.5, endFloor: "B1", direction: "upwards", oneWay: "none" },
+                    { type: "escalator_and_stairs", location: 4, endFloor: "B1", direction: "upwards", oneWay: "none" },
+                ],
+                transfer: [
+                    { floor: "B1", direction: "here", location:0.5, line:"9号线" },
+                ],
+                exits: [
+                    {
+                        floor: "B1",
+                        downwards: [
+                            {code:"G",description:""},
+                        ],     
+                        upwards: [
+                            {code:"B",description:""},
+                            {code:"C",description:""},
+                            {code:"D",description:""},
+                            {code:"F",description:""},
+                        ],
+                    },
+                ]
+            },
+            { 
+                name: "南李官", template: "地下站",
+                exits: [
+                    {
+                        floor: "B1",
+                        upwards: [
+                            {code:"B",description:""},
+                            {code:"C",description:""},
+                        ],     
+                        downwards: [
+                            {code:"A",description:""},
+                            {code:"D",description:""},
+                        ],
+                    },
+                ]
+            },
+        ]
+    },
+    {
+        name: "9号线",
+        maxCarCount: 6,
+        stations: [
+            { 
+                name: "大通湖街", 
+                overGround: false,
+                layers: [
+                    { floor: "B1", type: "concourse", },
+                    { floor: "B2", type: "platform", },
+                ],
+                facilities: [
+                    { type: "toilet", location: 0, },
+                    { type: "escalator_and_stairs", location: 1, endFloor: "B1", direction: "upwards", oneWay: "none" },
+                    { type: "elevator", location: 2, endFloor: "B1", },
+                    { type: "escalator_and_stairs", location: 3.5, endFloor: "B1", direction: "upwards", oneWay: "up" },
+                    { type: "escalator_and_stairs", location: 4, endFloor: "B1", direction: "upwards", oneWay: "none" },
+                ],
+                transfer: [
+                    { floor: "B1", direction: "here", location:0.5, line:"3号线" },
+                ]
+            },
+        ]
+    }
+]
 

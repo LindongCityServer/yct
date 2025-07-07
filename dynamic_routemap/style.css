@@ -135,8 +135,11 @@ body {
     margin-bottom: 0.6px;
 }
 
-.station-name-en {
-    font-size: 5px;
+.route-map .station-name-en {
+    font-size: 10px;
+    transform: scale(0.6);
+    transform-origin: top left;
+    height: 6px;
 }
 
 .transfer-line {
@@ -214,6 +217,7 @@ body {
     color: white;
     font-size: 18px;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 .line-name, .terminal-station {
@@ -386,14 +390,13 @@ body {
 
 #prevStation,
 #nextStation {
-    width: 84px;
+    width: 82px;
     flex-shrink: 0;
 }
 
 .button-group {
     flex: 1;
     display: flex;
-    border: 1px solid var(--control-border);
     border-radius: 30px;
     overflow: hidden;
     margin: 0;
@@ -405,7 +408,6 @@ body {
     background: var(--control-background);
     cursor: pointer;
     user-select: none;
-    border-right: 1px solid var(--control-border);
     flex: 1;
     text-align: center;
     color: var(--control-text);
@@ -423,6 +425,7 @@ body {
 input[type="radio"]:checked + label {
     background: var(--control-active);
     color: var(--text-color);
+    border-radius: 24px;
 }
 
 .door-buttons{
@@ -1084,7 +1087,6 @@ input[type="radio"]:checked + label {
 }
 
 .station-sequence .current-station-active .station-name-en {
-    font-size: 6px;
     color: #FF0000;
 }
 
@@ -1135,7 +1137,10 @@ input[type="radio"]:checked + label {
 }
 
 .station-sequence .station-name-en {
-    font-size: 6px;
+    font-size: 10px;
+    transform: scale(0.6);
+    transform-origin: top center;
+    height: 6px;
 }
 
 .station-sequence .connection-line {
@@ -1378,11 +1383,11 @@ body.immersive {
 .button-group {
     flex: 1;
     display: flex;
-    border: 1px solid var(--control-border);
     border-radius: 30px;
     overflow: hidden;
     margin: 0;
     background-color: var(--control-background);
+    border: none;
 }
 
 .button-group label {
@@ -1390,11 +1395,11 @@ body.immersive {
     background: var(--control-background);
     cursor: pointer;
     user-select: none;
-    border-right: 1px solid var(--control-border);
     flex: 1;
     text-align: center;
     color: var(--control-text);
     margin: 0;
+    border: none;
 }
 
 .button-group label:last-child {
@@ -1404,6 +1409,7 @@ body.immersive {
 .button-group input[type="radio"]:checked + label {
     background: var(--control-active);
     color: var(--text-color);
+    border-radius: 24px;
 }
 
 /* 深色模式下的图标适配 */
