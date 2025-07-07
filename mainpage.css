@@ -2338,6 +2338,10 @@ input[type="color"]::-moz-color-swatch {
     display: block;
 }
 
+.theme-settings-panel .hidden {
+    display: none;
+}
+
 .settings-overlay {
     position: fixed;
     top: 0;
