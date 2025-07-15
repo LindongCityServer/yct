@@ -219,7 +219,7 @@ main {
 .carousel-container {
     height: 100%;
     display: flex;
-    transition: transform 0.5s ease-in-out;
+    transition: transform 1s ease-in-out;
     gap: 16px;
 }
 
@@ -257,7 +257,11 @@ main {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transform: scale(1.15);
+    transform-origin: center top;
+    object-position: center top;
     border-radius: 16px; 
+    transition: transform-origin 1s ease-in-out;
 }
 
 .carousel-indicators {
@@ -310,7 +314,7 @@ main {
     left: 0;
     right: 0;
     height: 80px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
     z-index: 1;
 }
 

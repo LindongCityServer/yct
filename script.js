@@ -860,6 +860,11 @@ function goToSlide(index) {
         }, 500); // 与CSS过渡时间相匹配
     }, 50);
     
+    slides.forEach((slide, i) => {
+        const slideImg = slide.querySelector('img');
+        if (slideImg) {slideImg.style.transformOrigin = `calc(${(index - i) * 50}% + 50%) top`;}
+    });
+    
     updateIndicators();
     
     // 重新开始自动播放
