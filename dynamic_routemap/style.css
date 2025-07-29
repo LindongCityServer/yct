@@ -381,6 +381,8 @@ body {
 #swapStations {
     width: 96px;
     flex-shrink: 0;
+    display: flex;
+    flex-wrap: nowrap;
 }
 
 #currentStation {
@@ -450,6 +452,8 @@ input[type="radio"]:checked + label {
 }
 
 .door-toggle {
+    display: flex;
+    flex-wrap: nowrap;
     padding: 5px 10px;
     background: white;
     border: none;
@@ -457,7 +461,7 @@ input[type="radio"]:checked + label {
     cursor: pointer;
     color: #888;
     font-size: 14px;
-    min-width: 80px;
+    width: 96px;
 }
 
 .door-toggle:hover {
@@ -749,7 +753,6 @@ input[type="radio"]:checked + label {
 }
 
 .car-select.button-group label {
-    padding: 5px 0;
     min-width: 18px;
     flex: 1;
     font-size: 12px;
@@ -1238,12 +1241,18 @@ input[type="radio"]:checked + label {
     100% { border-left-color: white; }
 }
 
+button { 
+    align-items: center;
+    justify-content: center;
+    text-wrap: nowrap;
+}
+
 .control-panel .action-button {
     background-color: var(--primary-color);
     color: white;
     font-weight: bold;
     border: none;
-    padding: 6px 8px;
+    padding: 4px 8px;
     margin: 0;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -1344,15 +1353,6 @@ body.immersive {
     display: block;
 }
 
-/* 调整沉浸模式下的文本 */
-#toggleImmersive.active::before {
-    content: '退出沉浸';
-}
-
-#toggleImmersive:not(.active)::before {
-    content: '沉浸显示';
-}
-
 /* 隐藏原始文本 */
 #toggleImmersive span:not(.shortcut-key) {
     display: none;
@@ -1381,8 +1381,10 @@ body.immersive {
 }
 
 .button-group {
+    padding: 3px;
     flex: 1;
     display: flex;
+    justify-content: space-between;
     border-radius: 30px;
     overflow: hidden;
     margin: 0;
@@ -1391,7 +1393,7 @@ body.immersive {
 }
 
 .button-group label {
-    padding: 5px 10px;
+    padding: 2px 10px;
     background: var(--control-background);
     cursor: pointer;
     user-select: none;
@@ -1400,6 +1402,7 @@ body.immersive {
     color: var(--control-text);
     margin: 0;
     border: none;
+    text-wrap: nowrap;
 }
 
 .button-group label:last-child {
@@ -1438,4 +1441,36 @@ body.immersive {
     position: absolute;
     color: black;
     display: none;
+}
+
+.gamepad-hint {
+    display: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+    width: -webkit-fill-available;
+    color: var(--tertiary-text)
+}
+
+.gamepad-hint > * {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    gap: 4px;
+}
+
+.gamepad-hint .shortcut-key { 
+    border-radius: 7px;
+}
+
+#gamepadA {color: var(--text-color-a);}
+#gamepadX {color: var(--text-color-9);}
+#gamepadY {color: var(--text-color-e);}
+#gamepadLB {border-radius: 50% 4px 2px 4px;}
+#gamepadRB {border-radius: 4px 50% 4px 2px;}
+
+.gamepad-hint .caption { 
+    margin: 0;
 }

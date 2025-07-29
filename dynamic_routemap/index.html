@@ -97,7 +97,7 @@
             </div>
                    
             <div class="door-buttons">
-                <button id="doorToggle" class="door-toggle">左侧车门<span class="shortcut-key">D</span></button>
+                <button id="doorToggle" class="door-toggle">左侧车门<span class="shortcut-key control-btn">D</span></button>
             </div>
         </div>
         
@@ -121,30 +121,62 @@
                 <option value="">当前站</option>
             </select>
             
-            <button id="swapStations">返程<span class="shortcut-key">R</span></button>
+            <button id="swapStations">返程<span class="shortcut-key control-btn">R</span></button>
             
         </div>
         
         <div class="station-control">
             <div class="toggle-buttons">
-                <button id="toggleImmersive" class="toggle-button" style="width: 130px;"><span class="shortcut-key">Alt</span><span class="shortcut-key">I</span></button>
+                <button id="toggleImmersive" class="toggle-button control-btn" style="width: 130px;"><span class="shortcut-key">Alt</span><span class="shortcut-key">I</span></button>
                 <button id="toggleTrainStatus" class="toggle-button">列车…</button>
                 <button id="toggleLineStatus" class="toggle-button">线路…</button>
             </div>
             
-            <button id="prevStation" disabled>上一站<span class="shortcut-key">←</span></button>
-            <button id="nextStation" disabled>下一站<span class="shortcut-key">→</span></button>
+            <button id="prevStation" class="control-btn" disabled>上一站<span class="shortcut-key">←</span></button>
+            <button id="nextStation" class="control-btn" disabled>下一站<span class="shortcut-key">→</span></button>
 
             <!-- 显示模式选择 -->
-            <div class="display-mode button-group">
+            <div class="display-mode button-group control-btn">
                 <input type="radio" id="showRoute" name="display" value="route" checked>
                 <label for="showRoute">全图</label>
                 <input type="radio" id="showDetail" name="display" value="detail">
                 <label for="showDetail">详情</label>
-            </div><span class="shortcut-key">\</span>
+            </div><span class="shortcut-key control-btn">\</span>
             
-            <button id="announcementButton" class="announcement-button" style="width:72px">报站<span class="shortcut-key">A</span></button>
-            <button id="actionButton" class="action-button">到站停靠<span class="shortcut-key" style="color: white">↵</span></button>
+            <button id="announcementButton" class="announcement-button control-btn" style="width:72px">报站<span class="shortcut-key">A</span></button>
+            <button id="actionButton" class="action-button control-btn">到站停靠<span class="shortcut-key" style="color: white">↵</span></button>
+
+            <div class="gamepad-hint"> 
+                <div class="hint-item">
+                    <span class="shortcut-key" id="gamepadA">A</span>
+                    <div class="caption" id="gamepadAHint"> 动作按钮</div>
+                </div>
+                <div class="hint-item">
+                    <span class="shortcut-key" id="gamepadX">X</span>
+                    <div class="caption" id="gamepadXHint"> 报站</div>
+                </div>
+                <div class="hint-item">
+                    <span class="shortcut-key" id="gamepadY">Y</span>
+                    <div class="caption" id="gamepadYHint"> 切换视图</div>
+                </div>
+                <div class="hint-item">
+                    <span class="shortcut-key" id="gamepadLB">LB</span>
+                    <div class="caption" id="gamepadLBHint"> 切换车门</div>
+                </div>
+                <div class="hint-item">
+                    <span class="shortcut-key" id="gamepadRB">RB</span>
+                    <div class="caption" id="gamepadRBHint"> 返程</div>
+                </div>
+                <div class="hint-item">
+                    <span class="shortcut-key" id="gamepadLS">LS</span>
+                    <div class="caption" id="gamepadLSHint"> 沉浸显示</div>
+                </div>
+                <div class="hint-item">
+                    <span class="shortcut-key" id="gamepadLeftHint">‹</span>
+                    <span class="shortcut-key" style="margin: 0;" id="gamepadRightHint">›</span>
+                    <div class="caption"> 切换车站</div>
+                </div>
+            </div>
         </div>
 
         <div class="caption">

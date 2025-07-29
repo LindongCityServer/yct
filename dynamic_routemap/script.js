@@ -11,7 +11,7 @@ let shouldAnimate = false;
 // 添加一个标记来追踪是否已显示站点剖面图功能提示
 let hasShownSectionNotice = false;
 
-// 页面加载时初始化
+// 页面加载时初始化游戏手柄支持
 window.addEventListener('DOMContentLoaded', function() {
     try {
         // 在DOMContentLoaded事件监听器中添加
@@ -21,7 +21,11 @@ window.addEventListener('DOMContentLoaded', function() {
         // 确保正确加载默认数据
         if (typeof lines !== 'undefined') {
             lineData = { lines: lines };
-                // 初始化各个组件
+            
+            // 初始化游戏手柄支持
+            initializeGamepad();
+            
+            // 初始化各个组件
             initializeLineSelect();
             initializeCarControls();
             initializeDisplayMode();
@@ -30,7 +34,10 @@ window.addEventListener('DOMContentLoaded', function() {
             initializeFileUpload();
             initializeKeyboardShortcuts();
             initializeToggleButtons();
-
+            initializeAnnouncementButton();
+            initializeActionButton();
+            updateActionButtonText();
+            
             // 自动选择第一条线路和第一个站点
             const lineSelect = document.getElementById('lineSelect');
             if (lineSelect && lineSelect.options.length > 1) {
@@ -51,6 +58,7 @@ window.addEventListener('DOMContentLoaded', function() {
         showToast('初始化失败，请刷新页面重试');
     }
 });
+
 
 // 事件监听器添加错误处理
 function addSafeEventListener(element, event, handler) {
@@ -133,11 +141,11 @@ addSafeEventListener(document.getElementById('lineSelect'), 'change', function(e
         document.getElementById('carCount').textContent = carCount;
         updateCarSelection(); // 重新生成车厢选择按钮
         
-        console.log('线路变化:', {
+        /*console.log('线路变化:', {
             线路: currentLine.name,
             总站点数: currentLine.stations.length,
             站点列表: currentLine.stations.map(s => s.name)
-        });
+        });*/
 
         updateStationSelects();
         
@@ -179,14 +187,14 @@ addSafeEventListener(document.getElementById('lineSelect'), 'change', function(e
         const startIndex = parseInt(document.getElementById('startStation').value);
         const endIndex = parseInt(document.getElementById('endStation').value);
 
-        console.log('起终点变化:', {
+        /*console.log('起终点变化:', {
             线路: currentLine.name,
             起点站序号: startIndex,
             起点站名: currentLine.stations[startIndex]?.name || '无效',
             终点站序号: endIndex,
             终点站名: currentLine.stations[endIndex]?.name || '无效',
             方向: startIndex > endIndex ? '返程' : '正向'
-        });
+        });*/
 
         // 只有当起点和终点都有效时才更新
         if (!isNaN(startIndex) && !isNaN(endIndex)) {
@@ -218,12 +226,12 @@ addSafeEventListener(document.getElementById('lineSelect'), 'change', function(e
             }
 
             // 记录更新后的信息
-            console.log('当前站列表更新:', {
+            /*console.log('当前站列表更新:', {
                 更新前选项数: beforeCount,
                 更新后选项数: currentSelect.options.length,
                 应有选项数: Math.abs(endIndex - startIndex) + 2, // +2是因为包含起终点和空选项
                 选项内容: Array.from(currentSelect.options).map(opt => opt.textContent)
-            });
+            });*/
 
             // 设置当前站为起点站
             currentSelect.value = startIndex.toString();
@@ -332,6 +340,7 @@ function initializeDoorButtons() {
         if (document.getElementById('stationDetail').style.display === 'flex') {
             updateStationDetail();
         }
+        updateGamepadHints();
     });
 }
 
@@ -457,7 +466,7 @@ function updateRouteMap() {
         // 获取宽度
         const lastStationNameElement = lastStationLabel.querySelector('.station-name');
         const lastStationNameENElement = lastStationLabel.querySelector('.station-name-en');
-        const lastStationNameWidth = Math.max(lastStationNameElement.getBoundingClientRect().width * 0.5, lastStationNameENElement.getBoundingClientRect().width * 0.6);
+        const lastStationNameWidth = Math.max(lastStationNameElement.getBoundingClientRect().width * 0.6, lastStationNameENElement.getBoundingClientRect().width * 0.6);
 
         // 清理 DOM
         document.body.removeChild(lastStationLabel);
@@ -470,7 +479,7 @@ function updateRouteMap() {
 
     let spacing = (routeMap.clientWidth - lastStationNameWidth * 0.8 - 12) / (totalStations - 1);
     let mapScale = spacing < 28 ? spacing / 28 : 1;
-    console.log('初始间距:', spacing, 'px, 缩放比例:', mapScale);
+    //console.log('初始间距:', spacing, 'px, 缩放比例:', mapScale);
     if (mapScale !== 1) { 
         spacing = 28 / mapScale;
     }
@@ -483,7 +492,7 @@ function updateRouteMap() {
             if (spacingForStation < spacing) { 
                 mapScale = spacingForStation / 28;
                 spacing = 28 / mapScale;
-                console.log('间距:', spacingForStation, 'px, 缩放比例:', mapScale, '车站:', station.name, '宽度:', stationNameWidth);
+                //console.log('间距:', spacingForStation, 'px, 缩放比例:', mapScale, '车站:', station.name, '宽度:', stationNameWidth);
             }
         }
     });
@@ -497,7 +506,7 @@ function updateRouteMap() {
             stationElement.classList.add('current-station-active');
             // 如果有换乘线路则执行函数
             const transferLines = findTransferLine(station.name);
-            console.log(transferLines, station.name, '换乘线路');
+            //console.log(transferLines, station.name, '换乘线路');
             const circle = stationElement.querySelector('.station-circle');
             if (transferLines.length > 0) {
                 circle.style.width = '11px';
@@ -568,18 +577,18 @@ function updateRouteMap() {
 
     // 计算每一个station-labels的高度，找出最大值
     const stationLabels = routeMap.querySelectorAll('.station-labels');
-    console.log('站点标签数量:', stationLabels.length);
+    //console.log('站点标签数量:', stationLabels.length);
     let maxLabelHeight = 0;
     // 执行两次以确保获取所有标签的高度
     stationLabels.forEach(label => {
         const labelHeight = label.getBoundingClientRect().height;
         maxLabelHeight = Math.max(maxLabelHeight, labelHeight);
-        console.log('第一次获取最大站点标签高度:', maxLabelHeight, 'px');
+        //console.log('第一次获取最大站点标签高度:', maxLabelHeight, 'px');
     });
     stationLabels.forEach(label => {
         const labelHeight = label.getBoundingClientRect().height;
         maxLabelHeight = Math.max(maxLabelHeight, labelHeight);
-        console.log('第二次获取最大站点标签高度:', maxLabelHeight, 'px');
+        //console.log('第二次获取最大站点标签高度:', maxLabelHeight, 'px');
     });
 
 
@@ -728,12 +737,12 @@ function updateInfoBar() {
         const resizeObserver = new ResizeObserver(entries => {
             for (let entry of entries) {
                 const width = entry.contentRect.width;
-                console.log('当前宽度:', width);
+                //console.log('当前宽度:', width);
                 const height = entry.contentRect.height;
                 const aspectRatio = width / height;
                 showMetroName = aspectRatio < 1.5;
                 metroNameText.style.display = showMetroName ? 'block' : 'none';
-                console.log(`显示地铁名称: ${showMetroName}, logo宽: ${width.toFixed(2)}`);
+                //console.log(`显示地铁名称: ${showMetroName}, logo宽: ${width.toFixed(2)}`);
 
             }
         });
@@ -748,12 +757,12 @@ function updateInfoBar() {
                 const resizeObserver = new ResizeObserver(entries => {
                     for (let entry of entries) {
                         const width = entry.contentRect.width;
-                        console.log('当前宽度:', width);
+                        //console.log('当前宽度:', width);
                         const height = entry.contentRect.height;
                         const aspectRatio = width / height;
                         showMetroName = aspectRatio < 1.5;
                         metroNameText.style.display = showMetroName ? 'block' : 'none';
-                        console.log(`显示地铁名称: ${showMetroName}, logo宽: ${width.toFixed(2)}`);
+                        //console.log(`显示地铁名称: ${showMetroName}, logo宽: ${width.toFixed(2)}`);
 
                     }
                 });
@@ -995,12 +1004,12 @@ function updateStationDetail() {
         currentLineDetail.stations.some(station => station.name === currentStation.name)
     );
     
-    console.log('当前站点信息:', {
+    /*console.log('当前站点信息:', {
         线路: currentLine.name,
          站点: currentStation.name,
           是否有详情: hasDetail,
            详情数据: currentLineDetail
-    });
+    });*/
     
     // 检查是否有站点详情数据
     hasStationDetail = Boolean(currentLineDetail && 
@@ -1365,7 +1374,7 @@ function updateStationSequence() {
             
             if (index === currentStationIndex) {
                 addTransferArrows(circle, transferLines, currentLine.color);
-                console.log(`当前站 ${station.name} 有换乘线路:`, transferLines.map(l => l.name));
+                //console.log(`当前站 ${station.name} 有换乘线路:`, transferLines.map(l => l.name));
             }
 
             // 将换乘线路容器添加到站点元素中
@@ -1383,7 +1392,7 @@ function updateStationSequence() {
 }
 
 function addTransferArrows(container, transfers, mainLineColor) {
-    console.log('添加换乘箭头:', transfers);
+    //console.log('添加换乘箭头:', transfers);
     const radius = 3; // 弧的半径
     const totalSegments = transfers.length + 1; // 包括当前线路
     const colors = [mainLineColor, ...transfers.map(t => t.color)]; // 颜色数组
@@ -1502,6 +1511,7 @@ function initializeDoorButtons() {
         if (document.getElementById('stationDetail').style.display === 'flex') {
             updateStationDetail();
         }
+        updateGamepadHints();
     });
 }
 
@@ -1603,8 +1613,8 @@ async function handleFileUpload(file) {
             defaultNotice.style.display = 'none';
         }
 
-        console.log('导入的地铁名称:', window.metro_name);
-        console.log('导入的地铁英文名称:', window.metro_name_en);
+        //console.log('导入的地铁名称:', window.metro_name);
+        //console.log('导入的地铁英文名称:', window.metro_name_en);
 
         showToast('数据导入成功！');
     } catch (error) {
@@ -1653,6 +1663,215 @@ function initializeKeyboardShortcuts() {
     });
 }
 
+// 初始化游戏手柄支持
+function initializeGamepad() {
+    const haveEvents = 'GamepadEvent' in window;
+    const haveWebkitEvents = 'WebKitGamepadEvent' in window;
+    const controllers = {};
+
+    const hints = document.querySelector('.gamepad-hint');
+    const controlBtns = document.querySelectorAll('.control-btn');
+
+    updateGamepadHints();
+    
+    // 用于防止按钮重复触发
+    let lastGamepadPress = {};
+
+    function connecthandler(e) {
+        console.log('Gamepad connected!');
+        addgamepad(e.gamepad);
+    }
+
+    function addgamepad(gamepad) {
+        controllers[gamepad.index] = gamepad;
+        hints.style.display = 'flex';
+        controlBtns.forEach(btn => {
+            btn.style.display = 'none';
+        });
+        console.log('Gamepad connected at index %d: %s. %d buttons, %d axes.', 
+            gamepad.index, gamepad.id, gamepad.buttons.length, gamepad.axes.length);
+    }
+
+    function disconnecthandler(e) {
+        removegamepad(e.gamepad);
+    }
+
+    function removegamepad(gamepad) {
+        delete controllers[gamepad.index];
+        console.log('Gamepad disconnected from index %d', gamepad.index);
+        hints.style.display = 'none';
+        controlBtns.forEach(btn => {
+            btn.style.display = 'flex';
+        });
+    }
+
+    function updateStatus() {
+        // 获取当前所有连接的游戏手柄
+        const gamepads = navigator.getGamepads ? navigator.getGamepads() : 
+                         (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
+        
+        // 更新控制器状态
+        for (let i = 0; i < gamepads.length; i++) {
+            if (gamepads[i]) {
+                controllers[gamepads[i].index] = gamepads[i];
+            }
+        }
+
+        // 检查所有已连接的控制器
+        if (Object.keys(controllers).length > 0) {
+            for (const index in controllers) {
+                const controller = controllers[index];
+                // 检查所有按钮
+                for (let j = 0; j < controller.buttons.length; j++) {
+                    // 正确处理GamepadButton对象
+                    const button = controller.buttons[j];
+                    // 检查按钮是否被按下 (使用.pressed属性而不是.value)
+                    const pressed = button.pressed;
+                    if (pressed) {
+                        handleGamepadButton(j, controller);
+                    }
+                }
+            }
+        }
+        requestAnimationFrame(updateStatus);
+    }
+
+    function handleGamepadButton(buttonIndex, controller) {
+        // 防止重复触发 - 每个按钮单独计时
+        const now = Date.now();
+        const buttonKey = `${controller.index}-${buttonIndex}`;
+        if (lastGamepadPress[buttonKey] && (now - lastGamepadPress[buttonKey] < 200)) {
+            return;
+        }
+        lastGamepadPress[buttonKey] = now;
+
+        // 减少控制台输出频率以提高性能
+        if (now - (lastGamepadPress['log'] || 0) > 1000) {
+            console.log('Gamepad button %s of controller %s pressed', buttonIndex, controller.id);
+            lastGamepadPress['log'] = now;
+        }
+
+        let hintText;
+        let btn;
+
+        switch (buttonIndex) {
+            case 0: // A键 - 动作按钮
+                document.getElementById('actionButton').click();
+                hintText = document.getElementById('gamepadAHint');
+                hintText.style.color = 'var(--text-color)'
+                setTimeout(() => { 
+                    hintText.style.color = 'var(--tertiary-text)'; 
+                }, 300);
+                break;
+            case 2: // X键 - 报站
+                playAnnouncement();
+                hintText = document.getElementById('gamepadXHint');
+                hintText.style.color = 'var(--text-color)'
+                setTimeout(() => { 
+                    hintText.style.color = 'var(--tertiary-text)'; 
+                }, 300);
+                break;
+            case 3: // Y键 - 切换显示模式
+                const currentMode = document.querySelector('input[name="display"]:checked');
+                const nextMode = currentMode.value === 'route' ? 
+                    document.getElementById('showDetail') : 
+                    document.getElementById('showRoute');
+                nextMode.click();
+                hintText = document.getElementById('gamepadYHint');
+                hintText.style.color = 'var(--text-color)'
+                setTimeout(() => { 
+                    hintText.style.color = 'var(--tertiary-text)'; 
+                }, 300);
+                break;
+            case 4: // 左肩键 - 切换车门
+                document.getElementById('doorToggle').click();
+                hintText = document.getElementById('gamepadLBHint');
+                hintText.style.color = 'var(--text-color)'
+                setTimeout(() => { 
+                    hintText.style.color = 'var(--tertiary-text)'; 
+                }, 300);
+                break;
+            case 5: // 右肩键 - 返程
+                document.getElementById('swapStations').click();
+                hintText = document.getElementById('gamepadRBHint');
+                hintText.style.color = 'var(--text-color)'
+                setTimeout(() => { 
+                    hintText.style.color = 'var(--tertiary-text)'; 
+                }, 300);
+                break;
+            case 10: // 左摇杆按下 - 切换沉浸模式
+                document.getElementById('toggleImmersive').click();
+                hintText = document.getElementById('gamepadLSHint');
+                hintText.style.color = 'var(--text-color)'
+                setTimeout(() => { 
+                    hintText.style.color = 'var(--tertiary-text)'; 
+                }, 300);
+                break;
+            case 14: // 左方向键 - 上一站
+                if (!document.getElementById('prevStation').disabled) {
+                    document.getElementById('prevStation').click();
+                }
+                hintText = document.getElementById('gamepadLeftHint');
+                hintText.style.color = 'var(--text-color)'
+                setTimeout(() => { 
+                    hintText.style.color = 'var(--tertiary-text)'; 
+                }, 300);
+                break;
+            case 15: // 右方向键 - 下一站
+                if (!document.getElementById('nextStation').disabled) {
+                    document.getElementById('nextStation').click();
+                }
+                hintText = document.getElementById('gamepadRightHint');
+                hintText.style.color = 'var(--text-color)'
+                setTimeout(() => { 
+                    hintText.style.color = 'var(--tertiary-text)'; 
+                }, 300);
+                break;
+        }
+    }
+
+    // 绑定事件
+    if (haveEvents) {
+        window.addEventListener("gamepadconnected", connecthandler);
+        window.addEventListener("gamepaddisconnected", disconnecthandler);
+    } else if (haveWebkitEvents) {
+        window.addEventListener("webkitgamepadconnected", connecthandler);
+        window.addEventListener("webkitgamepaddisconnected", disconnecthandler);
+    }
+
+    // 启动游戏手柄状态检测循环
+    requestAnimationFrame(updateStatus);
+
+    // 定期检查游戏手柄状态（用于检测通过轮询方式连接的手柄）
+    setInterval(() => {
+        const gamepads = navigator.getGamepads ? navigator.getGamepads() : 
+                         (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
+        for (let i = 0; i < gamepads.length; i++) {
+            if (gamepads[i] && !controllers[gamepads[i].index]) {
+                addgamepad(gamepads[i]);
+            }
+        }
+    }, 1000);
+}
+
+function updateGamepadHints() { 
+    const gamepadAHint = document.getElementById("gamepadAHint");
+    const actionBtnText = document.getElementById("actionButton").firstChild.textContent;
+    gamepadAHint.textContent = actionBtnText;
+
+    const gamepadYHint = document.getElementById("gamepadYHint");
+    const displayModeText ='切换至' + (document.querySelector(".display-mode input[type=radio]:checked + label").textContent === '全图' ? '详情' : '全图');
+    gamepadYHint.textContent = displayModeText;
+
+    const gamepadLBHint = document.getElementById("gamepadLBHint");
+    const doorToggleText ='切换至' + (document.getElementById("doorToggle").firstChild.textContent === '左侧车门' ? '右侧车门' : '左侧车门');
+    gamepadLBHint.textContent = doorToggleText;
+
+    const gamepadLSHint = document.getElementById("gamepadLSHint");
+    const toggleImmersiveText = document.querySelector("#toggleImmersive").firstChild.textContent;
+    gamepadLSHint.textContent = toggleImmersiveText;
+}
+
 // 初始化折叠/展开按钮
 function initializeToggleButtons() {
     const trainStatusButton = document.getElementById('toggleTrainStatus');
@@ -1665,12 +1884,27 @@ function initializeToggleButtons() {
     
     // 初始化沉浸模式状态
     let isImmersive = false;
+    if (isImmersive) {
+        // 沉浸模式开启时，隐藏游戏内容
+        immersiveButton.innerHTML = '退出沉浸<span class="shortcut-key">Alt</span><span class="shortcut-key">I</span>';
+    } else {
+        // 沉浸模式关闭时，显示游戏内容
+        immersiveButton.innerHTML = '沉浸模式<span class="shortcut-key">Alt</span><span class="shortcut-key">I</span>';
+    }
 
     // 切换沉浸模式的函数
     function toggleImmersive() {
         isImmersive = !isImmersive;
         document.body.classList.toggle('immersive', isImmersive);
         immersiveButton.classList.toggle('active', isImmersive);
+        if (isImmersive) {
+            // 沉浸模式开启时，隐藏游戏内容
+            immersiveButton.innerHTML = '退出沉浸<span class="shortcut-key">Alt</span><span class="shortcut-key">I</span>';
+        } else {
+            // 沉浸模式关闭时，显示游戏内容
+            immersiveButton.innerHTML = '沉浸模式<span class="shortcut-key">Alt</span><span class="shortcut-key">I</span>';
+        }
+        updateGamepadHints();
     }
 
     // 添加沉浸模式按钮点击事件
@@ -1782,6 +2016,7 @@ function initializeActionButton() {
     actionButton.addEventListener('click', () => {
         const endIndex = parseInt(document.getElementById('endStation').value);
         const displayMode = document.querySelector('input[name="display"]:checked').value;
+        console.log('Display Mode:', displayMode);
         
         if (displayMode === 'detail') {
             // 当前在站点详情视图
@@ -1822,18 +2057,12 @@ function updateActionButtonText() {
     actionButton.innerHTML = actionButton.textContent + '<span class="shortcut-key" style="color: white">↵</span>';
     updateInfoBar();
     updateRouteMap();
+    updateGamepadHints();
 }
 
 // 在显示模式切换时更新按钮文本
 document.querySelectorAll('input[name="display"]').forEach(radio => {
     radio.addEventListener('change', updateActionButtonText);
-});
-
-// 在页面加载时初始化动作按钮
-window.addEventListener('DOMContentLoaded', function() {
-    // ... 现有代码 ...
-    initializeActionButton();
-    updateActionButtonText();
 });
 
 // 在起终点站变化时也更新按钮文本
@@ -2066,8 +2295,8 @@ function playAnnouncement() {
         return announcement;
     });
 
-    console.log('线网名称：' + window.metro_name);  // 应该输出 "临东地铁"
-    console.log('线网英文名：' + window.metro_name_en);  // 应该输出 "Lindong Metro"
+    //console.log('线网名称：' + window.metro_name);  // 应该输出 "临东地铁"
+    //console.log('线网英文名：' + window.metro_name_en);  // 应该输出 "Lindong Metro"
 
     // 播放报站内容
     announcements.forEach((announcement, index) => {
@@ -2207,13 +2436,13 @@ function renderStationSection(stationName, lineName) {
     // 计算实际的显示方向 - 现在完全依赖于车门方向按钮
     const shouldReverseDisplay = isRightDoor;
     
-    console.log('方向检查:', {
+    /*console.log('方向检查:', {
         起点站序号: startIndex,
         终点站序号: endIndex,
         是否上行: isUpward,
         是否右侧车门: isRightDoor,
         是否需要反转显示: shouldReverseDisplay
-    });
+    });*/
 
     // 查找线路信息和站点信息
     const lineInfo = window.stationDetail.find(line => line.name === lineName);
@@ -2223,7 +2452,7 @@ function renderStationSection(stationName, lineName) {
     }
 
     let stationInfo = lineInfo.stations.find(station => station.name === stationName);
-    console.log('原始站点剖面图信息：', stationInfo);
+    //console.log('原始站点剖面图信息：', stationInfo);
 
     if (!stationInfo) {
         console.error('Station information not found for:', stationName, 'in line:', lineName);
@@ -2234,7 +2463,7 @@ function renderStationSection(stationName, lineName) {
     if (stationInfo.template) {
         const template = lineInfo.stationTemplate?.find(t => t.name === stationInfo.template);
         if (template) {
-            console.log('找到模板：', template);
+            //console.log('找到模板：', template);
             // 创建一个新对象来存储合并后的站点信息
             stationInfo = {
                 ...stationInfo,
@@ -2246,26 +2475,26 @@ function renderStationSection(stationName, lineName) {
                 swapExitLayers: template.swapExitLayers,
                 swapTemplateFacilitiesForDoors: template.swapTemplateFacilitiesForDoors
             };
-            console.log('应用模板后的站点信息：', stationInfo);
+            //console.log('应用模板后的站点信息：', stationInfo);
         }
     }
 
     // 如果是上行方向且有上行设施信息，应用上行设施信息
     if (isUpward && stationInfo.facilitiesUpwards) {
-        console.log('准备应用上行设施信息:', stationInfo.facilitiesUpwards);
+        //console.log('准备应用上行设施信息:', stationInfo.facilitiesUpwards);
         stationInfo = {
             ...stationInfo,
             facilities: stationInfo.facilitiesUpwards
         };
-        console.log('应用上行设施后的站点信息:', {
+        /*console.log('应用上行设施后的站点信息:', {
             设施信息: stationInfo.facilities,
             完整站点信息: stationInfo
-        });
+        });*/
     }
 
     // 如果需要根据显示方向交换设施信息
     if (stationInfo.swapTemplateFacilitiesForDoors && shouldReverseDisplay) {
-        console.log('需要根据显示方向交换设施信息');
+        //console.log('需要根据显示方向交换设施信息');
         // 对设施信息进行深拷贝
         const facilitiesCopy = JSON.parse(JSON.stringify(stationInfo.facilities));
         // 交换设施的位置
@@ -2273,16 +2502,16 @@ function renderStationSection(stationName, lineName) {
             ...facility,
             location: facility.location !== undefined ? maxCarCount - facility.location : undefined
         }));
-        console.log('交换后的设施信息:', stationInfo.facilities);
+        //console.log('交换后的设施信息:', stationInfo.facilities);
     }
 
     // 使用线路的 maxCarCount
     const maxCarCount = lineInfo.maxCarCount;
-    console.log('使用线路的车厢数：', maxCarCount);
+    //console.log('使用线路的车厢数：', maxCarCount);
 
     // 如果是上行方向且需要交换出口层级，预处理出口信息
     if (isUpward && stationInfo.swapExitLayers) {
-        console.log('需要交换的出口层级:', stationInfo.swapExitLayers);
+        //console.log('需要交换的出口层级:', stationInfo.swapExitLayers);
         // 创建一个新的出口数组，避免修改原始数据
         const newExits = stationInfo.exits.map(exitGroup => {
             // 如果当前层不是需要交换的层，直接返回原始数据
@@ -2310,7 +2539,7 @@ function renderStationSection(stationName, lineName) {
             return exitGroup;
         });
 
-        console.log('交换后的出口信息:', newExits);
+        //console.log('交换后的出口信息:', newExits);
         stationInfo.exits = newExits;
     }
 
@@ -2384,7 +2613,7 @@ function renderStationSection(stationName, lineName) {
                 }
 
                 // 如果是右侧车门，让文字保持正向
-                console.log('车门方向:', isRightDoor, '是否上行:', isUpward);
+                //console.log('车门方向:', isRightDoor, '是否上行:', isUpward);
                 if (isUpward) {
                     carGroup.style.transform = 'scaleX(-1)';
                     //carNumber.style.transform = 'scaleX(-1)';
@@ -2499,7 +2728,7 @@ function renderStationSection(stationName, lineName) {
                         current: stationInfo.layers.findIndex(l => l.floor === layer.floor),
                         end: stationInfo.layers.findIndex(l => l.floor === facility.endFloor)
                     };
-                    console.log('当前层索引:', layerIndices.current, '终点层索引:', layerIndices.end);
+                    //console.log('当前层索引:', layerIndices.current, '终点层索引:', layerIndices.end);
                     stairsImg.src = layerIndices.end < layerIndices.current ? 'res/stairs.png' : 'res/stairs_down.png';
                     stairsImg.style.width = '14px';
                     stairsImg.style.height = '14px';
