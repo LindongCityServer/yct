@@ -23,6 +23,15 @@ const contentData = [
         showInBanner: true
     },
     {
+        title: '临东|地铁|北联|轨交展|云展厅',
+        image: '/data/content_banner/北联轨交展展厅.png',
+        link: '/content/250722.html',
+        date: '2025-07-22',
+        summary:'临东地铁确认参加2025北联第一届轨道交通展览会，点击链接立即进入临东地铁云展厅……',
+        category: '地铁运营',
+        showInBanner: true
+    },
+    {
         title: '临东|地铁|调整|计费方式',
         image: '--metro-color',
         link: '/metro_map',

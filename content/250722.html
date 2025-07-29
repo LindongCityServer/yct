@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>临东地铁云展厅 - 雨城通</title>
+    <link rel="icon" href="../UI/res/雨城通logo绿.png" type="image/png">
+    <link rel="stylesheet" href="../mainpage.css" />
+    <link rel="stylesheet" href="../data_composer/style.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../UI/toast.css" />
+    <script src="../UI/footer.js"></script>
+</head>
+<body>
+    <!-- 头部导航栏 -->
+    <header class="header">
+        <button class="icon-button" id="back-to-home" onclick="window.location.href='../'" title="雨城通首页">
+            <img src="../UI/res/雨城通logo绿.png" alt="雨城通首页">
+        </button>
+        <h1>临东地铁云展厅</h1>
+        <div class="toolbar">            
+            <button class="icon-button" id="copy" onclick="" title="复制链接">
+                <img src="../UI/res/link_black.png" alt="复制链接">
+            </button>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <div class="content-container" style="max-width: 960px;position:relative; left: 50%; transform: translateX(-50%)">
+        <img class="cover" src="../content/res/250722/临东背景板.png" alt="" id="cover">
+            <h2>列车</h2>
+        <section class="gallery-50" id="trains">
+            <img src="../content/res/250722/客车 0.png" alt="">
+            <img src="../content/res/250722/客车 1.png" alt="">
+            <img src="../content/res/250722/客车 2.png" alt="">
+            <img src="../content/res/250722/客车 3.png" alt="">
+        </section>
+            <h2>建设</h2>
+        <section class="gallery-33" id="stations">
+            <img src="../content/res/250722/施工 0.png" alt="">
+            <img src="../content/res/250722/施工 1.png" alt="">
+            <img src="../content/res/250722/施工 2.png" alt="">
+        </section>
+            <h2>体验</h2>
+        <section class="gallery-50" id="experiences"> 
+            <img src="../content/res/250722/体验 1.png" alt="">
+            <img src="../content/res/250722/体验 0.png" alt="">
+            <img src="../content/res/250722/体验 5.png" alt="">
+            <img src="../content/res/250722/体验 6.png" alt="">
+        </section>
+            <h2>在线服务</h2>
+        <section class="gallery-33" id="website"> 
+            <img src="../content/res/250722/体验 4.png" alt="" title="点击立刻体验" onclick="window.location.href='/'" style="cursor: pointer;">
+            <img src="../content/res/250722/体验 3.png" alt="" title="点击立刻体验" onclick="window.location.href='/metro_map'" style="cursor: pointer;">
+            <img src="../content/res/250722/体验 2.png" alt="" title="点击立刻体验" onclick="window.location.href='/dynamic_routemap'" style="cursor: pointer;">
+        </section>
+        <section class="caption-section"></section>
+    </div>
+
+    <!-- 悬浮章节导航条 -->
+    <div class="floating-panel">
+        <div class="icon-button to-top" title="回到顶部" onclick="window.location.href='#cover'" style="cursor: pointer;">
+            <img src="/UI/res/arrow_upward_black.png" alt=""></img>
+            <span>Top</span>
+        </div> 
+        <div class="icon-button to-trains" title="列车" onclick="window.location.href='#trains'" style="cursor: pointer;">
+            <img src="/UI/res/subway_black.png" alt=""></img>
+            <span>列车</span>
+        </div>
+        <div class="icon-button to-stations" title="建设" onclick="window.location.href='#stations'" style="cursor: pointer;">
+            <img src="/UI/res/kanban_black.png" alt=""></img>
+            <span>建设</span>
+        </div>
+        <div class="icon-button to-experiences" title="体验" onclick="window.location.href='#experiences'" style="cursor: pointer;">
+            <img src="/UI/res/theme_black.png" alt=""></img>
+            <span>体验</span>
+        </div>
+        <div class="icon-button to-website" title="网站" onclick="window.location.href='#website'" style="cursor: pointer;">
+            <img src="/UI/res/open_document_black.png" alt=""></img>
+            <span>网站</span>
+        </div>
+    </div>
+</body>
+<style>
+    .content-container {
+        transition: all 0.5s ease-in-out;
+    }
+    .cover {
+        padding-bottom: 12px;
+        margin-top: 12px;
+    }
+    .gallery-33 {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding-top: 12px;
+    }
+    .gallery-50 {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding-top: 12px;
+    }
+    @media (min-width: 1181px) {
+        .floating-panel {
+            background-color: transparent !important;
+            box-shadow: none !important;
+            right: calc((100vw - 900px) / 2 + 900px) !important;
+            bottom: calc(100vh - 310px) !important;
+        }          
+        .floating-panel .icon-button {
+            width: 80px;
+        }   
+        .content-container h2 {
+            display: none !important;
+        }
+    }
+    @media (min-width: 640px) and (max-width: 1180px) {
+        .floating-panel {
+            border-radius: 18px !important;
+        }     
+        .floating-panel .icon-button {
+            width: 80px;
+        }
+        .floating-panel span {
+            display: block;
+        }     
+        .content-container h2 {
+            display: none !important;
+        }
+    }
+    @media (max-width: 639px) {
+        .floating-panel span {
+            display: none;
+        }     
+        .content-container h2 {
+            display: block;
+        }
+    }
+    .floating-panel {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1000;
+        background-color: var(--card-background);
+        padding: 8px 0;
+        border-radius: 28px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        transition: all 0.3s ease-in-out;
+    }
+    .floating-panel .icon-button {
+        margin: 2px 6px;
+        justify-content: flex-start;
+    }
+    .floating-panel .icon-button span {
+        padding-left: 4px;
+        padding-right: 2px
+    }
+    .icon-button.active {
+        color: var(--metro-color);
+        font-weight: bold;
+        background-color: #008aed20;
+    }
+    .icon-button.active img{
+        filter: invert(28%) sepia(95%) saturate(1946%) hue-rotate(190deg) brightness(112%) contrast(101%);
+    }
+</style>
+<script>
+    // 当页面滚动到特定章节时高亮floating-panel对应的按钮
+    window.addEventListener('scroll', updateFloatingPanel);
+    window.addEventListener('resize', updateFloatingPanel);
+    const floatingPanel = document.querySelector('.floating-panel');
+    floatingPanel.addEventListener('mouseover', updateFloatingPanel);
+    function updateFloatingPanel() {
+        const sections = document.querySelectorAll('section');
+        const floatingPanel = document.querySelector('.floating-panel');
+        const iconText = floatingPanel.querySelectorAll('span');
+        floatingPanel.style.opacity = 1;
+        iconText.forEach(iconText => { 
+            if (window.innerWidth > 640) {
+                iconText.style.display = 'block';
+            } else {
+                iconText.style.display = 'none';
+            }
+        });
+        let currentSection = null;
+        sections.forEach((section,index) => {
+            const rect = section.getBoundingClientRect();
+            if (rect.top <= 0 && rect.bottom >= 0) {
+                currentSection = section;
+            }
+            if (currentSection) {
+                // 点亮id对应的icon-button
+                const iconButton = floatingPanel.querySelector(`.to-${currentSection.id}`);
+                iconButton.classList.add('active');
+            } else {
+                // 熄灭所有icon-button
+                const iconButtons = floatingPanel.querySelectorAll('.icon-button');
+                iconButtons.forEach(iconButton => {
+                    iconButton.classList.remove('active');
+                });
+            }
+            // 熄灭多余的icon-button
+            const activeIconButtons = floatingPanel.querySelectorAll('.icon-button.active');
+            activeIconButtons.forEach((iconButton,index) => {
+                if (index > 0) {
+                    iconButton.classList.remove('active');
+                }
+            });
+        });
+        setTimeout(() => {
+            // 检测窗口宽度
+            if (window.innerWidth < 1180) {
+                floatingPanel.style.opacity = 0.4;
+            }
+        }, 10000);
+    }
+</script>
+<script src="script.js"></script>
+<script src="../UI/toast.js"></script>
+<script src="../UI/footer.js"></script>
+</html> 
