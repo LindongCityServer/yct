@@ -2,6 +2,7 @@ const metro_logo = "https://job.nbmetro.com/applyFileUP/top_index.jpg";
 const lines = [
     {
         name: "1号线",
+        nameEN: "Line 1",
         color: "#2382c1",
         stations: [
             // 站点数据...
@@ -26,7 +27,7 @@ const lines = [
             { name:"盛莫路", nameEN:"Shengmo Road" },
             { name:"东环南路", nameEN:"Donghuan South Road" },
             { name:"邱隘东", nameEN:"Qiuga East" },
-            { name:"五乡", nameEN:"Wuxixiang" },
+            { name:"五乡", nameEN:"Wuxiang" },
             { name:"宝幢", nameEN:"Baozhuang" },
             { name:"邬隘", nameEN:"Wuga" },
             { name:"大碶", nameEN:"Daqi" },
@@ -38,6 +39,7 @@ const lines = [
     },
     {
         name: "2号线",
+        nameEN: "Line 2",
         color: "#b81f21",
         stations: [
             // 站点数据...
@@ -72,6 +74,7 @@ const lines = [
     },
     {
         name: "3号线",
+        nameEN: "Line 3",
         color: "#ecaf17",
         stations: [
             { name:"大通桥", nameEN:"Datong Bridge" },
@@ -102,6 +105,7 @@ const lines = [
     },
     {
         name: "4号线",
+        nameEN: "Line 4",
         color: "#7dba4c",
         stations: [
             { name:"慈城西", nameEN:"Cicheng West" },
@@ -129,12 +133,14 @@ const lines = [
             { name:"南高教园区", nameEN:"South Higher Education Park" },
             { name:"金达南路", nameEN:"Jinda South Road" },
             { name:"小洋江", nameEN:"Xiaoyangjiang" },
-            { name:"东钱湖", nameEN:"Dongqian Lake" }
+            { name:"东钱湖", nameEN:"Dongqian Lake" },
+            { name:"国际会议中心", nameEN:"International Conference Center" }
         ]
     },
     {
         name: "5号线",
-        color: "#4d4399",
+        nameEN: "Line 5",
+        color: "#1b2c75",
         stations: [
             { name:"布政", nameEN:"Buzheng" },
             { name:"张家潭", nameEN:"Zhangjiatan" },
@@ -143,6 +149,7 @@ const lines = [
             { name:"雅渡", nameEN:"Yadu" },
             { name:"庙堰", nameEN:"Miaoyan" },
             { name:"钟公庙", nameEN:"Zhonggongmiao" },
+            { name:"鄞州区政府", nameEN:"Yinzhou Government" },
             { name:"钱湖南路", nameEN:"Qianhu South Road" },
             { name:"南高教园区", nameEN:"South Higher Education Park" },
             { name:"下应路", nameEN:"Xiaying Road" },
@@ -160,8 +167,33 @@ const lines = [
             { name:"兴海南路", nameEN:"Xinghai South Road" },
             { name:"梅堰", nameEN:"Meiyan" },
             { name:"永茂路", nameEN:"Yongmao Road" },
-            { name:"镇海大道（慈海）", nameEN:"Zhenghai Avenue (Cihai)" },
+            { name:"镇海大道（慈海）", nameEN:"Zhenhai Avenue (Cihai)" },
             { name:"骆驼桥", nameEN:"Luotuo Bridge" },
+        ]
+    },
+    {
+        name: "8号线",
+        nameEN: "Line 8",
+        color: "#e61577",
+        stations: [ 
+            { name:"开元路", nameEN:"Kaiyuan Road" },
+            { name:"洪塘", nameEN:"Hongtang" },
+            { name:"洪盛路", nameEN:"Hongsheng Road" },
+            { name:"洪大路", nameEN:"Hongda Road" },
+            { name:"榭嘉", nameEN:"Xiejia" },
+            { name:"青林湾", nameEN:"Qinglinwan" },
+            { name:"市中医院", nameEN:"Ningbo Traditional Chinese Medicine Hospital" },
+            { name:"泽民", nameEN:"Zemin" },
+            { name:"联丰", nameEN:"Lianfeng" },
+            { name:"丽园南路", nameEN:"Liyuan South Road" },
+            { name:"南苑", nameEN:"Nanyuan" },
+            { name:"段塘", nameEN:"Duantang" },
+            { name:"堇山西路", nameEN:"Jinshan West Road" },
+            { name:"庙堰", nameEN:"Miaoyan" },
+            { name:"鄞州公园南", nameEN:"Yinzhou Park South" },
+            { name:"南部商务区", nameEN:"Southern Business District" },
+            { name:"学府路", nameEN:"Xuefu Road" },
+            { name:"寒松路", nameEN:"Hansong Road" }
         ]
     }
     // 更多线路...

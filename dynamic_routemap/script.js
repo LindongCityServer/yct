@@ -597,11 +597,11 @@ function updateRouteMap() {
     routeMapTopOffset = Math.min(Math.max(routeMapTopOffset, 20), 32);
 
     // 当routeMapTopOffset更新时从上一个位置平滑移动
-    routeMap.style.top = `${routeMapTopOffset * mapScale}px`;
-
-
-    routeMap.style.transform = `scale(${mapScale})`
-
+    if (routeMap.style.display !== 'none') {
+        routeMap.style.top = (routeMapTopOffset * mapScale + 'px');
+        routeMap.style.transform = `scale(${mapScale})`
+    }
+    
     // 箭头方向只受direction选项影响
     document.getElementById('routeMap').classList.toggle('direction-reverse', currentDirection);
 
@@ -933,13 +933,7 @@ function initializeDisplayMode() {
     function updateDisplay() {
         if (routeRadio.checked) {
             routeMap.style.display = 'flex';
-            routeMap.style.transition = 'opacity 0.2s ease-out';
-            setTimeout(() => {routeMap.style.opacity = '1';}, 10);
-            setTimeout(() => {
-                stationDetail.style.opacity = '0';
-                stationDetail.style.display = 'none';
-            }, 600);
-            stationDetail.style.transition = 'opacity 0.3s ease-in';
+            stationDetail.style.display = 'none';
             shouldAnimate = false;  // 切换到路线图时重置标记
             // 强制重新计算路线图布局
             if (currentLine) {
@@ -948,14 +942,8 @@ function initializeDisplayMode() {
                 }, 0);
             }
         } else {
-            setTimeout(() => {
-                routeMap.style.opacity = '0';
-                routeMap.style.display = 'none';
-            }, 100);
-            routeMap.style.transition = 'opacity 0.3s ease-in';
+            routeMap.style.display = 'none';
             stationDetail.style.display = 'flex';
-            setTimeout(() => {stationDetail.style.opacity = '1';}, 100);
-            stationDetail.style.transition = 'opacity 0.2s ease-out';
             shouldAnimate = true;   // 切换到站点详情时设置标记
             // 更新站点详情
             if (currentLine) {
@@ -1783,7 +1771,7 @@ function initializeGamepad() {
                     hintText.style.color = 'var(--tertiary-text)'; 
                 }, 300);
                 break;
-            case 4: // 左肩键 - 切换车门
+            case 6: // 左扳机键 - 切换车门
                 document.getElementById('doorToggle').click();
                 hintText = document.getElementById('gamepadLBHint');
                 hintText.style.color = 'var(--text-color)'
@@ -1791,7 +1779,7 @@ function initializeGamepad() {
                     hintText.style.color = 'var(--tertiary-text)'; 
                 }, 300);
                 break;
-            case 5: // 右肩键 - 返程
+            case 7: // 右扳机键 - 返程
                 document.getElementById('swapStations').click();
                 hintText = document.getElementById('gamepadRBHint');
                 hintText.style.color = 'var(--text-color)'
