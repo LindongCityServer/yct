@@ -831,6 +831,7 @@ function initCarousel() {
     });
 
     updateAutoPrimaryColor(); // 轮播初始化时更新
+    goToSlide(0);
 }
 
 // 切换到指定幻灯片
@@ -862,7 +863,27 @@ function goToSlide(index) {
     
     slides.forEach((slide, i) => {
         const slideImg = slide.querySelector('img');
+        const slideTitle = slide.querySelector('.carousel-title');
+        const noImageSlideTitle = slide.querySelector('.carousel-slide.no-image .carousel-title');
         if (slideImg) {slideImg.style.transformOrigin = `calc(${(index - i) * 50}% + 50%) top`;}
+        if (noImageSlideTitle) {
+            noImageSlideTitle.style.transform = `translateX(${(i - index) * 25}%)`;
+        } else if (i < index) {
+            slideTitle.style.transform = `translateX(-25%)`;
+        } else if (i > index) {
+            slideTitle.style.transform = `translateX(25%)`;
+        } else {
+            setTimeout(() => {
+                slideTitle.style.transform = `translateX(0)`;
+            }, 300);
+        }
+        if (i !== index) {
+            slideTitle.style.opacity = '0';
+        } else {
+            setTimeout(() => {
+                slideTitle.style.opacity = '1';
+            }, 300);
+        }
     });
     
     updateIndicators();
