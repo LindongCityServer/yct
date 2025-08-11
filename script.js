@@ -233,7 +233,7 @@ let currentSlide = 0;
 let autoplayInterval;
 const carouselContainer = document.querySelector('.carousel-container');
 const carouselIndicators = document.querySelector('.carousel-indicators');
-const carouselTitle = document.querySelector('.carousel-title');
+const carouselTitles = document.querySelectorAll('.carousel-title');
 
 // 添加全局变量用于控制轮播图状态
 let isTransitioning = false; // 是否正在进行切换动画
@@ -734,6 +734,9 @@ function initCarousel() {
         }
     });
 
+    //goToSlide(-1);
+    goToSlide(0);
+
     // 添加指示器点击事件
     carouselIndicators.addEventListener('click', (e) => {
         const indicator = e.target.closest('.carousel-indicator');
@@ -815,11 +818,6 @@ function initCarousel() {
             lastWheelTime = now;
         }, 50); // 50ms 的防抖
     }, { passive: false });
-
-    // 启动自动播放（只在有多张幻灯片时启动）
-    if (bannerData.length > 1) {
-        startAutoplay();
-    }
     
     // 当页面不可见时暂停自动播放
     document.addEventListener('visibilitychange', () => {
@@ -831,7 +829,6 @@ function initCarousel() {
     });
 
     updateAutoPrimaryColor(); // 轮播初始化时更新
-    goToSlide(0);
 }
 
 // 切换到指定幻灯片
@@ -860,37 +857,48 @@ function goToSlide(index) {
             isTransitioning = false;
         }, 500); // 与CSS过渡时间相匹配
     }, 50);
+
+    const indicators = carouselIndicators.querySelectorAll('.carousel-indicator');
+    let originSlideIndex = 0;
+    indicators.forEach((indicator, i) => { 
+        if (indicator.classList.contains('active')) {
+            originSlideIndex = i;
+        }
+    });
     
     slides.forEach((slide, i) => {
         const slideImg = slide.querySelector('img');
         const slideTitle = slide.querySelector('.carousel-title');
         const noImageSlideTitle = slide.querySelector('.carousel-slide.no-image .carousel-title');
         if (slideImg) {slideImg.style.transformOrigin = `calc(${(index - i) * 50}% + 50%) top`;}
-        if (noImageSlideTitle) {
-            noImageSlideTitle.style.transform = `translateX(${(i - index) * 25}%)`;
-        } else if (i < index) {
+        
+        if (i < index) {
             slideTitle.style.transform = `translateX(-25%)`;
         } else if (i > index) {
             slideTitle.style.transform = `translateX(25%)`;
         } else {
             setTimeout(() => {
                 slideTitle.style.transform = `translateX(0)`;
-            }, 300);
+            }, Math.abs(originSlideIndex - index) * 100 + 200);
         }
+
         if (i !== index) {
             slideTitle.style.opacity = '0';
         } else {
             setTimeout(() => {
                 slideTitle.style.opacity = '1';
-            }, 300);
+            }, Math.abs(originSlideIndex - index) * 100 + 200);
         }
     });
     
     updateIndicators();
     
     // 重新开始自动播放
-    startAutoplay();
+    if (bannerData.length > 1) {
+        startAutoplay();
+    }
 }
+
 
 // 更新指示器状态
 function updateIndicators() {

@@ -248,10 +248,9 @@ main {
     max-width: 80%;
     margin: 0;
     text-shadow: none;
-    opacity: 1;
+    opacity: 0;
     transform: none;
     font-weight: bold;
-    transition: all 1s ease-in-out;
 }
 
 .carousel-slide img {
@@ -298,11 +297,9 @@ main {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     z-index: 2;
     opacity: 0;
-    transform: translateX(-20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateX(20px);
+    transition: opacity 1s ease-in-out, transform 1s ease-in-out;
     line-height: 1.2;
-    opacity: 1;
-    transform: translateX(0);
     word-break: keep-all; /* 保持东亚文字完整 */
     -webkit-hyphens: auto;
     hyphens: auto;

@@ -1,0 +1,393 @@
+/* 添加到文件开头 */
+
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-indicator p {
+    color: var(--secondary-text);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: 16px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+main {
+    padding-top: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--tertiary-text) transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background-color: var(--header-background);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.action-button {
+    padding: 8px 16px !important;
+    font-size: 14px;
+}
+
+.content-container {
+    display: flex;
+    flex-direction: row;
+    padding: 24px 36px;
+    gap: 24px;
+    background-color: var(--card-background);
+    border-radius: 24px;
+}
+
+.content-container img {
+    width: 100%;
+}
+
+.caption-section {
+    padding: 0;
+}
+
+.content-section {
+    display: flex; 
+    gap: 8px; 
+    flex-direction: column;
+    width: calc(100% - 180px);
+}
+
+.content-section h3 {
+    white-space: nowrap;
+    width: 100%;
+}
+
+.content-banner {
+    display: flex;
+    gap: 16px;
+    flex-direction: column;
+    min-width: 180px !important;
+}
+
+.content-banner img{
+    border-radius: 12px;
+}
+
+.content-banner h1 {
+    margin: 0;
+}
+
+.content-banner .caption {
+    padding-top: 0;
+}
+
+.signified-number {
+    font-size: 4rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-align: end;
+    font-family: var(--font-family);
+    line-height: 1;
+}
+
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    width: calc(100%);
+    padding: 8px 16px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+    flex-wrap: nowrap;
+    position: relative;
+    margin-bottom: 0; /* 重置margin，避免和detail元素重叠 */
+}
+
+.ranking-item:hover {
+    transform: translateY(-2px);
+    background-color: var(--hover-background);
+    z-index: 2;
+}
+
+.rank-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--shadow-color);
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 16px;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+    position: relative;
+}
+
+.rank-number.gold-medal {
+    background-color: #edbf08;
+    color: #ffffffdd;
+}
+
+.rank-number.silver-medal {
+    background-color: #adafb6;
+    color: #ffffffdd;
+}
+
+.rank-number.bronze-medal {
+    background-color: #b05d34;
+    color: #ffffffdd;
+}
+
+.rank-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    width: 90%;
+}
+
+.rank-title {
+    font-weight: 500;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    text-wrap: nowrap;
+}
+
+.rank-value {
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+    padding-right: 12px;
+    font-weight: 500;
+    text-wrap: nowrap;
+    width: -webkit-fill-available;
+    text-align: end;
+}
+
+/* 隐藏的详细信息元素 */
+.rank-detail {
+    position: absolute;
+    left: 84px;
+    top: calc(100%);
+    background: var(--card-background);
+    box-shadow: 0 4px 12px transparent;
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: max-content;
+    max-width: 300px;
+    z-index: 100;
+    opacity: 0;
+    transform: translateX(-36px);
+    overflow: visible;
+    text-wrap: wrap;
+    word-break: break-all;
+    transition: all 0.5s ease;
+    pointer-events: none;
+    color: transparent;
+}
+
+.rank-detail::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 16px;
+    width: 10px;
+    height: 10px;
+    background: var(--card-background);
+    transform: rotate(45deg);
+}
+
+.rank-detail.show {
+    opacity: 1;
+    top: calc(100% + 8px);
+    animation: showText 0.3s ease forwards;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes showText {
+    from {
+        color: transparent;
+    }
+    to {
+        color: var(--tertiary-text);
+    }    
+}
+
+.medal {
+    margin-right: 8px;
+    font-size: 1.2em;
+    vertical-align: middle;
+}
+
+.medal.gold {
+    color: #FFD700;
+}
+
+.medal.silver {
+    color: #C0C0C0;
+}
+
+.medal.bronze {
+    color: #CD7F32;
+}
+
+.caption {
+    font-size: 0.85rem;
+    color: var(--secondary-text);
+    padding: 16px;
+}
+
+.caption a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.caption a:hover {
+    text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .signified-number {
+        font-size: 3rem;
+        padding: 0 12px;
+        line-height: 1;
+        width: 100%;
+        text-align: end;
+    }
+    
+    .rank-value {
+        align-self: flex-end;
+    }
+    
+    .ranking-item {
+        padding: 6px 12px;
+    }
+
+    .content-container {
+        flex-direction: column;
+    }
+
+    .content-banner {
+        flex-direction: row;
+    }
+    
+    .content-banner h3 {
+        text-wrap: nowrap;
+    }
+    
+    .rank-detail {
+        max-width: 200px;
+    }
+
+    .content-section {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) { 
+    main {
+        padding-top: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .content-container {
+        padding: 16px;
+    }
+
+    .content-section {
+        width: 100%;
+    }
+
+    .signified-number {
+        font-size: 2.5rem;
+        padding: 0 12px;
+    }
+    
+    .rank-title {
+        font-size: 0.95rem;
+    }
+    
+    .rank-value {
+        font-size: 0.85rem;
+        text-align: start;
+    }
+    
+    header h1 {
+        font-size: 1.2rem;
+    }
+    
+    .rank-number.gold-medal::after,
+    .rank-number.silver-medal::after,
+    .rank-number.bronze-medal::after {
+        font-size: 0.8em;
+    }
+
+    .rank-content {
+        flex-wrap: wrap;
+        gap: 0 4px;
+    }
+    
+    .rank-detail {
+        max-width: 80%;
+        left: 36px;
+        transform: translateX(0);
+    }
+}

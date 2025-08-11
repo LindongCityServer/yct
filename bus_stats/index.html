@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公交统计</title>
+    <link rel="icon" href="../UI/res/pack.png" type="image/png">
+    <link rel="stylesheet" href="/data_composer/style.css" />
+    <link rel="stylesheet" href="/UI/toast.css" />
+    <link rel="stylesheet" href="/mainpage.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <!-- 头部导航栏 -->
+    <header class="header">
+        <button class="icon-button" id="back-to-home" onclick="window.location.href='/'" title="首页">
+            <img src="../UI/res/雨城通logo绿.png" alt="首页">
+        </button>
+        <h1>公交统计</h1>
+        <!--<div class="toolbar">            
+            <button class="icon-button" id="copy" onclick="" title="复制链接">
+                <img src="../UI/res/link_black.png" alt="复制链接">
+            </button>
+        </div>-->
+    </header>
+
+    <!-- 主要内容区 -->
+    <main>
+        <div id="loadingIndicator" class="loading-indicator">
+            <div class="spinner"></div>
+            <p>正在加载统计数据...</p>
+        </div>
+        
+        <div id="content" class="content-wrapper" style="display: none;">
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>收录线路</h3>
+                    <div class="signified-number line-count"></div>
+                </div>
+                <section class="content-section" >
+                    <h3>运营站数排行</h3>
+                    <div class="ranking-list line-length-rank"></div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>收录站点</h3>
+                    <div class="signified-number station-count"></div>
+                </div>
+                <section class="content-section" >
+                    <h3>接驳线路数排行</h3>
+                    <div class="ranking-list station-lines-rank"></div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>收录公司数</h3>
+                    <div class="signified-number operator-count"></div>
+                </div>
+                <section class="content-section" >
+                    <h3>运营线路数排行</h3>
+                    <div class="ranking-list operator-lines-rank"></div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>共线站数排行</h3>
+                </div>
+                <section class="content-section" >
+                    <div class="ranking-list parallel-stations-rank"></div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>区间线路数排行</h3>
+                </div>
+                <section class="content-section" >
+                    <div class="ranking-list segment-lines-rank"></div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>营业时长排行</h3>
+                    <div class="caption">不含24小时运营线路</div>
+                </div>
+                <section class="content-section" >
+                    <div class="ranking-list operation-time-rank"></div>
+                </section>
+            </div>
+            
+            <div class="caption" style="padding: 0 16px;">数据来源：<a href="/bus_routemap/">公交换乘查询</a>，相较实际情况可能会有遗漏；车站及公司数量按名称计算，同一线路的不同交路可能会被计算为独立线路。</div>
+            <section class="caption-section"></section>
+        </div>
+    </main>
+</body>
+<script src="/UI/strings.js"></script>
+<script type="module" src="script.js"></script>
+<!-- <script src="/bus_routemap/script.js"></script> -->
+<script src="/UI/toast.js"></script>
+<script src="/UI/footer.js"></script>
+</html>
