@@ -1,7 +1,7 @@
 export const busRoutes = {
     "101": {
         name: "101路",
-        operator: "临东客运集团丰河公共汽车分公司",
+        operator: ["临东客运集团丰河公共汽车分公司"],
         firstLastBus: {
             first: "05:30",
             last: "22:00"
@@ -36,7 +36,7 @@ export const busRoutes = {
     },
     "103": {
         name: "103路",
-        operator: "临东客运集团丰河公共汽车分公司",
+        operator: ["临东客运集团丰河公共汽车分公司"],
         firstLastBus: {
             first: "05:30",
             last: "22:00"
@@ -76,7 +76,7 @@ export const busRoutes = {
     },
     "104": {
         name: "104路",
-        operator: "临东客运集团丰河公共汽车分公司",
+        operator: ["临东客运集团丰河公共汽车分公司"],
         firstLastBus: {
             first: "05:30",
             last: "22:30"
@@ -104,7 +104,7 @@ export const busRoutes = {
     },
     "107": {
         name: "107路",
-        operator: "临东客运集团丰河公共汽车分公司",
+        operator: ["临东客运集团丰河公共汽车分公司"],
         firstLastBus: {
             first: "06:00",
             last: "23:00"
@@ -132,7 +132,7 @@ export const busRoutes = {
     },
     "118": {
         name: "118路",
-        operator: "临东客运集团一分公司(天逸巴士)",
+        operator: ["临东客运集团一分公司(天逸巴士)"],
         firstLastBus: {
             first: "05:30",
             last: "22:00"
@@ -157,7 +157,7 @@ export const busRoutes = {
     },
     "124": {
         name: "124路",
-        operator: "临东客运集团定制旅游客运分公司",
+        operator: ["临东客运集团定制旅游客运分公司"],
         firstLastBus: {
             first: "06:00",
             last: "22:00"
@@ -186,7 +186,7 @@ export const busRoutes = {
     },
     "133": {
         name: "133路",
-        operator: "临东地铁公共交通有限公司A区",
+        operator: ["临东地铁公共交通有限公司A区"],
         firstLastBus: {
             first: "05:30",
             last: "23:00"
@@ -207,7 +207,7 @@ export const busRoutes = {
     },
     "138": {
         name: "138路",
-        operator: "嘎联巴士（临东）有限公司",
+        operator: ["嘎联巴士（临东）有限公司"],
         firstLastBus: {
             first: "06:30",
             last: "22:30"
@@ -247,7 +247,7 @@ export const busRoutes = {
     },
     "146": {
         name: "146路",
-        operator: "临东安运集团安运公交公司",
+        operator: ["临东安运集团安运公交公司"],
         firstLastBus: {
             first: "05:30",
             last: "22:30"
@@ -267,7 +267,7 @@ export const busRoutes = {
     },
     "152": {
         name: "152路",
-        operator: "临东客运集团顺鑫巴士公司",
+        operator: ["临东客运集团顺鑫巴士公司"],
         firstLastBus: {
             first: "05:30",
             last: "22:00"
@@ -306,7 +306,7 @@ export const busRoutes = {
     },
     "155": {
         name: "155路",
-        operator: "临东临北巴士有限责任公司",
+        operator: ["临东临北巴士有限责任公司"],
         firstLastBus: {
             first: "06:00",
             last: "20:05"
@@ -380,7 +380,7 @@ export const busRoutes = {
     },
     "155区": {
         name: "155路区间",
-        operator: "临东临北巴士有限责任公司",
+        operator: ["临东临北巴士有限责任公司"],
         firstLastBus: {
             first: "05:30",
             last: "20:30"
@@ -415,7 +415,7 @@ export const busRoutes = {
     },
     "156": {
         name: "156路",
-        operator: "临东客运集团丰河公共汽车分公司",
+        operator: ["临东客运集团丰河公共汽车分公司"],
         firstLastBus: {
             first: "05:00",
             last: "22:45"
@@ -478,7 +478,7 @@ export const busRoutes = {
     },
     "157": {
         name: "157路",
-        operator: "临东地铁公共交通有限公司A区",
+        operator: ["临东地铁公共交通有限公司A区"],
         firstLastBus: {
             first: "06:00",
             last: "21:00"
@@ -504,7 +504,7 @@ export const busRoutes = {
     },
     "170": {
         name: "170路",
-        operator: "临东安运集团安运公交公司",
+        operator: ["临东安运集团安运公交公司"],
         firstLastBus: {
             first: "05:50",
             last: "23:30"
@@ -528,7 +528,7 @@ export const busRoutes = {
     },
     "171": {
         name: "171路",
-        operator: "临东客运集团通运巴士运营管理服务中心",
+        operator: ["临东客运集团通运巴士运营管理服务中心"],
         firstLastBus: {
             first: "04:30",
             last: "23:00"
@@ -559,7 +559,7 @@ export const busRoutes = {
     },
     "172": {
         name: "172路",
-        operator: "临东地铁公共交通有限公司A区",
+        operator: ["临东地铁公共交通有限公司A区"],
         firstLastBus: {
             first: "05:30",
             last: "23:00"
@@ -583,7 +583,7 @@ export const busRoutes = {
     },
     "178": {
         name: "178路",
-        operator: "临东玖通客运有限公司",
+        operator: ["临东玖通客运有限公司"],
         firstLastBus: {
             first: "06:00",
             last: "18:00"
@@ -602,7 +602,7 @@ export const busRoutes = {
     },
     "178支": {
         name: "178路支线",
-        operator: "临东玖通客运有限公司",
+        operator: ["临东玖通客运有限公司"],
         firstLastBus: {
             first: "06:30",
             last: "17:00"
@@ -619,7 +619,7 @@ export const busRoutes = {
     },
     "181": {
         name: "181路",
-        operator: "临东临北巴士有限责任公司",
+        operator: ["临东临北巴士有限责任公司"],
         firstLastBus: {
             first: "06:06",
             last: "20:00"
@@ -668,7 +668,7 @@ export const busRoutes = {
     },
     "181支": {
         name: "181路支线",
-        operator: "临东临北巴士有限责任公司",
+        operator: ["临东临北巴士有限责任公司"],
         firstLastBus: {
             first: "07:00",
             last: "17:40"
@@ -701,7 +701,7 @@ export const busRoutes = {
     },
     "183": {
         name: "183路",
-        operator: "临东临北巴士有限责任公司",
+        operator: ["临东临北巴士有限责任公司"],
         note: "五间房8:30、13:32、15:18、18:30发，裕隆山公园9:00、14:28、15:50、19:00发。保税区站为票价分段站。本线响应式停靠，招手上车，下车请提前告知司机。",
         firstLastBus: {
             first: "08:30",
@@ -746,7 +746,7 @@ export const busRoutes = {
     },
     "191": {
         name: "191路",
-        operator: "嘎联巴士（临东）有限公司",
+        operator: ["嘎联巴士（临东）有限公司"],
         firstLastBus: {
             first: "06:30",
             last: "22:24"
@@ -780,7 +780,7 @@ export const busRoutes = {
     },
     "214": {
         name: "214路",
-        operator: "临东客运集团一分公司(天逸巴士)",
+        operator: ["临东客运集团一分公司(天逸巴士)"],
         firstLastBus: {
             first: "05:30",
             last: "22:00"
@@ -826,7 +826,7 @@ export const busRoutes = {
     },
     /*"216": {
         name: "216路",
-        operator: "临东客运集团通运巴士运营管理服务中心",
+        operator: ["临东客运集团通运巴士运营管理服务中心"],
         firstLastBus: {
             first: "04:30",
             last: "22:30"
@@ -864,7 +864,7 @@ export const busRoutes = {
     },*/
     "235": {
         name: "235路",
-        operator: "临东客运集团丰河公共汽车分公司",
+        operator: ["临东客运集团丰河公共汽车分公司"],
         firstLastBus: {
             first: "06:00",
             last: "21:00"
@@ -889,7 +889,7 @@ export const busRoutes = {
     },
     "238": {
         name: "238路",
-        operator: "临东地铁公共交通有限公司A区",
+        operator: ["临东地铁公共交通有限公司A区"],
         firstLastBus: {
             first: "05:30",
             last: "21:00"
@@ -917,7 +917,7 @@ export const busRoutes = {
     },
     "241": {
         name: "241路",
-        operator: "嘎联巴士（临东）有限公司",
+        operator: ["嘎联巴士（临东）有限公司"],
         firstLastBus: {
             first: "05:30",
             last: "22:24"
@@ -942,7 +942,7 @@ export const busRoutes = {
     },
     "251": {
         name: "251路",
-        operator: "临东客运集团顺鑫巴士公司",
+        operator: ["临东客运集团顺鑫巴士公司"],
         firstLastBus: {
             first: "06:00",
             last: "23:00"
@@ -994,7 +994,7 @@ export const busRoutes = {
     },
     "253": {
         name: "253路",
-        operator: "回南控股临东客运有限责任公司",
+        operator: ["回南控股临东客运有限责任公司"],
         firstLastBus: {
             first: "06:00",
             last: "22:00"
@@ -1025,7 +1025,7 @@ export const busRoutes = {
     },
     "287": {
         name: "287路",
-        operator: "临东地铁公共交通有限公司",
+        operator: ["临东地铁公共交通有限公司A区"],
         firstLastBus: {
             first: "06:00",
             last: "22:00"
@@ -1065,7 +1065,7 @@ export const busRoutes = {
     },
     "288": {
         name: "288路",
-        operator: "嘎联巴士（临东）有限公司",
+        operator: ["嘎联巴士（临东）有限公司"],
         firstLastBus: {
             first: "06:30",
             last: "22:30"
@@ -1098,7 +1098,7 @@ export const busRoutes = {
     },
     "310": {
         name: "310路",
-        operator: "临东客运集团顺鑫巴士公司",
+        operator: ["临东客运集团顺鑫巴士公司"],
         firstLastBus: {
             first: "05:30",
             last: "22:00"
@@ -1125,7 +1125,7 @@ export const busRoutes = {
     },
     "310支": {
         name: "310路支线",
-        operator: "临东客运集团顺鑫巴士公司",
+        operator: ["临东客运集团顺鑫巴士公司"],
         firstLastBus: {
             first: "07:00",
             last: "22:00"
@@ -1153,7 +1153,7 @@ export const busRoutes = {
     },
     "323": {
         name: "323路",
-        operator: "临东客运集团丰河公共汽车分公司",
+        operator: ["临东客运集团丰河公共汽车分公司"],
         firstLastBus: {
             first: "06:30",
             last: "21:30"
@@ -1188,7 +1188,7 @@ export const busRoutes = {
     },
     "323区": {
         name: "323路区间",
-        operator: "临东客运集团丰河公共汽车分公司",
+        operator: ["临东客运集团丰河公共汽车分公司"],
         firstLastBus: {
             first: "06:30",
             last: "21:30"
@@ -1210,7 +1210,7 @@ export const busRoutes = {
     },
     "386": {
         name: "386路",
-        operator: "临东客运集团顺鑫巴士公司",
+        operator: ["临东客运集团顺鑫巴士公司"],
         note: "分段计价2-5元",
         firstLastBus: {
             first: "06:00",
@@ -1243,7 +1243,7 @@ export const busRoutes = {
     },
     "387": {
         name: "387路",
-        operator: "临东客运集团顺鑫巴士公司",
+        operator: ["临东客运集团顺鑫巴士公司"],
         firstLastBus: {
             first: "07:00",
             last: "19:00"
@@ -1270,7 +1270,7 @@ export const busRoutes = {
     },
     "K801": {
         name: "K801路",
-        operator: "临东雨城客运有限公司",
+        operator: ["临东雨城客运有限公司"],
         note: "分段计价2-4元(以工农桥为界)",
         firstLastBus: {
             first: "06:00",
@@ -1292,7 +1292,7 @@ export const busRoutes = {
     },
     "K881": {
         name: "K881路",
-        operator: "氷峰客运公司",
+        operator: ["氷峰客运公司"],
         note: "五间房6:30、9:00、16:30发，SB客运站7:30、10:00、17:30发。过分段点（远航路青年大街站）后需再次刷卡或投币!本线响应式停靠，招手上车，下车请提前告知司机！",
         firstLastBus: {
             first: "06:30",
@@ -1325,7 +1325,7 @@ export const busRoutes = {
     },
     "V101": {
         name: "V101路",
-        operator: "临东客运集团通运巴士运营管理服务中心",
+        operator: ["临东客运集团通运巴士运营管理服务中心"],
         firstLastBus: {
             first: "05:00",
             last: "20:45"
@@ -1384,7 +1384,7 @@ export const busRoutes = {
     },
     "V102": {
         name: "V102路",
-        operator: "临东客运集团通运巴士运营管理服务中心",
+        operator: ["临东客运集团通运巴士运营管理服务中心"],
         firstLastBus: {
             first: "05:30",
             last: "20:30"
@@ -1399,7 +1399,7 @@ export const busRoutes = {
     },
     "V105": {
         name: "V105路",
-        operator: "临东客运集团通运巴士运营管理服务中心",
+        operator: ["临东客运集团通运巴士运营管理服务中心"],
         firstLastBus: {
             first: "05:20",
             last: "19:50"
@@ -1430,7 +1430,7 @@ export const busRoutes = {
     },
     "V108": {
         name: "V108路",
-        operator: "嘎联巴士（临东）有限公司",
+        operator: ["嘎联巴士（临东）有限公司"],
         firstLastBus: {
             first: "06:30",
             last: "23:00"
@@ -1453,7 +1453,7 @@ export const busRoutes = {
     },
     "临站": {
         name: "临东站东西专线",
-        operator: "临东客运集团通运巴士运营管理服务中心",
+        operator: ["临东客运集团通运巴士运营管理服务中心"],
         firstLastBus: {
             first: "06:00",
             last: "22:30"
@@ -1471,7 +1471,7 @@ export const busRoutes = {
     },
     " 环": {
         name: "环路",
-        operator: "临东地铁公共交通有限公司A区",
+        operator: ["临东地铁公共交通有限公司A区"],
         firstLastBus: {
             first: "07:00",
             last: "19:00"
@@ -1518,7 +1518,7 @@ export const busRoutes = {
     },
     "901": {
         name: "901路",
-        operator: "临东客运集团有限公司/嘎联巴士（临东）有限公司",
+        operator: ["临东客运集团有限公司","嘎联巴士（临东）有限公司"],
         firstLastBus: {
             first: "05:40",
             last: "22:40"
@@ -1536,7 +1536,7 @@ export const busRoutes = {
     },
     "902": {
         name: "902路",
-        operator: "临东客运集团有限公司/嘎联巴士（临东）有限公司",
+        operator: ["临东客运集团有限公司","嘎联巴士（临东）有限公司"],
         firstLastBus: {
             first: "05:05",
             last: "22:00"
@@ -1566,7 +1566,7 @@ export const busRoutes = {
     },
     "903": {
         name: "903路",
-        operator: "临东客运集团有限公司/嘎联巴士（临东）有限公司",
+        operator: ["临东客运集团有限公司","嘎联巴士（临东）有限公司"],
         firstLastBus: {
             first: "05:05",
             last: "22:00"
@@ -1605,7 +1605,7 @@ export const busRoutes = {
     },
     "904": {
         name: "904路",
-        operator: "临东客运集团有限公司/嘎联巴士（临东）有限公司",
+        operator: ["临东客运集团有限公司","嘎联巴士（临东）有限公司"],
         firstLastBus: {
             first: "05:15",
             last: "22:55"
@@ -1620,7 +1620,7 @@ export const busRoutes = {
     },
     "观1": {
         name: "观光一线",
-        operator: "临东客运集团丰河公共汽车分公司",
+        operator: ["临东客运集团丰河公共汽车分公司"],
         firstLastBus: {
             first: "07:00",
             last: "21:30"

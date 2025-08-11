@@ -88,7 +88,9 @@ function calculateStats() {
     for (const [routeId, routeData] of Object.entries(busRoutes)) {
         // 统计运营公司
         if (routeData.operator && routeData.operator !== "-") {
-            operators.add(routeData.operator);
+            routeData.operator.forEach(operator => {
+                operators.add(operator);
+            });
         }
         
         // 线路长度排行（去除单向线路的重复计算）
@@ -126,8 +128,10 @@ function calculateStats() {
     // 统计每个运营公司的线路数
     for (const routeData of Object.values(busRoutes)) {
         if (routeData.operator && routeData.operator !== "-") {
-            const count = stats.operatorsByLines.get(routeData.operator) || 0;
-            stats.operatorsByLines.set(routeData.operator, count + 1);
+            routeData.operator.forEach(operator => {
+                const count = stats.operatorsByLines.get(operator) || 0;
+                stats.operatorsByLines.set(operator, count + 1);
+            });
         }
     }
 
@@ -466,7 +470,7 @@ function displayStats(stats) {
                 // 查找该运营公司的所有线路ID，并用斜线连接
                 const linesByOperator = [];
                 for (const [routeId, routeData] of Object.entries(busRoutes)) {
-                    if (routeData.operator === operatorEntry[0]) {
+                    if (routeData.operator.includes(operatorEntry[0])) {
                         linesByOperator.push(routeData.name);
                     }
                 }
