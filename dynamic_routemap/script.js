@@ -20,7 +20,8 @@ window.addEventListener('DOMContentLoaded', function() {
         window.metro_logo = metro_logo;
         // 确保正确加载默认数据
         if (typeof lines !== 'undefined') {
-            lineData = { lines: lines };
+            // 修改这里以适配新的数据结构
+            lineData = { lines: Object.values(lines) };
             
             // 初始化游戏手柄支持
             initializeGamepad();
@@ -72,6 +73,11 @@ function addSafeEventListener(element, event, handler) {
 }
 
 
+// 确保 lines 始终为数组的辅助函数
+function ensureLinesArray(lines) {
+    return Array.isArray(lines) ? lines : Object.values(lines);
+}
+
 // 添加线路颜色映射函数
 function getLineColorByName(lineName) {
     const line = lines.find(l => l.name === lineName);
@@ -84,8 +90,10 @@ function initializeLineSelect() {
     lineSelect.innerHTML = '<option value="">选择线路</option>';
     
     if (lineData && lineData.lines) {
+        // 确保使用的是数组格式的数据
+        const linesArray = ensureLinesArray(lineData.lines);
         // 过滤掉使用透明颜色的线路
-        const visibleLines = lineData.lines.filter(line => !/^#[0-9A-Fa-f]{6}00$/.test(line.color));
+        const visibleLines = linesArray.filter(line => !/^#[0-9A-Fa-f]{6}00$/.test(line.color));
         
         visibleLines.forEach((line, index) => {
             const option = document.createElement('option');
@@ -130,7 +138,9 @@ function initializeLineSelect() {
 addSafeEventListener(document.getElementById('lineSelect'), 'change', function(e) {
     const lineIndex = e.target.value;
     if (lineIndex !== '') {
-        currentLine = lineData.lines[lineIndex];
+        // 确保使用的是数组格式的数据
+        const linesArray = ensureLinesArray(lineData.lines);
+        currentLine = linesArray[lineIndex];
         
         // 获取当前线路的 maxCarCount
         const lineDetail = window.stationDetail.find(line => line.name === currentLine.name);
@@ -828,7 +838,7 @@ function updateInfoBar() {
 // 检查换乘线路
 function findTransferLine(stationName) {
     let transfers = [];
-    lineData.lines.forEach(line => {
+    ensureLinesArray(lineData.lines).forEach(line => {
         if (line !== currentLine) {
             line.stations.forEach(station => {
                 if (station.name === stationName) {
@@ -1569,7 +1579,8 @@ async function handleFileUpload(file) {
         window.metro_logo = data.metro_logo;
         window.metro_name = data.metro_name; // 确保没有默认值覆盖
         window.metro_name_en = data.metro_name_en; // 确保没有默认值覆盖
-        lineData = { lines: window.lines };
+        // 适配新的数据结构：确保lineData.lines始终是数组
+        lineData = { lines: Array.isArray(window.lines) ? window.lines : Object.values(window.lines) };
 
         // 重置当前选中的线路和站点
         currentLine = null;

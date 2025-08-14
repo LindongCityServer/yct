@@ -7,8 +7,8 @@ const metro_logo = "https://wiki.shangxiaoguan.top/images/1/10/%E4%B8%B4%E4%B8%9
 // travelTime: 从当前站到下一站的运行时间（分钟）
 // 例如：如果 A站的travelTime为3，表示从A站到B站需要3分钟
 
-const lines = [
-    {
+const lines = {
+    "1":{
         name: "1号线",
         nameEN: "Line 1",
         color: "#e60012",
@@ -25,7 +25,7 @@ const lines = [
             { name: "冰岭西路", nameEN: "BINGLINGXILU", coordinates: { x: 640, y: 820 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1639 }
         ]
     },
-    /*{
+    /*"2":{
         name: "2号线",
         nameEN: "Line 2",
         color: "#00a0e9",
@@ -41,7 +41,7 @@ const lines = [
             { name: "临南中路", nameEN: "LINANZHONGLU", coordinates: { x: 540, y: 1300 }, fareZone: "机场", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", distance: 997  }
         ]
     },*/
-    {
+    "3": {
         name: "3号线",
         nameEN: "Line 3",
         color: "#f5d000",
@@ -71,7 +71,7 @@ const lines = [
             //{ name: "城海新港", nameEN: "CHENGHAIXINGANG", coordinates: { x: 1050, y: 600 }, fareZone: "碧湖", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 1000, },
         ]
     },
-    {
+    "6": {
         name: "6号线",
         nameEN: "Line 6",
         color: "#ec6941",
@@ -86,7 +86,7 @@ const lines = [
             { name: "仁德路", nameEN: "RENDELU", coordinates: { x: 300, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "left", distance: 1324 }
         ]
     },
-    /*{
+    /*"9": {
         name: "9号线",
         nameEN: "Line 9",
         color: "#e4007f",
@@ -100,7 +100,7 @@ const lines = [
             { name: "红山公园", nameEN: "HONGSHANGONGYUAN", coordinates: { x: 640, y: 900 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 2, distance: 1393 }
         ]
     },*/
-    {
+    "10": {
         name: "10号线",
         nameEN: "Line 10",
         color: "#57d33e",
@@ -116,7 +116,7 @@ const lines = [
             { name: "和平门", nameEN: "HEPINGMEN", coordinates: { x: 200, y: 900 }, fareZone: "仁德", labelOffset: { x: 8, y: -8 }, travelTime: 2, platformSide: "right", distance: 577 }
         ]
     },
-    /*{
+    /*"✈": {
         name: "机场线",
         nameEN: "Aero Express",
         color: "rgb(82 0 160)",
@@ -126,5 +126,5 @@ const lines = [
             { name: "临东大学", nameEN: "LINDONGDAXUE", coordinates: { x: 540, y: 900 }, fareZone: "出生点", labelOffset: { x: 8, y: -8 }, travelTime: 3, platformSide: "left", trainPosition: 0.5 },
         ]
     },*/
-];
+};
 

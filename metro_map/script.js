@@ -22,15 +22,21 @@ let isDragging = false;
 let dragStartX, dragStartY;
 
 
+// 创建线路名称到线路对象的映射
+const lineNameMap = {};
+Object.values(lines).forEach(line => {
+    lineNameMap[line.name] = line;
+});
+
 // 添加线路颜色映射函数
 function getLineColorByName(lineName) {
-    const line = lines.find(l => l.name === lineName);
+    const line = lineNameMap[lineName];
     return line ? line.color : null;
 }
 
 // 添加获取线路颜色的函数
 function getLineColor(color) {
-    for (const line of lines) {
+    for (const line of Object.values(lines)) {
         if (line.color === color) {
             return line.name;
         }
@@ -83,7 +89,7 @@ function drawStation(x, y, name, isTransfer, lineColor, labelOffset) {
         x,
         y,
         element: circle,
-        fareZones: lines
+        fareZones: Object.values(lines)
             .filter(line => {
                 return line.stations.some(station => station.name === name);
             })
@@ -398,7 +404,7 @@ function calculateFare(path) {
         const node = path[i];
         const [stationName, lineName] = node.split('_');
         const station = stationsData[stationName];
-        const line = lines.find(l => l.name === lineName);
+        const line = Object.values(lines).find(l => l.name === lineName);
 
         const lineStation = line?.stations.find(s => s.name === stationName);
         if (!lineStation) continue;
@@ -433,7 +439,7 @@ function calculateFare(path) {
         if (i > 0 && !isTransferLine) {
             const prevNode = path[i-1];
             const [prevStationName, prevLineName] = prevNode.split('_');
-            const prevLine = lines.find(l => l.name === prevLineName);
+            const prevLine = Object.values(lines).find(l => l.name === prevLineName);
 
             if (prevLine && prevLine.stations) {
                 const prevLineStation = prevLine.stations.find(s => s.name === prevStationName);
@@ -492,7 +498,7 @@ function buildWeightedGraph(lines, options = {}) {
 
     // 创建站点到线路的映射
     const stationToLines = {};
-    lines.forEach(line => {
+    Object.values(lines).forEach(line => {
         if (excludeAirportLine && line.name === "机场线") return;
         
         line.stations.forEach((station, index) => {
@@ -527,7 +533,7 @@ function buildWeightedGraph(lines, options = {}) {
     });
 
     // 为每个站点创建线路专用的节点
-    lines.forEach(line => {
+    Object.values(lines).forEach(line => {
         if (excludeAirportLine && line.name === "机场线") return;
 
         line.stations.forEach(station => {
@@ -537,7 +543,7 @@ function buildWeightedGraph(lines, options = {}) {
     });
 
     // 添加同一线路上相邻站点之间的边
-    lines.forEach(line => {
+    Object.values(lines).forEach(line => {
         if (excludeAirportLine && line.name === "机场线") return;
 
         line.stations.forEach((station, index) => {
@@ -728,7 +734,7 @@ function findLineBetweenStations(start, end, targetLine = null) {
 
     // 如果指定了目标线路，尝试找到匹配的线段
     if (targetLine && sharedLines.length > 0) {
-        const targetColor = lines.find(l => l.name === targetLine)?.color;
+        const targetColor = Object.values(lines).find(l => l.name === targetLine)?.color;
         const matchingLine = sharedLines.find(l => l.color === targetColor);
         if (matchingLine) {
             return matchingLine;
@@ -1284,7 +1290,7 @@ function displaySegments(segments) {
 
         const lineItem = document.createElement('p');
         // 获取该线路的终点站（方向）
-        const line = lines.find(l => l.name === segment.line);
+        const line = Object.values(lines).find(l => l.name === segment.line);
         if (!line) {
             console.error(`线路 ${segment.line} 未找到`);
         }
@@ -1441,11 +1447,11 @@ function removeMarkers() {
     markers.forEach(marker => marker.remove());
 }
 
-lines.forEach(line => {
+Object.values(lines).forEach(line => {
     const color = line.color;
     line.stations.forEach((station, index) => {
         const { name, coordinates, fareZone, labelOffset } = station;
-        const isTransfer = lines.some(l => l.stations.some(s => s.name === name && l.color !== color));
+        const isTransfer = Object.values(lines).some(l => l.stations.some(s => s.name === name && l.color !== color));
         drawStation(coordinates.x, coordinates.y, name, isTransfer, color, labelOffset);
         if (index < line.stations.length - 1) {
             const nextStation = line.stations[index + 1];
@@ -1550,7 +1556,7 @@ function initializeLegend() {
     lineLegend.innerHTML = '';
     
     // 生成线路图例
-    lines.forEach(line => {
+    Object.values(lines).forEach(line => {
         if (isTransparentColor(line.color)) return; // 跳过透明色线路
 
         const lineItem = document.createElement('div');
@@ -1686,7 +1692,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 根据站名查找站点
 function findStationByName(name) {
-    for (const line of lines) {
+    for (const line of Object.values(lines)) {
         for (const station of line.stations) {
             if (station.name === name) {
                 return station;

@@ -10,10 +10,10 @@ async function loadTransportData() {
         // 加载地铁数据
         const metroResponse = await fetch('data/metro_data.js');
         const metroText = await metroResponse.text();
-        // 提取 lines 变量的值
-        const metroMatch = metroText.match(/const\s+lines\s*=\s*(\[[\s\S]*?\]);/);
+        // 提取 lines 变量的值 (修复正则表达式以匹配对象形式的数据)
+        const metroMatch = metroText.match(/const\s+lines\s*=\s*(\{[\s\S]*?\});/);
         if (metroMatch) {
-            metroLines = eval(metroMatch[1]);
+            metroLines = eval('(' + metroMatch[1] + ')');
         }
 
         // 加载有轨电车数据
@@ -305,17 +305,17 @@ function createIconElement(icon) {
     `;
     
     // 添加点击事件
-    div.addEventListener('click', () => {
+    div.addEventListener('mouseup', (e) => {
         // 检查是否是未上线的功能
         /*if (['faq'].includes(icon.id)) {
             showToast('功能暂未上线');
             return;
         }*/
         
-        if (icon.link.startsWith('http')) {
+        if (e.button === 1) {
             window.open(icon.link, '_blank');
-        } else {
-            window.open(icon.link, '_blank');
+        } else if (e.button === 0) {
+            window.open(icon.link, '_self');
         }
     });
     
@@ -329,7 +329,8 @@ function handleSearch(query) {
     
     // 搜索地铁线路
     if (metroLines) {
-        metroLines.forEach(line => {
+        // 使用 Object.values() 处理对象格式的线路数据
+        Object.values(metroLines).forEach(line => {
             if (line.name.includes(query)) {
                 results.push({
                     type: 'line',
@@ -503,16 +504,17 @@ function displaySearchResults(results) {
     // 为每个搜索结果项添加点击事件
     const resultItems = searchResults.querySelectorAll('.search-result-item');
     resultItems.forEach(item => {
-        item.addEventListener('click', () => {
+        item.addEventListener('mouseup', (e) => {
             const type = item.dataset.type;
             const name = item.dataset.name;
             const mode = item.dataset.mode;
-            if (type === 'station') {
-                window.open(`https://wiki.shangxiaoguan.top/${encodeURIComponent(name)}站`, '_blank');
+            const openMode = (e.button === 1 || e.ctrlKey) ? '_blank' :  '_self'; // 左键当前标签页打开，其他方式新标签页打开
+            if (type === 'station' && e.button < 2) { // 仅左键和中键打开站点详情
+                window.open(`https://wiki.shangxiaoguan.top/${encodeURIComponent(name)}站`, openMode);
             } else if (type === 'line' && mode === 'metro') {
-                window.open(`https://wiki.shangxiaoguan.top/临东地铁${name}`, '_blank');
+                window.open(`https://wiki.shangxiaoguan.top/临东地铁${name}`, openMode);
             } else {
-                window.open(`https://wiki.shangxiaoguan.top/${name}`, '_blank');
+                window.open(`https://wiki.shangxiaoguan.top/${name}`, openMode);
             }
         });
     });
@@ -563,8 +565,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    aboutBtn?.addEventListener('click', () =>{
-        window.open('https://wiki.shangxiaoguan.top/%E9%9B%A8%E5%9F%8E%E9%80%9A');
+    aboutBtn?.addEventListener('mouseup', (e) =>{
+        const openMode = (e.button === 1 || e.ctrlKey) ? '_blank' :  '_self'; // 左键当前标签页打开，其他方式新标签页打开
+        if (e.button < 2) {
+            window.open('https://wiki.shangxiaoguan.top/%E9%9B%A8%E5%9F%8E%E9%80%9A', openMode);
+        }
     })
     
     // 搜索相关事件监听
@@ -698,7 +703,7 @@ function initCarousel() {
     `).join('');
 
     // 添加点击事件
-    carouselContainer.addEventListener('click', (e) => {
+    carouselContainer.addEventListener('mouseup', (e) => {
         const clickedSlide = e.target.closest('.carousel-slide');
         if (!clickedSlide) return;
 
@@ -707,6 +712,7 @@ function initCarousel() {
 
         // 阻止事件冒泡
         e.stopPropagation();
+        const openMode = (e.button === 1 || e.ctrlKey) ? '_blank' :  '_self'; // 左键当前标签页打开，其他方式新标签页打开
 
         if (!banner.link || banner.link.trim() === '') {
             // 在新闻列表中查找对应的新闻项
@@ -729,8 +735,8 @@ function initCarousel() {
                     scrollToNewsItem(newsItem);
                 }
             }
-        } else {
-            window.open(banner.link, '_blank');
+        } else if (e.button < 2) {
+            window.open(banner.link, openMode);
         }
     });
 

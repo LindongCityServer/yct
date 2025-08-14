@@ -15,10 +15,10 @@ let currentRouteId = '101'; // 保存当前显示的路线ID
 
 // 解析地铁数据
 function parseMetroData(text) {
-    const linesMatch = text.match(/const lines = (\[[\s\S]*?\]);/);
+    const linesMatch = text.match(/const lines = ({[\s\S]*?});/);
     if (linesMatch) {
-        const linesData = eval(linesMatch[1]);
-        linesData.forEach(line => {
+        const linesObj = eval(`(${linesMatch[1]})`);
+        Object.values(linesObj).forEach(line => {
             metroLines[line.name] = {
                 color: line.color,
                 stations: line.stations.map(station => station.name)
