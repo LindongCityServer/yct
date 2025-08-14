@@ -33,7 +33,7 @@
             <div class="tile-container"></div>
             <div class="map-scale">
                 <div class="scale-bar"></div>
-                <div class="scale-text">200m</div>
+                <div class="scale-text">200格</div>
             </div>
             <div class="pin-container">
                 <img src="/UI/res/map_pin.png" alt="Pin" class="pin">
@@ -57,8 +57,46 @@
                     <option value="">全部分类</option>
                 </select>
             </div>
+            <div class="caption shorcut-container" style="display: inline-flex;flex-direction: row;align-items: center;padding: 0;">
+                <div class="move-container" style="display: inline-flex; flex-direction: column; align-items: center;">
+                    <div class="shortcut-key" style="margin-left: 0;">W</div>
+                    <div style="display: flex; flex-direction: row; align-items: center;">
+                        <div class="shortcut-key" style="margin-left: 0;">A</div>
+                        <div class="shortcut-key" style="margin-left: 0;">S</div>
+                        <div class="shortcut-key" style="margin-left: 0;">D</div>
+                    </div>
+                </div>
+                移动±10
+                <div class="shortcut-key" style="display: inline-flex;">Alt</div>
+                ±1<div class="shortcut-key" style="display: inline-flex;">Shift</div>
+                ±100，
+                <div style="display: inline;">点击地图区域存为图片</div>
+            </div>
+            <div class="caption no-results">
+                此处未被标记，可浏览以下周边标记点或<div class="add-new-point">添加新标记</div>
+            </div>
             <div class="search-result">
                 <!-- 数据项将在这里动态添加 -->
+            </div>
+        </div>
+    </div>
+    <div class="modal-container" id="add-point-modal">
+        <div class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">添加新标记</h3>
+                    <button class="icon-button" id="close-modal">
+                        <img src="/UI/res/close_black.png" alt="关闭">
+                    </button>
+                </div>
+                <input type="text" id="point-name" placeholder="标记点名称"></input>
+                <select type="select" id="point-category">
+                    <!-- 分类项将在这里动态添加 -->
+                </select>
+                <div class="modal-footer">
+                    <button id="copy-point-code" style="color:black">复制代码</button>
+                    <button class="action-button" style="padding: 5px 16px;" id="send-via-email">发送邮件</button>
+                </div>
             </div>
         </div>
     </div>

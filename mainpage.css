@@ -2391,3 +2391,41 @@ input[type="color"]::-moz-color-swatch {
     margin-bottom: 4px;
     display: block;
 }
+
+/* 快捷键样式 */
+.shortcut-key {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 10px;
+    color: #666;
+    line-height: 1;
+    vertical-align: 1px;
+    min-width: 14px;
+    height: 14px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.gamepad-hint .shortcut-key { 
+    border-radius: 7px;
+}
+
+#gamepadA {color: var(--text-color-a); margin-left: 0;}
+#gamepadX {color: var(--text-color-9);}
+#gamepadY {color: var(--text-color-e);}
+#gamepadTrigger {border-radius: 2px 2px 40% 40%;}
+#gamepadLB {border-radius: 50% 4px 2px 4px;}
+#gamepadRS {margin-left: 0;}
+#gamepadRB {border-radius: 4px 50% 4px 2px; margin-left: 0;}
+
+.gamepad-hint .caption { 
+    margin: 0;
+    letter-spacing: -0.1px;
+}
+
+#gamepadMouseHint { 
+    margin-right: 8px;
+}

@@ -13,7 +13,7 @@ body {
     align-items: center;    
 }
 
-@media (min-width: 480px) {
+@media (min-width: 540px) {
     .content-container {
         flex-direction: row;
         gap: 4px;
@@ -31,7 +31,7 @@ body {
     }
 }
 
-@media (max-width: 479px){
+@media (max-width: 539px){
     .content-container{
         max-width: 450px;
     }
@@ -250,4 +250,110 @@ body {
     margin-right: 4px;
     white-space: nowrap;
     text-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+.add-new-point {
+    display: inline-block;
+    color: var(--primary-color);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.add-new-point:hover {
+    color: var(--primary-color-hover);
+    text-decoration: none;
+}
+
+.no-results {
+    display: none;
+    padding: 0 12px;
+    border-radius: 16px;
+    width: 100%;
+}
+
+/* 添加标记点模态框样式 */
+.modal-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal {
+    background-color: var(--card-background);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.modal-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+.modal-content input, .modal-content select {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    background-color: var(--input-background);
+    color: var(--primary-text);
+}
+
+.modal-content input:focus, .modal-content select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.button:hover {
+    background-color: var(--primary-color-hover);
+}
+
+.button.secondary {
+    background-color: var(--secondary-button-background);
+    color: var(--primary-text);
+}
+
+.button.secondary:hover {
+    background-color: var(--secondary-button-hover);
 }

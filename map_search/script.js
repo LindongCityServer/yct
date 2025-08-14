@@ -1,4 +1,109 @@
 let isCoordinatesEdited = false; // 初始为未手动修改
+let isDragging = false;
+let dragStartX, dragStartZ;
+let dragStartClientX, dragStartClientY;
+let isPreviewUpdateScheduled = false; // 添加缺失的变量定义
+
+// 开始拖拽
+function startDrag(event) {
+    // 只响应鼠标左键拖拽或触屏开始
+    if (event.type === 'mousedown' && event.button !== 0) return;
+    if (event.type === 'touchstart' && event.touches.length === 0) return;
+    
+    isDragging = true;
+    // 处理鼠标和触屏事件
+    if (event.type === 'touchstart' && event.touches.length > 0) {
+        dragStartClientX = event.touches[0].clientX;
+        dragStartClientY = event.touches[0].clientY;
+    } else if (event.type === 'mousedown') {
+        dragStartClientX = event.clientX;
+        dragStartClientY = event.clientY;
+    } else {
+        return; // 其他情况不处理
+    }
+    
+    // 获取当前坐标
+    const xInput = document.getElementById('coordinates-x');
+    const zInput = document.getElementById('coordinates-z');
+    dragStartX = parseFloat(xInput.value);
+    dragStartZ = parseFloat(zInput.value);
+    
+    // 添加鼠标移动和释放事件监听器
+    document.addEventListener('mousemove', drag, { passive: false });
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchmove', drag, { passive: false });
+    document.addEventListener('touchend', endDrag);
+    document.addEventListener('touchcancel', endDrag);
+    
+    // 阻止默认行为，防止页面滚动等
+    event.preventDefault();
+}
+
+// 拖拽过程中
+function drag(event) {
+    if (!isDragging) return;
+    
+    // 处理鼠标和触屏事件
+    let clientX, clientY;
+    if (event.type === 'touchmove') {
+        // 检查触摸点是否存在
+        if (event.touches.length === 0) return;
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+    } else if (event.type === 'mousemove') {
+        clientX = event.clientX;
+        clientY = event.clientY;
+    } else {
+        return; // 其他事件不处理
+    }
+    
+    // 计算鼠标/触摸点移动的距离
+    const deltaX = clientX - dragStartClientX;
+    const deltaY = clientY - dragStartClientY;
+    
+    // 根据移动距离计算新的坐标
+    // 鼠标/手指向右移动时，地图向左移动，显示更右边的内容（X坐标减少）
+    // 鼠标/手指向下移动时，地图向上移动，显示更下边的内容（Z坐标减少）
+    const sensitivity = event.type === 'touchmove' ? 8 : 4; // 提高触屏灵敏度
+    const newX = dragStartX - deltaX * sensitivity;
+    const newZ = dragStartZ - deltaY * sensitivity;
+    
+    // 更新坐标输入框
+    const xInput = document.getElementById('coordinates-x');
+    const zInput = document.getElementById('coordinates-z');
+    xInput.value = newX;
+    zInput.value = newZ;
+    
+    // 标记为手动修改
+    isCoordinatesEdited = true;
+    
+    // 延迟更新预览，提高拖拽流畅度
+    if (!isPreviewUpdateScheduled) {
+        isPreviewUpdateScheduled = true;
+        requestAnimationFrame(() => {
+            updatePreview();
+            triggerSearch();
+            isPreviewUpdateScheduled = false;
+        });
+    }
+    
+    // 只在触屏移动时阻止默认行为，防止页面滚动
+    if (event.type === 'touchmove') {
+        event.preventDefault();
+    }
+}
+
+// 结束拖拽
+function endDrag() {
+    isDragging = false;
+    
+    // 移除所有可能的事件监听器
+    document.removeEventListener('mousemove', drag);
+    document.removeEventListener('mouseup', endDrag);
+    document.removeEventListener('touchmove', drag);
+    document.removeEventListener('touchend', endDrag);
+    document.removeEventListener('touchcancel', endDrag);
+}
 
 // 1. 在script.js顶部添加防抖函数（如果不存在）
 function debounce(func, delay) {
@@ -267,10 +372,35 @@ function renderResults(results) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// 新增：检查指定坐标附近是否有标记点
+async function checkNearbyMarkers(x, z) {
+    const markers = await fetchMarkersData();
+    return markers.some(marker => {
+        const distance = Math.sqrt((marker.x - x) ** 2 + (marker.z - z) ** 2);
+        return distance < 1;
+    });
+}
+
 // 修改 triggerSearch 函数以处理空查询
 async function triggerSearch() {
+    const xInput = document.getElementById('coordinates-x');
+    const zInput = document.getElementById('coordinates-z');
+    const x = parseFloat(xInput.value);
+    const z = parseFloat(zInput.value);
+    
     const query = document.getElementById('search-input').value.trim();
     const selectedCategory = document.getElementById('category-filter').value; // 获取分类筛选参数
+    
+    // 检查附近是否有标记点（使用完整数据集）
+    const hasNearbyMarkers = await checkNearbyMarkers(x, z);
+    const noResultsElement = document.querySelector('.no-results');
+    if (!hasNearbyMarkers) {
+        // 1格范围内没有标记点，显示提示
+        noResultsElement.style.display = 'block';
+    } else {
+        // 1格范围内有标记点，隐藏提示
+        noResultsElement.style.display = 'none';
+    }
     
     try {
         const results = await searchMarkers(query, selectedCategory); // 传递分类筛选参数
@@ -428,9 +558,17 @@ document.getElementById('coordinates-z').addEventListener('input', function() {
     isCoordinatesEdited = true; // 标记为手动修改
     updatePreview();
 });
-document.querySelector('.preview-container').addEventListener('click', async () => {
-    const locationName = document.querySelector('.search-item.selected .search-item-name').textContent;
-    await savePreviewImage(locationName);
+
+// 添加拖拽事件监听器
+const previewContainer = document.querySelector('.preview-container');
+previewContainer.addEventListener('mousedown', startDrag);
+previewContainer.addEventListener('touchstart', startDrag, { passive: false });
+previewContainer.addEventListener('click', async (event) => {
+    // 只有在非拖拽情况下才执行点击事件
+    if (!isDragging) {
+        const locationName = document.querySelector('.search-item.selected .search-item-name').textContent;
+        await savePreviewImage(locationName);
+    }
 });
 
 document.getElementById('share-btn').addEventListener('click', () => {
@@ -449,6 +587,13 @@ document.getElementById('share-btn').addEventListener('click', () => {
     });
 });
 
+document.querySelector('.add-new-point').addEventListener('click', () => {
+    const xCoordinate = document.getElementById('coordinates-x').value;
+    const zCoordinate = document.getElementById('coordinates-z').value;
+    openAddPointModal(xCoordinate, zCoordinate);
+});
+
+// 添加新标记点模态框相关功能
 document.addEventListener('DOMContentLoaded', () => {
     const xInput = document.getElementById('coordinates-x');
     const zInput = document.getElementById('coordinates-z');
@@ -492,6 +637,22 @@ document.addEventListener('DOMContentLoaded', () => {
         option.value = category;
         option.textContent = category;
         categoryFilter.appendChild(option);
+    });
+
+    // 生成添加标记点模态框中的分类选项
+    const pointCategorySelect = document.getElementById('point-category');
+    // 添加一个默认选项
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = '请选择分类';
+    pointCategorySelect.appendChild(defaultOption);
+    
+    // 添加所有分类选项
+    Object.keys(categoryMap).forEach(key => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = categoryMap[key];
+        pointCategorySelect.appendChild(option);
     });
 
     // 监听分类选择变化
@@ -543,7 +704,183 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', debounce(() => {
         adjustPreviewLayout();
     }, 200));
+    
+    // 添加模态框相关事件监听器
+    document.getElementById('close-modal').addEventListener('click', closeAddPointModal);
+    
+    document.getElementById('copy-point-code').addEventListener('click', () => {
+        const pointName = document.getElementById('point-name').value.trim();
+        const pointCategory = document.getElementById('point-category').value;
+        const xCoordinate = document.getElementById('coordinates-x').value;
+        const zCoordinate = document.getElementById('coordinates-z').value;
+        
+        if (!pointName) {
+            showToast('请输入标记点名称');
+            return;
+        }
+        
+        if (!pointCategory) {
+            showToast('请选择分类');
+            return;
+        }
+        
+        // 生成标记点代码
+        const markerCode = `{
+    x: ${xCoordinate},
+    z: ${zCoordinate},
+    text: "${pointName}",
+    image: "${pointCategory}.png"
+},`;
+        
+        navigator.clipboard.writeText(markerCode).then(() => {
+            showToast('标记点代码已复制到剪贴板');
+        });
+    });
+    
+    document.getElementById('send-via-email').addEventListener('click', () => {
+        const pointName = document.getElementById('point-name').value.trim();
+        const pointCategory = document.getElementById('point-category').value;
+        const xCoordinate = document.getElementById('coordinates-x').value;
+        const zCoordinate = document.getElementById('coordinates-z').value;
+        
+        // 生成标记点代码
+        const markerCode = `{
+    x: ${xCoordinate},
+    z: ${zCoordinate},
+    text: "${pointName}",
+    image: "${pointCategory}.png"
+},`;
+        
+        if (!pointName) {
+            showToast('请输入标记点名称');
+            return;
+        }
+        
+        if (!pointCategory) {
+            showToast('请选择分类');
+            return;
+        }
+        
+        // 生成邮件内容
+        const subject = encodeURIComponent(`【新标记点申请】${pointName}`);
+        const categoryName = categoryMap[pointCategory] || '其他';
+        const body = encodeURIComponent(markerCode);
+        const mailtoLink = `mailto:2020340248@qq.com?subject=${subject}&body=${body}`;
+        
+        window.location.href = mailtoLink;
+    });
+    
+    // 点击模态框外部关闭模态框
+    document.getElementById('add-point-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAddPointModal();
+        }
+    });
+    
+    // 添加键盘事件监听器实现快捷键功能
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
 });
+
+// 处理键盘快捷键（保持原有函数名以确保向后兼容）
+function handleKeyboardShortcuts(event) {
+    handleKeyDown(event);
+}
+
+// 存储当前按下的键
+const keysPressed = new Set();
+
+// 处理键盘按下事件
+function handleKeyDown(event) {
+    // 检查是否在输入框中，如果在输入框中则不处理快捷键
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+        return;
+    }
+    
+    // 添加按下的键到集合中
+    keysPressed.add(event.key.toLowerCase());
+    
+    // 处理移动
+    processMovement(event);
+}
+
+// 处理键盘释放事件
+function handleKeyUp(event) {
+    // 从集合中移除释放的键
+    keysPressed.delete(event.key.toLowerCase());
+}
+
+// 处理移动逻辑
+function processMovement(event) {
+    const xInput = document.getElementById('coordinates-x');
+    const zInput = document.getElementById('coordinates-z');
+    
+    // 确保坐标输入框存在
+    if (!xInput || !zInput) return;
+    
+    let x = parseFloat(xInput.value);
+    let z = parseFloat(zInput.value);
+    
+    // 检查数值是否有效
+    if (isNaN(x) || isNaN(z)) return;
+    
+    // 移动步长
+    let step = 10; // 默认步长
+    
+    // 检查修饰键
+    if (event.shiftKey) {
+        step = 100; // Shift键按下时步长为100
+    } else if (event.altKey) {
+        step = 1; // Alt键按下时步长为1
+    }
+    
+    // 检查对角线移动组合
+    const isWPressed = keysPressed.has('w');
+    const isAPressed = keysPressed.has('a');
+    const isSPressed = keysPressed.has('s');
+    const isDPressed = keysPressed.has('d');
+    
+    // 计算移动方向
+    let moved = false;
+    
+    // 垂直方向
+    if (isWPressed && !isSPressed) {
+        z -= step;
+        moved = true;
+    } else if (isSPressed && !isWPressed) {
+        z += step;
+        moved = true;
+    }
+    
+    // 水平方向
+    if (isAPressed && !isDPressed) {
+        x -= step;
+        moved = true;
+    } else if (isDPressed && !isAPressed) {
+        x += step;
+        moved = true;
+    }
+    
+    // 如果有移动，则更新坐标
+    if (moved) {
+        // 更新坐标输入框
+        xInput.value = x;
+        zInput.value = z;
+        
+        // 标记为手动修改
+        isCoordinatesEdited = true;
+        
+        // 触发更新
+        xInput.dispatchEvent(new Event('input'));
+        zInput.dispatchEvent(new Event('input'));
+        
+        // 触发搜索更新
+        triggerSearch();
+        
+        // 阻止默认行为（如页面滚动）
+        event.preventDefault();
+    }
+}
 
 function updateURLCategory(category) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -585,4 +922,26 @@ async function savePreviewImage(name) {
         previewFooter.style.display = 'none';
         pinLabel.style.textShadow = 'none';
     }
+}
+
+function openAddPointModal(x,z) {
+    const modal = document.getElementById('add-point-modal');
+    modal.style.display = 'flex';
+    
+    // 设置坐标值
+    document.getElementById('coordinates-x').value = x;
+    document.getElementById('coordinates-z').value = z;
+    
+    // 设置模态框标题显示坐标
+    const modalTitle = document.querySelector('.modal-title');
+    modalTitle.textContent = `向(${x}, ${z})添加标记`;
+    
+    // 清空之前输入
+    document.getElementById('point-name').value = '';
+    document.getElementById('point-category').selectedIndex = 0;
+}
+
+function closeAddPointModal() {
+    const modal = document.getElementById('add-point-modal');
+    modal.style.display = 'none';
 }
