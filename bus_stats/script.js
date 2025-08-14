@@ -324,12 +324,19 @@ function displayStats(stats) {
         if (stationCountEl) animateNumber(stationCountEl, stats.stationCount);
         if (operatorCountEl) animateNumber(operatorCountEl, stats.operatorCount);
 
-        // 显示线路长度排行（前10）
+        // 显示线路长度排行（直到包含所有奖牌获得者或达到最小数量）
         const lineLengthRankEl = document.querySelector('.line-length-rank');
         if (lineLengthRankEl) {
             lineLengthRankEl.innerHTML = '';
-            // 使用并列排名处理
-            const rankedLines = getRankWithTies(stats.linesByLength.slice(0, 10), item => item.length);
+            // 获取所有线路并排序
+            const allLinesByLength = [...stats.linesByLength];
+            allLinesByLength.sort((a, b) => b.length - a.length);
+            
+            // 使用并列排名处理，获取足够多的线路直到包含所有奖牌获得者或达到最小数量
+            const rankedLines = getRankWithTiesUntilAllMedals(allLinesByLength, item => item.length);
+            
+            // 确定奖牌分配
+            const medalMap = getMedalMap(rankedLines);
             
             rankedLines.forEach((line) => {
                 const rankItem = document.createElement('div');
@@ -337,12 +344,8 @@ function displayStats(stats) {
                 
                 // 根据排名确定奖牌类型
                 let medalClass = '';
-                if (line.rank === 1) {
-                    medalClass = 'gold-medal';
-                } else if (line.rank === 2) {
-                    medalClass = 'silver-medal';
-                } else if (line.rank === 3) {
-                    medalClass = 'bronze-medal';
+                if (medalMap.has(line.rank)) {
+                    medalClass = medalMap.get(line.rank);
                 }
 
                 //查找对应线路所有站名
@@ -379,16 +382,18 @@ function displayStats(stats) {
             });
         }
 
-        // 显示站点接驳线路数排行（前10）
+        // 显示站点接驳线路数排行（直到包含所有奖牌获得者或达到最小数量）
         const stationLinesRankEl = document.querySelector('.station-lines-rank');
         if (stationLinesRankEl) {
             stationLinesRankEl.innerHTML = '';
-            const sortedStations = [...stats.stationsByLines.entries()]
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
+            const allStations = [...stats.stationsByLines.entries()]
+                .sort((a, b) => b[1] - a[1]);
             
-            // 使用并列排名处理
-            const rankedStations = getRankWithTies(sortedStations, item => item[1]);
+            // 使用并列排名处理，获取足够多的站点直到包含所有奖牌获得者或达到最小数量
+            const rankedStations = getRankWithTiesUntilAllMedals(allStations, item => item[1]);
+            
+            // 确定奖牌分配
+            const medalMap = getMedalMap(rankedStations);
             
             rankedStations.forEach((stationEntry) => {
                 const rankItem = document.createElement('div');
@@ -396,12 +401,8 @@ function displayStats(stats) {
                 
                 // 根据排名确定奖牌类型
                 let medalClass = '';
-                if (stationEntry.rank === 1) {
-                    medalClass = 'gold-medal';
-                } else if (stationEntry.rank === 2) {
-                    medalClass = 'silver-medal';
-                } else if (stationEntry.rank === 3) {
-                    medalClass = 'bronze-medal';
+                if (medalMap.has(stationEntry.rank)) {
+                    medalClass = medalMap.get(stationEntry.rank);
                 }
                 
                 // 查找该站点的所有线路ID，并用斜线连接
@@ -443,15 +444,18 @@ function displayStats(stats) {
             });
         }
 
-        // 显示运营公司线路数排行
+        // 显示运营公司线路数排行（直到包含所有奖牌获得者或达到最小数量）
         const operatorLinesRankEl = document.querySelector('.operator-lines-rank');
         if (operatorLinesRankEl) {
             operatorLinesRankEl.innerHTML = '';
-            const sortedOperators = [...stats.operatorsByLines.entries()]
+            const allOperators = [...stats.operatorsByLines.entries()]
                 .sort((a, b) => b[1] - a[1]);
             
-            // 使用并列排名处理
-            const rankedOperators = getRankWithTies(sortedOperators, item => item[1]);
+            // 使用并列排名处理，获取足够多的运营公司直到包含所有奖牌获得者或达到最小数量
+            const rankedOperators = getRankWithTiesUntilAllMedals(allOperators, item => item[1]);
+            
+            // 确定奖牌分配
+            const medalMap = getMedalMap(rankedOperators);
             
             rankedOperators.forEach((operatorEntry) => {
                 const rankItem = document.createElement('div');
@@ -459,12 +463,8 @@ function displayStats(stats) {
                 
                 // 根据排名确定奖牌类型
                 let medalClass = '';
-                if (operatorEntry.rank === 1) {
-                    medalClass = 'gold-medal';
-                } else if (operatorEntry.rank === 2) {
-                    medalClass = 'silver-medal';
-                } else if (operatorEntry.rank === 3) {
-                    medalClass = 'bronze-medal';
+                if (medalMap.has(operatorEntry.rank)) {
+                    medalClass = medalMap.get(operatorEntry.rank);
                 }
 
                 // 查找该运营公司的所有线路ID，并用斜线连接
@@ -506,12 +506,15 @@ function displayStats(stats) {
             });
         }
         
-        // 显示共线站数排行
+        // 显示共线站数排行（直到包含所有奖牌获得者或达到最小数量）
         const parallelStationsRankEl = document.querySelector('.parallel-stations-rank');
         if (parallelStationsRankEl) {
             parallelStationsRankEl.innerHTML = '';
-            // 使用并列排名处理
-            const rankedParallelStations = getRankWithTies(stats.parallelStations, item => item.count);
+            // 使用并列排名处理，获取足够多的直到包含所有奖牌获得者或达到最小数量
+            const rankedParallelStations = getRankWithTiesUntilAllMedals(stats.parallelStations, item => item.count);
+            
+            // 确定奖牌分配
+            const medalMap = getMedalMap(rankedParallelStations);
             
             rankedParallelStations.forEach((entry) => {
                 const rankItem = document.createElement('div');
@@ -519,12 +522,8 @@ function displayStats(stats) {
                 
                 // 根据排名确定奖牌类型
                 let medalClass = '';
-                if (entry.rank === 1) {
-                    medalClass = 'gold-medal';
-                } else if (entry.rank === 2) {
-                    medalClass = 'silver-medal';
-                } else if (entry.rank === 3) {
-                    medalClass = 'bronze-medal';
+                if (medalMap.has(entry.rank)) {
+                    medalClass = medalMap.get(entry.rank);
                 }
                 
                 // 创建一个容器来保存详细信息
@@ -556,12 +555,15 @@ function displayStats(stats) {
             });
         }
         
-        // 显示区间线路数排行
+        // 显示区间线路数排行（直到包含所有奖牌获得者或达到最小数量）
         const segmentLinesRankEl = document.querySelector('.segment-lines-rank');
         if (segmentLinesRankEl) {
             segmentLinesRankEl.innerHTML = '';
-            // 使用并列排名处理
-            const rankedSegmentLines = getRankWithTies(stats.segmentLines, item => item.routes.length);
+            // 使用并列排名处理，获取足够多的直到包含所有奖牌获得者或达到最小数量
+            const rankedSegmentLines = getRankWithTiesUntilAllMedals(stats.segmentLines, item => item.routes.length);
+            
+            // 确定奖牌分配
+            const medalMap = getMedalMap(rankedSegmentLines);
             
             rankedSegmentLines.forEach((segmentEntry) => {
                 const rankItem = document.createElement('div');
@@ -569,12 +571,8 @@ function displayStats(stats) {
                 
                 // 根据排名确定奖牌类型
                 let medalClass = '';
-                if (segmentEntry.rank === 1) {
-                    medalClass = 'gold-medal';
-                } else if (segmentEntry.rank === 2) {
-                    medalClass = 'silver-medal';
-                } else if (segmentEntry.rank === 3) {
-                    medalClass = 'bronze-medal';
+                if (medalMap.has(segmentEntry.rank)) {
+                    medalClass = medalMap.get(segmentEntry.rank);
                 }
                 
                 const routesInfo = segmentEntry.routes.join(' / ');
@@ -608,16 +606,18 @@ function displayStats(stats) {
             });
         }
         
-        // 显示营业时长排行
+        // 显示营业时长排行（直到包含所有奖牌获得者或达到最小数量）
         const operationTimeRankEl = document.querySelector('.operation-time-rank');
         if (operationTimeRankEl) {
             operationTimeRankEl.innerHTML = '';
-            const sortedOperationTime = [...stats.operationTime.entries()]
-                .sort((a, b) => b[1].duration - a[1].duration)
-                .slice(0, 10);
+            const allOperationTime = [...stats.operationTime.entries()]
+                .sort((a, b) => b[1].duration - a[1].duration);
             
-            // 使用并列排名处理
-            const rankedOperationTime = getRankWithTies(sortedOperationTime, item => item[1].duration);
+            // 使用并列排名处理，获取足够多的线路直到包含所有奖牌获得者或达到最小数量
+            const rankedOperationTime = getRankWithTiesUntilAllMedals(allOperationTime, item => item[1].duration);
+            
+            // 确定奖牌分配
+            const medalMap = getMedalMap(rankedOperationTime);
             
             rankedOperationTime.forEach((operationEntry) => {
                 const rankItem = document.createElement('div');
@@ -625,12 +625,8 @@ function displayStats(stats) {
                 
                 // 根据排名确定奖牌类型
                 let medalClass = '';
-                if (operationEntry.rank === 1) {
-                    medalClass = 'gold-medal';
-                } else if (operationEntry.rank === 2) {
-                    medalClass = 'silver-medal';
-                } else if (operationEntry.rank === 3) {
-                    medalClass = 'bronze-medal';
+                if (medalMap.has(operationEntry.rank)) {
+                    medalClass = medalMap.get(operationEntry.rank);
                 }
                 
                 const routeInfo = operationEntry[1];
@@ -668,6 +664,163 @@ function displayStats(stats) {
     } catch (error) {
         console.error('显示统计数据时发生错误:', error);
     }
+}
+
+// 添加一个函数来确定奖牌分配
+function getMedalMap(rankedData) {
+    const medalMap = new Map();
+    let currentRank = null;
+    let rankCount = 0;
+    
+    for (const item of rankedData) {
+        if (item.rank !== currentRank) {
+            currentRank = item.rank;
+            rankCount++;
+        }
+        
+        // 只给前三个不同的排名分配奖牌
+        if (rankCount === 1) {
+            medalMap.set(item.rank, 'gold-medal');
+        } else if (rankCount === 2) {
+            medalMap.set(item.rank, 'silver-medal');
+        } else if (rankCount === 3) {
+            medalMap.set(item.rank, 'bronze-medal');
+        } else {
+            break;
+        }
+    }
+    
+    return medalMap;
+}
+
+// 添加一个函数来处理并列排名直到包含所有奖牌获得者
+function getRankWithTiesUntilAllMedals(sortedData, valueGetter, minCount = 10) {
+    if (sortedData.length === 0) {
+        return [];
+    }
+    
+    const rankedData = [];
+    let currentRank = 1;
+    let previousValue = null;
+    let rankCount = 0; // 不同排名的数量
+    
+    for (let i = 0; i < sortedData.length; i++) {
+        const item = sortedData[i];
+        const currentValue = valueGetter(item);
+        
+        if (previousValue !== null && currentValue !== previousValue) {
+            currentRank = rankedData.length + 1;
+            rankCount++;
+        }
+        
+        // 添加当前项目
+        rankedData.push({
+            ...item,
+            rank: currentRank
+        });
+        
+        previousValue = currentValue;
+        
+        // 如果已经找到前4个不同的排名且达到最小数量，则停止添加更多项目
+        if (rankCount >= 4 && rankedData.length >= minCount) {
+            break;
+        }
+    }
+    
+    // 如果数据不够4个不同的排名，但达到了最小数量，也返回结果
+    if (rankedData.length >= minCount) {
+        return rankedData;
+    }
+    
+    // 如果数据不足最小数量，返回所有数据
+    return rankedData;
+}
+
+// 添加一个函数来处理并列排名直到包含铜牌获得者
+function getRankWithTiesUntilBronze(sortedData, valueGetter) {
+    if (sortedData.length === 0) {
+        return [];
+    }
+    
+    const rankedData = [];
+    let currentRank = 1;
+    let previousValue = null;
+    let rankCount = 0; // 不同排名的数量
+    
+    for (const item of sortedData) {
+        const currentValue = valueGetter(item);
+        if (previousValue !== null && currentValue !== previousValue) {
+            currentRank = rankedData.length + 1;
+            rankCount++;
+        }
+        
+        // 如果已经找到前3个不同的排名，则停止添加更多项目
+        if (rankCount === 1) {
+            medalMap.set(item.rank, 'gold-medal');
+        } else if (rankCount === 2) {
+            medalMap.set(item.rank, 'silver-medal');
+        } else if (rankCount === 3) {
+            medalMap.set(item.rank, 'bronze-medal');
+        } else {
+            break;
+        }
+        
+        rankedData.push({
+            ...item,
+            rank: currentRank
+        });
+        
+        previousValue = currentValue;
+    }
+    
+    return rankedData;
+}
+
+// 添加一个函数来处理并列排名直到包含殿军或达到最小数量
+function getRankWithTiesUntilFourthOrMin(sortedData, valueGetter, minCount = 10) {
+    if (sortedData.length === 0) {
+        return [];
+    }
+    
+    const rankedData = [];
+    let currentRank = 1;
+    let previousValue = null;
+    let rankCount = 0; // 不同排名的数量
+    
+    for (let i = 0; i < sortedData.length; i++) {
+        const item = sortedData[i];
+        const currentValue = valueGetter(item);
+        
+        if (previousValue !== null && currentValue !== previousValue) {
+            currentRank = rankedData.length + 1;
+            rankCount++;
+        }
+        
+        // 添加当前项目
+        rankedData.push({
+            ...item,
+            rank: currentRank
+        });
+        
+        // 更新previousValue
+        previousValue = currentValue;
+        
+        // 如果已经找到前4个不同的排名且达到最小数量，则停止添加更多项目
+        if (rankCount >= 4 && rankedData.length >= minCount) {
+            break;
+        }
+        
+        // 如果达到最小数量但还没找到4个不同的排名，继续查找
+        if (rankedData.length >= minCount && rankCount < 4) {
+            // 继续直到找到第4个排名或数据结束
+            if (i === sortedData.length - 1) {
+                // 数据已结束但仍没找到4个排名，停止
+                break;
+            }
+        }
+    }
+    
+    return rankedData;
 }
 
 // 添加数字跳动动画函数
