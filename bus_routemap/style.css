@@ -84,7 +84,7 @@
 /* 主体内容区域样式 */
 main {
     padding-top: 60px;
-    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
     overflow-y: auto;
     width: -webkit-fill-available;
     max-width: 1024px;
@@ -433,7 +433,7 @@ main {
     flex-direction: column;
     width: calc(100% - 40px);
     max-width: 360px;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100dvh - 120px);
     scrollbar-width: thin;
     scrollbar-color: var(--tertiary-text) transparent;
 }

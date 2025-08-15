@@ -149,7 +149,7 @@
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin: auto;
-    max-height: calc(100vh - 40px); /* 减去padding的两倍 */
+    max-height: calc(100dvh - 40px); /* 减去padding的两倍 */
     display: flex;
     flex-direction: column;
     box-shadow: 0 4px 24px var(--shadow-color);
@@ -385,7 +385,7 @@
     right: 0;
     bottom: 0;
     max-width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
