@@ -5,6 +5,10 @@ body {
     justify-content: flex-start;
 }
 
+header .toolbar {
+    display: flex !important;
+}
+
 .content-container {
     margin-top: 72px;
     display: flex;
@@ -27,7 +31,7 @@ body {
         min-height: 240px;
     }
     .search-container {
-        max-height: 360px;
+        max-height: calc(100vh - 240px);
     }
 }
 
@@ -37,6 +41,14 @@ body {
     }
     .search-container{
         padding: 0;
+    }
+    .icon-button.fab {
+        position: fixed;
+        top: calc(100vh - 72px);
+        right: 16px;
+        z-index: 1000;
+        padding: 12px 18px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 }
 
@@ -80,15 +92,32 @@ body {
     padding: 8px 12px;
     border-radius: 8px;
     display: flex;
+    justify-content: space-between;
     gap: 4px;
-    flex-direction: column;
+    flex-direction: row;
     line-height: 1.2;
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
+.search-item-text {
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+}
+
+.search-item-actions {
+    display: none;
+    gap: 4px;
+    flex-direction: row;
+}
+
 .search-item:hover {
     background-color: var(--hover-background);
+}
+
+.search-item:hover .search-item-actions {
+    display: flex;
 }
 
 .search-item .caption {
@@ -289,7 +318,8 @@ body {
     background-color: var(--card-background);
     border-radius: 16px;
     width: 90%;
-    max-width: 500px;
+    max-width: 540px;
+    max-height: 80vh;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     overflow: hidden;
 }
@@ -334,26 +364,124 @@ body {
     margin-top: 8px;
 }
 
-.button {
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: none;
-    background-color: var(--primary-color);
-    color: white;
-    font-weight: 500;
+.manage-points-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.manage-points-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.manage-points-toolbar button {
+    padding: 8px 12px;
+    border-radius: 36px;
     cursor: pointer;
+}
+
+.manage-points-actions.disabled button {
+    opacity: 0.5;
+    filter: saturate(0);
+    cursor: not-allowed;
+}
+
+.manage-points-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 16px;
+    padding: 8px;
+}
+
+.local-marker-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 4px;
     transition: background-color 0.2s;
+    cursor: pointer;
 }
 
-.button:hover {
-    background-color: var(--primary-color-hover);
+.local-marker-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
-.button.secondary {
-    background-color: var(--secondary-button-background);
+.local-marker-item .icon-button {
+    display: none;
+}
+
+.local-marker-item:hover {
+    background-color: var(--hover-background);
+}
+
+.local-marker-item:hover .icon-button {
+    display: flex;
+}
+
+.local-marker-item.selected {
+    background-color: rgba(0, 121, 107, 0.05); /* 主题色 */
+}
+
+.local-marker-item.selected .local-marker-name {
+    font-weight: bold;
+    color: var(--primary-color); /* 主题色对比色 */
+}
+
+.local-marker-item input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.local-marker-info {
+    flex: 1;
+    padding: 0 6px;
+}
+
+.local-marker-name {
+    font-weight: 500;
+}
+
+.local-marker-coords {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.local-marker-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.local-marker-actions button {
+    padding: 8px;
+    border: none;
+    border-radius: 48px;
+    cursor: pointer;
+}
+
+.local-marker-actions button:hover {
+    background-color: var(--hover-background);
+}
+
+/* 编辑标记点模态框样式 */
+#edit-point-modal .modal-content input,
+#edit-point-modal .modal-content select {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    background-color: var(--input-background);
     color: var(--primary-text);
 }
 
-.button.secondary:hover {
-    background-color: var(--secondary-button-hover);
+#edit-point-modal .modal-content input:focus,
+#edit-point-modal .modal-content select:focus {
+    outline: none;
+    border-color: var(--primary-color);
 }

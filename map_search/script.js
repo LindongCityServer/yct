@@ -4,6 +4,9 @@ let dragStartX, dragStartZ;
 let dragStartClientX, dragStartClientY;
 let isPreviewUpdateScheduled = false; // 添加缺失的变量定义
 
+// 本地标记点存储键名
+const LOCAL_MARKERS_KEY = 'localMarkers';
+
 // 开始拖拽
 function startDrag(event) {
     // 只响应鼠标左键拖拽或触屏开始
@@ -186,10 +189,45 @@ async function fetchMarkersData() {
         }));
         
         cachedMarkers = markers;
+        
+        // 检查并删除本地重复的标记点
+        removeDuplicateLocalMarkers(markers);
+        
         return markers;
     } catch (err) {
         console.error("数据加载失败:", err);
         throw err;
+    }
+}
+
+// 删除与服务器标记点重复的本地标记点
+function removeDuplicateLocalMarkers(serverMarkers) {
+    let localMarkers = getLocalMarkers();
+    let removedCount = 0;
+    
+    // 检查每个本地标记点是否与服务器标记点重复
+    localMarkers = localMarkers.filter(localMarker => {
+        const isDuplicate = serverMarkers.some(serverMarker => {
+            // 判断条件：坐标相同且名称相同且图片相同
+            return (
+                serverMarker.x === localMarker.x &&
+                serverMarker.z === localMarker.z &&
+                serverMarker.text === localMarker.text &&
+                serverMarker.image === localMarker.image
+            );
+        });
+        
+        if (isDuplicate) {
+            removedCount++;
+            return false; // 过滤掉重复的标记点
+        }
+        return true; // 保留不重复的标记点
+    });
+    
+    // 如果有删除的标记点，则更新localStorage
+    if (removedCount > 0) {
+        localStorage.setItem(LOCAL_MARKERS_KEY, JSON.stringify(localMarkers));
+        console.log(`已自动删除 ${removedCount} 个与服务器重复的本地标记点`);
     }
 }
 
@@ -216,10 +254,13 @@ document.getElementById('search-input').addEventListener('input', async function
 
 // 4. 搜索函数
 async function searchMarkers(query, selectedCategory) {
-    const markers = await fetchMarkersData();
+    const serverMarkers = await fetchMarkersData();
+    const localMarkers = getLocalMarkers();
+    const allMarkers = [...localMarkers, ...serverMarkers];
+    
     const normalizedQuery = convertToHalfWidth(query).trim().toLowerCase();
     
-    return markers.filter(marker => {
+    return allMarkers.filter(marker => {
         const processedText = marker.text 
             ? Array.from(marker.text).map(c => fullToHalf(c)).join('')
             : '';
@@ -312,10 +353,20 @@ function renderResults(results) {
         const categoryName = categoryMap[marker.image.replace(/\.png$/, '').replace(/-\w+$/, '')] || '其他';
         
         item.innerHTML = `
-            <div class="search-item-name">${marker.text}</div>
-            <div class="caption">
-                <div class="search-item-category">${categoryName}</div>
-                <div class="search-item-coordinate">距离${distance}格</div>
+            <div class="search-item-text">
+                <div class="search-item-name">${marker.text}</div>
+                <div class="caption">
+                    <div class="search-item-category">${categoryName}</div>
+                    <div class="search-item-coordinate">距离${distance}格</div>
+                </div>
+            </div>
+            <div class="search-item-actions"> 
+                <button class="icon-button" id="teleport-button" title="复制传送指令">
+                    <img src="/UI/res/code_black.png" alt="复制传送指令"></img>
+                </button>
+                <!--<button class="icon-button" id="toggle-favorite-button" title="添加收藏">
+                    <img src="/UI/res/favorite_outline_black.png" alt="收藏标记点"></img>
+                </button>-->
             </div>
         `;
         
@@ -335,6 +386,18 @@ function renderResults(results) {
 
             // 重新触发搜索以重新排序
             triggerSearch();
+        });
+
+        const teleportButton = item.querySelector('#teleport-button');
+        teleportButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            navigator.clipboard.writeText(`/tp @s ${marker.x} ~ ${marker.z}`)
+                .then(() => {
+                    showToast('传送指令已复制到剪贴板');
+                })
+                .catch(() => {
+                    showToast('无法复制传送指令');
+                });
         });
         
         resultContainer.appendChild(item);
@@ -708,6 +771,46 @@ document.addEventListener('DOMContentLoaded', () => {
     // 添加模态框相关事件监听器
     document.getElementById('close-modal').addEventListener('click', closeAddPointModal);
     
+    // 修改保存标记点按钮的事件监听器
+    document.getElementById('save-point').addEventListener('click', () => {
+        const pointName = document.getElementById('point-name').value.trim();
+        const pointCategory = document.getElementById('point-category').value;
+        const xCoordinate = document.getElementById('coordinates-x').value;
+        const zCoordinate = document.getElementById('coordinates-z').value;
+        
+        if (!pointName) {
+            showToast('请输入标记点名称');
+            return;
+        }
+        
+        if (!pointCategory) {
+            showToast('请选择分类');
+            return;
+        }
+        
+        // 创建标记点对象
+        const marker = {
+            x: parseFloat(xCoordinate),
+            z: parseFloat(zCoordinate),
+            text: pointName,
+            image: pointCategory + '.png'
+        };
+        
+        // 生成标记点代码
+        const markerCode = generateMarkerCode(pointName, pointCategory, xCoordinate, zCoordinate);
+        
+        // 保存到localStorage
+        if (saveLocalMarker(marker)) {
+            showToast('标记点已保存到本地');
+            navigator.clipboard.writeText(markerCode).then(() => {
+                showToast('标记点代码已复制到剪贴板');
+            });
+            closeAddPointModal();
+        } else {
+            showToast('标记点已存在');
+        }
+    });
+    
     document.getElementById('copy-point-code').addEventListener('click', () => {
         const pointName = document.getElementById('point-name').value.trim();
         const pointCategory = document.getElementById('point-category').value;
@@ -724,16 +827,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // 保存到localStorage（新增功能）
+        const marker = {
+            x: parseFloat(xCoordinate),
+            z: parseFloat(zCoordinate),
+            text: pointName,
+            image: pointCategory + '.png'
+        };
+        
+        saveLocalMarker(marker);
+        
         // 生成标记点代码
-        const markerCode = `{
-    x: ${xCoordinate},
-    z: ${zCoordinate},
-    text: "${pointName}",
-    image: "${pointCategory}.png"
-},`;
+        const markerCode = generateMarkerCode(pointName, pointCategory, xCoordinate, zCoordinate);
         
         navigator.clipboard.writeText(markerCode).then(() => {
             showToast('标记点代码已复制到剪贴板');
+            closeAddPointModal();
         });
     });
     
@@ -742,15 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const pointCategory = document.getElementById('point-category').value;
         const xCoordinate = document.getElementById('coordinates-x').value;
         const zCoordinate = document.getElementById('coordinates-z').value;
-        
-        // 生成标记点代码
-        const markerCode = `{
-    x: ${xCoordinate},
-    z: ${zCoordinate},
-    text: "${pointName}",
-    image: "${pointCategory}.png"
-},`;
-        
+
         if (!pointName) {
             showToast('请输入标记点名称');
             return;
@@ -760,6 +861,19 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('请选择分类');
             return;
         }
+        
+        // 保存到localStorage（新增功能）
+        const marker = {
+            x: parseFloat(xCoordinate),
+            z: parseFloat(zCoordinate),
+            text: pointName,
+            image: pointCategory + '.png'
+        };
+        
+        saveLocalMarker(marker);
+        
+        // 生成标记点代码
+        const markerCode = generateMarkerCode(pointName, pointCategory, xCoordinate, zCoordinate);
         
         // 生成邮件内容
         const subject = encodeURIComponent(`【新标记点申请】${pointName}`);
@@ -775,6 +889,100 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === this) {
             closeAddPointModal();
         }
+    });
+    
+    // 添加管理本地标记点模态框的事件监听器
+    document.getElementById('list-btn').addEventListener('click', openManagePointsModal);
+    document.getElementById('close-manage-modal').addEventListener('click', closeManagePointsModal);
+    document.getElementById('manage-points-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeManagePointsModal();
+        }
+    });
+    
+    // 添加编辑标记点模态框的事件监听器
+    document.getElementById('close-edit-modal').addEventListener('click', closeEditMarkerModal);
+    document.getElementById('cancel-edit-point').addEventListener('click', closeEditMarkerModal);
+    document.getElementById('save-edit-point').addEventListener('click', saveEditedMarker);
+    document.getElementById('edit-point-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEditMarkerModal();
+        }
+    });
+    
+    // 管理本地标记点工具栏事件监听器
+    document.getElementById('toggle-all-points').addEventListener('click', toggleAllPoints);
+    
+    document.getElementById('delete-selected-points').addEventListener('click', function() {
+        const selectedIndices = [];
+        document.querySelectorAll('.manage-points-list input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedIndices.push(parseInt(checkbox.getAttribute('data-index')));
+        });
+        
+        if (selectedIndices.length === 0) {
+            showToast('请先选择要删除的标记点');
+            return;
+        }
+        
+        if (confirm(`确定要删除选中的 ${selectedIndices.length} 个标记点吗？`)) {
+            deleteLocalMarkers(selectedIndices);
+            showToast('标记点已删除');
+            renderLocalMarkersList();
+            // 更新搜索结果
+            triggerSearch();
+        }
+    });
+    
+    document.getElementById('copy-selected-points').addEventListener('click', function() {
+        const selectedIndices = [];
+        document.querySelectorAll('.manage-points-list input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedIndices.push(parseInt(checkbox.getAttribute('data-index')));
+        });
+        
+        if (selectedIndices.length === 0) {
+            showToast('请先选择要复制的标记点');
+            return;
+        }
+        
+        const localMarkers = getLocalMarkers();
+        let code = '';
+        selectedIndices.forEach(index => {
+            const marker = localMarkers[index];
+            // 使用统一的标记点代码生成函数
+            const pointCategory = marker.image.replace('.png', '');
+            code += generateMarkerCode(marker.text, pointCategory, marker.x, marker.z) + '\n';
+        });
+        
+        navigator.clipboard.writeText(code).then(() => {
+            showToast('选中的标记点代码已复制到剪贴板');
+        });
+    });
+    
+    document.getElementById('send-selected-points').addEventListener('click', function() {
+        const selectedIndices = [];
+        document.querySelectorAll('.manage-points-list input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedIndices.push(parseInt(checkbox.getAttribute('data-index')));
+        });
+        
+        if (selectedIndices.length === 0) {
+            showToast('请先选择要发送的标记点');
+            return;
+        }
+        
+        const localMarkers = getLocalMarkers();
+        let code = '';
+        selectedIndices.forEach(index => {
+            const marker = localMarkers[index];
+            // 使用统一的标记点代码生成函数
+            const pointCategory = marker.image.replace('.png', '');
+            code += generateMarkerCode(marker.text, pointCategory, marker.x, marker.z) + '\n';
+        });
+        
+        const subject = encodeURIComponent(`【新标记点申请】批量申请${selectedIndices.length}个标记点`);
+        const body = encodeURIComponent(code);
+        const mailtoLink = `mailto:2020340248@qq.com?subject=${subject}&body=${body}`;
+        
+        window.location.href = mailtoLink;
     });
     
     // 添加键盘事件监听器实现快捷键功能
@@ -934,7 +1142,7 @@ function openAddPointModal(x,z) {
     
     // 设置模态框标题显示坐标
     const modalTitle = document.querySelector('.modal-title');
-    modalTitle.textContent = `向(${x}, ${z})添加标记`;
+    modalTitle.textContent = `申请(${x}, ${z})处的标记`;
     
     // 清空之前输入
     document.getElementById('point-name').value = '';
@@ -945,3 +1153,317 @@ function closeAddPointModal() {
     const modal = document.getElementById('add-point-modal');
     modal.style.display = 'none';
 }
+
+// 保存标记点到localStorage
+function saveLocalMarker(marker) {
+    let localMarkers = JSON.parse(localStorage.getItem(LOCAL_MARKERS_KEY) || '[]');
+    // 检查是否已存在相同的标记点
+    const exists = localMarkers.some(m => 
+        m.x === marker.x && m.z === marker.z && m.text === marker.text && m.image === marker.image
+    );
+    
+    if (!exists) {
+        localMarkers.push(marker);
+        localStorage.setItem(LOCAL_MARKERS_KEY, JSON.stringify(localMarkers));
+        // 更新搜索结果
+        triggerSearch();
+        return true;
+    }
+    return false;
+}
+
+// 标记点代码生成函数
+function generateMarkerCode(pointName, pointCategory, xCoordinate, zCoordinate) {
+    // 查找断行标记"|"并分割为多行文本
+    const lines = pointName.split('|');
+    // 字数最多的那一行设为textLength及补全空格，并将处理后的文本中的半角字符转换成全角字符
+    const textLength = Math.max(...lines.map(line => line.length));
+    const paddedText = lines.map(line => {
+        let paddedLine = line.padEnd(textLength, '　');
+        return paddedLine.replace(/[a-zA-Z0-9]/g, c => String.fromCharCode(c.charCodeAt(0) + 65248));
+    }).join('\\n');
+
+    const fontSize = pointCategory === 'bus-stop' ? '12px' : '14px';
+    const fontWeight = pointCategory === 'lindong-metro' ? 'bold' : 'normal';
+    const offsetX = textLength * (fontSize === '12px' ? 6 : 7);
+    
+    // 生成标记点代码
+    const markerCode = `{
+    x: ${xCoordinate},
+    z: ${zCoordinate},
+    image: "${pointCategory}.png",
+    imageAnchor: [0.5, 0.5],
+    imageScale: 0.2,
+    text: "${paddedText}",
+    textColor: "white",
+    offsetX: ${offsetX},
+    offsetY: 1,
+    font: "${fontWeight} ${fontSize} Calibri,sans serif",
+},`;
+    
+    return markerCode;
+}
+
+// 从localStorage获取本地标记点
+function getLocalMarkers() {
+    return JSON.parse(localStorage.getItem(LOCAL_MARKERS_KEY) || '[]');
+}
+
+// 从localStorage删除本地标记点
+function deleteLocalMarkers(indices) {
+    let localMarkers = JSON.parse(localStorage.getItem(LOCAL_MARKERS_KEY) || '[]');
+    // 从后往前删除，避免索引变化问题
+    indices.sort((a, b) => b - a);
+    indices.forEach(index => {
+        localMarkers.splice(index, 1);
+    });
+    localStorage.setItem(LOCAL_MARKERS_KEY, JSON.stringify(localMarkers));
+}
+
+// 更新本地标记点
+function updateLocalMarker(index, updatedMarker) {
+    let localMarkers = JSON.parse(localStorage.getItem(LOCAL_MARKERS_KEY) || '[]');
+    if (index >= 0 && index < localMarkers.length) {
+        localMarkers[index] = updatedMarker;
+        localStorage.setItem(LOCAL_MARKERS_KEY, JSON.stringify(localMarkers));
+        return true;
+    }
+    return false;
+}
+
+// 渲染本地标记点列表
+function renderLocalMarkersList() {
+    const localMarkers = getLocalMarkers();
+    const listContainer = document.querySelector('.manage-points-list');
+    listContainer.innerHTML = '';
+    
+    if (localMarkers.length === 0) {
+        listContainer.innerHTML = '<p>暂无本地标记点</p>';
+        return;
+    }
+    
+    localMarkers.forEach((marker, index) => {
+        const category = categoryMap[marker.image.replace(/\.png$/, '').replace(/-\w+$/, '')] || '其他';
+        const markerElement = document.createElement('div');
+        markerElement.className = 'local-marker-item';
+        markerElement.innerHTML = `
+            <input type="checkbox" data-index="${index}">
+            <div class="local-marker-info">
+                <div class="local-marker-name">${marker.text}</div>
+                <div class="local-marker-coords">${category} (${marker.x}, ${marker.z})</div>
+            </div>
+            <div class="local-marker-actions">
+                <button class="icon-button edit-marker" data-index="${index}" title="编辑">
+                    <img src="/UI/res/edit_black.png" alt="编辑">
+                </button>
+                <button class="icon-button delete-marker" data-index="${index}" title="删除">
+                    <img src="/UI/res/delete_black.png" alt="删除">
+                </button>
+            </div>
+        `;
+        listContainer.appendChild(markerElement);
+    });
+    
+    // 绑定复选框状态变化事件
+    document.querySelectorAll('.manage-points-list input[type="checkbox"]').forEach(checkbox => {
+        // 监听复选框状态变化
+        checkbox.addEventListener('change', function() {
+            const item = this.closest('.local-marker-item');
+            if (this.checked) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+            updateToggleAllButton();
+        });
+    });
+    
+    // 绑定整个项目点击事件
+    document.querySelectorAll('.local-marker-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            // 避免点击按钮时触发
+            if (e.target.classList.contains('icon-button') || e.target.tagName === 'IMG') {
+                return;
+            }
+            
+            const checkbox = this.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            
+            // 触发change事件以更新样式
+            checkbox.dispatchEvent(new Event('change'));
+        });
+    });
+    
+    // 绑定编辑和删除按钮事件
+    document.querySelectorAll('.edit-marker').forEach(button => {
+        button.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            openEditMarkerModal(index);
+        });
+    });
+    
+    document.querySelectorAll('.delete-marker').forEach(button => {
+        button.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            deleteSingleMarker(index);
+        });
+    });
+}
+
+// 更新全选/取消全选按钮的文本
+function updateToggleAllButton() {
+    const toggleButton = document.getElementById('toggle-all-points');
+    const allCheckboxes = document.querySelectorAll('.manage-points-list input[type="checkbox"]');
+    const checkedCheckboxes = document.querySelectorAll('.manage-points-list input[type="checkbox"]:checked');
+    
+    if (allCheckboxes.length === checkedCheckboxes.length && allCheckboxes.length > 0) {
+        toggleButton.textContent = '取消全选';
+    } else {
+        toggleButton.textContent = '全选';
+    }
+    
+    // 检查是否有选中的项目，如果没有则禁用操作按钮
+    const actionsContainer = document.querySelector('.manage-points-actions');
+    if (checkedCheckboxes.length > 0) {
+        actionsContainer.classList.remove('disabled');
+    } else {
+        actionsContainer.classList.add('disabled');
+    }
+}
+
+// 切换所有复选框的选中状态
+function toggleAllPoints() {
+    const allCheckboxes = document.querySelectorAll('.manage-points-list input[type="checkbox"]');
+    const checkedCheckboxes = document.querySelectorAll('.manage-points-list input[type="checkbox"]:checked');
+    const toggleButton = document.getElementById('toggle-all-points');
+    
+    // 如果所有项都被选中，或者部分被选中，则取消全选
+    const shouldSelectAll = !(allCheckboxes.length === checkedCheckboxes.length && allCheckboxes.length > 0);
+    
+    allCheckboxes.forEach(checkbox => {
+        checkbox.checked = shouldSelectAll;
+        const item = checkbox.closest('.local-marker-item');
+        if (shouldSelectAll) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+    
+    // 更新按钮文本
+    toggleButton.textContent = shouldSelectAll ? '取消全选' : '全选';
+}
+
+// 打开管理本地标记点模态框
+function openManagePointsModal() {
+    const modal = document.getElementById('manage-points-modal');
+    modal.style.display = 'flex';
+    renderLocalMarkersList();
+    updateToggleAllButton();
+}
+
+// 关闭管理本地标记点模态框
+function closeManagePointsModal() {
+    const modal = document.getElementById('manage-points-modal');
+    modal.style.display = 'none';
+}
+
+// 打开编辑标记点模态框
+function openEditMarkerModal(index) {
+    const localMarkers = getLocalMarkers();
+    if (index < 0 || index >= localMarkers.length) return;
+    
+    const marker = localMarkers[index];
+    const modal = document.getElementById('edit-point-modal');
+
+    // 获取标记点坐标
+    const posX = marker.x;
+    const posZ = marker.z;
+
+    // 更改标题
+    modal.querySelector('h3').textContent = `编辑(${posX}, ${posZ})处标记点`;
+    
+    // 填充表单数据
+    document.getElementById('edit-point-index').value = index;
+    document.getElementById('edit-point-name').value = marker.text;
+    
+    // 填充分类选项
+    const categorySelect = document.getElementById('edit-point-category');
+    categorySelect.innerHTML = '';
+    
+    // 添加默认选项
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = '请选择分类';
+    categorySelect.appendChild(defaultOption);
+    
+    // 添加所有分类选项
+    Object.keys(categoryMap).forEach(key => {
+        const option = document.createElement('option');
+        option.value = key + '.png';
+        option.textContent = categoryMap[key];
+        if (marker.image === key + '.png') {
+            option.selected = true;
+        }
+        categorySelect.appendChild(option);
+    });
+    
+    modal.style.display = 'flex';
+}
+
+// 关闭编辑标记点模态框
+function closeEditMarkerModal() {
+    const modal = document.getElementById('edit-point-modal');
+    modal.style.display = 'none';
+}
+
+// 保存编辑的标记点
+function saveEditedMarker() {
+    const index = document.getElementById('edit-point-index').value;
+    const name = document.getElementById('edit-point-name').value.trim();
+    const category = document.getElementById('edit-point-category').value;
+    
+    if (!name) {
+        showToast('请输入标记点名称');
+        return;
+    }
+    
+    if (!category) {
+        showToast('请选择分类');
+        return;
+    }
+    
+    const localMarkers = getLocalMarkers();
+    if (index < 0 || index >= localMarkers.length) return;
+    
+    // 更新标记点
+    const updatedMarker = {
+        ...localMarkers[index],
+        text: name,
+        image: category
+    };
+    
+    if (updateLocalMarker(parseInt(index), updatedMarker)) {
+        showToast('标记点更新成功');
+        closeEditMarkerModal();
+        renderLocalMarkersList();
+        // 更新搜索结果
+        triggerSearch();
+    } else {
+        showToast('标记点更新失败');
+    }
+}
+
+// 删除单个标记点
+function deleteSingleMarker(index) {
+    if (confirm('确定要删除这个标记点吗？')) {
+        deleteLocalMarkers([index]);
+        showToast('标记点已删除');
+        renderLocalMarkersList();
+        // 更新搜索结果
+        triggerSearch();
+    }
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', init);

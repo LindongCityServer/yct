@@ -5,21 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>地图搜索 - 雨城通实验室</title>
     <link rel="icon" href="/UI/res/雨城通logo绿.png" type="image/png">
-    <link rel="stylesheet" href="/mainpage.css" />
-    <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/data_composer/style.css" />
     <link rel="stylesheet" href="/lab/style.css" />
     <link rel="stylesheet" href="road_sign.css" />
     <link rel="stylesheet" href="/UI/toast.css" />
+    <link rel="stylesheet" href="/mainpage.css" />
     <link rel="stylesheet" href="style.css" />
 </head>
 <!-- 头部导航栏 -->
 <header class="header">
-    <button class="icon-button" id="back-to-lab" onclick="window.location.href='/lab'" title="实验室">
-        <img src="/UI/res/arrow_back_black.png" alt="返回">
+    <button class="icon-button" id="back-to-home" onclick="window.location.href='/'" title="雨城通首页">
+        <img src="/UI/res/雨城通logo绿.png" alt="雨城通首页">
     </button>
     <h1>地图搜索</h1>
-    <div class="toolbar">            
+    <div class="toolbar">
+        <button class="fab icon-button">
+            <img src="/UI/res/map_preview_white.png" alt="高清卫星图">
+            <span>高清卫星图</span>
+        </button>
+        <button class="icon-button" id="list-btn" onclick="" title="本地标记点">
+            <img src="/UI/res/question_black.png" alt="本地标记点">
+        </button>
+        <!-- <button class="icon-button" id="favorite-btn" onclick="" title="收藏夹">
+            <img src="/UI/res/favorite_outline_black.png" alt="收藏夹">
+        </button> -->
         <button class="icon-button" id="share-btn" onclick="" title="复制链接">
             <img src="/UI/res/link_black.png" alt="复制链接">
         </button>
@@ -73,7 +82,7 @@
                 <div style="display: inline;">点击地图区域存为图片</div>
             </div>
             <div class="caption no-results">
-                此处未被标记，可浏览以下周边标记点或<div class="add-new-point">添加新标记</div>
+                此处未被标记，可浏览以下周边标记点或<div class="add-new-point">申请新标记</div>
             </div>
             <div class="search-result">
                 <!-- 数据项将在这里动态添加 -->
@@ -84,7 +93,7 @@
         <div class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title">添加新标记</h3>
+                    <h3 class="modal-title">新标记申请</h3>
                     <button class="icon-button" id="close-modal">
                         <img src="/UI/res/close_black.png" alt="关闭">
                     </button>
@@ -94,8 +103,60 @@
                     <!-- 分类项将在这里动态添加 -->
                 </select>
                 <div class="modal-footer">
-                    <button id="copy-point-code" style="color:black">复制代码</button>
+                    <button id="save-point">暂存标记</button>
+                    <button id="copy-point-code">复制代码</button>
                     <button class="action-button" style="padding: 5px 16px;" id="send-via-email">发送邮件</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 管理本地标记点的模态框 -->
+    <div class="modal-container" id="manage-points-modal">
+        <div class="modal" style="width: 95%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">暂存的标记</h3>
+                    <button class="icon-button" id="close-manage-modal">
+                        <img src="/UI/res/close_black.png" alt="关闭">
+                    </button>
+                </div>
+                <div class="manage-points-content">
+                    <div class="manage-points-toolbar">
+                        <button id="toggle-all-points">全选</button>
+                        <div class="manage-points-actions">
+                            <button id="delete-selected-points" style="color: crimson;">删除</button>
+                            <button id="copy-selected-points" style="color: seagreen;">复制代码</button>
+                            <button id="send-selected-points" class="action-button">发送邮件</button>
+                        </div>
+                    </div>
+                    <div class="manage-points-list">
+                        <!-- 本地标记点将在这里动态添加 -->
+                    </div>
+                </div>
+                <div class="caption" style="padding: 0;">
+                    <p>本地标记点仅在当前设备上可见，同一位置的标记点被采纳后将自动清除</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 编辑标记点的模态框 -->
+    <div class="modal-container" id="edit-point-modal">
+        <div class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">编辑标记点</h3>
+                    <button class="icon-button" id="close-edit-modal">
+                        <img src="/UI/res/close_black.png" alt="关闭">
+                    </button>
+                </div>
+                <input type="hidden" id="edit-point-index">
+                <input type="text" id="edit-point-name" placeholder="标记点名称"></input>
+                <select type="select" id="edit-point-category">
+                    <!-- 分类项将在这里动态添加 -->
+                </select>
+                <div class="modal-footer">
+                    <button id="cancel-edit-point">取消</button>
+                    <button class="action-button" id="save-edit-point">保存更改</button>
                 </div>
             </div>
         </div>

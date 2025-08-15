@@ -1070,13 +1070,33 @@ footer {
     color: #fff;
     cursor: pointer;
     margin-left: 6px;
-    margin-right: 6px;
     border-radius: 30px;
     font-weight: bold;
 }
 
 .action-button:hover {
     background-color: var(--primary-color-hover);
+}
+
+.icon-button.fab {
+    background-color: var(--primary-color);
+    color: #fff;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 8px 12px;
+    margin-right: 8px;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.icon-button.fab img {
+    margin-right: 4px;
+    opacity: 1;
+}
+
+.icon-button.fab:hover {
+    background-color: var(--primary-color-hover);
+    transform: scale(1.05);
 }
 
 /* 通用按钮样式 */
@@ -1259,8 +1279,8 @@ button {
     padding: 8px 16px;
     border: none;
     border-radius: 24px;
-    background-color: var(--tertiary-text);
-    color: var(--white);
+    background-color: var(--divider-color);
+    color: var(--text-color);
     cursor: pointer;
     transition: background-color 0.2s;
 }
