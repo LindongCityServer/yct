@@ -198,7 +198,8 @@ async function fetchMarkersData() {
                 : '',
             x: marker.x,
             z: marker.z,
-            image: marker.image
+            image: marker.image,
+            source: 'data'
         }));
         
         cachedMarkers = markers;
@@ -240,6 +241,7 @@ function removeDuplicateLocalMarkers(serverMarkers) {
     // 如果有删除的标记点，则更新localStorage
     if (removedCount > 0) {
         localStorage.setItem(LOCAL_MARKERS_KEY, JSON.stringify(localMarkers));
+        showToast(`有${removedCount}个标记点被采纳，已自动删除。`);
         //console.log(`已自动删除 ${removedCount} 个与服务器重复的本地标记点`);
     }
 }
@@ -268,7 +270,10 @@ document.getElementById('search-input').addEventListener('input', async function
 // 4. 搜索函数
 async function searchMarkers(query, selectedCategory) {
     const serverMarkers = await fetchMarkersData();
-    const localMarkers = getLocalMarkers();
+    const localMarkers = getLocalMarkers().map(marker => ({
+        ...marker,
+        source: 'local'
+    }));
     const allMarkers = [...localMarkers, ...serverMarkers];
     
     const normalizedQuery = convertToHalfWidth(query).trim().toLowerCase();
@@ -370,6 +375,7 @@ function renderResults(results) {
             <div class="search-item-text">
                 <div class="search-item-name">${marker.text}</div>
                 <div class="caption">
+                    <div class="search-item-not-approved">尚未采纳</div>
                     <div class="search-item-category">${categoryName}</div>
                     <div class="search-item-coordinate">距离${distance}格</div>
                 </div>
@@ -383,6 +389,15 @@ function renderResults(results) {
                 </button>-->
             </div>
         `;
+
+        const notApproved = item.querySelector('.search-item-not-approved');
+
+        // 如果标记点能在LocalStorage中找到，则保留本地标记样式，否则隐藏
+        if (marker.source === 'local') {
+            notApproved.style.display = 'block';
+        } else {
+            notApproved.style.display = 'none';
+        }
         
         // 点击事件处理
         item.addEventListener('click', function(e) {
@@ -886,7 +901,8 @@ document.addEventListener('DOMContentLoaded', () => {
             x: parseFloat(xCoordinate),
             z: parseFloat(zCoordinate),
             text: pointName,
-            image: pointCategory + '.png'
+            image: pointCategory + '.png',
+            source: 'local'
         };
         
         // 生成标记点代码
@@ -925,7 +941,8 @@ document.addEventListener('DOMContentLoaded', () => {
             x: parseFloat(xCoordinate),
             z: parseFloat(zCoordinate),
             text: pointName,
-            image: pointCategory + '.png'
+            image: pointCategory + '.png',
+            source: 'local'
         };
         
         saveLocalMarker(marker);
@@ -960,7 +977,8 @@ document.addEventListener('DOMContentLoaded', () => {
             x: parseFloat(xCoordinate),
             z: parseFloat(zCoordinate),
             text: pointName,
-            image: pointCategory + '.png'
+            image: pointCategory + '.png',
+            source: 'local'
         };
         
         saveLocalMarker(marker);
@@ -1445,6 +1463,9 @@ function toggleAllPoints() {
     
     // 更新按钮文本
     toggleButton.textContent = shouldSelectAll ? '取消全选' : '全选';
+    
+    // 更新操作按钮的显示状态
+    updateToggleAllButton();
 }
 
 // 打开管理本地标记点模态框

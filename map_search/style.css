@@ -177,6 +177,10 @@ header .toolbar {
     background-color: #dbe0e1;
 }
 
+.tile-container img {
+    transition: all 0.3s ease-in-out;
+}
+
 .map-scale {
     position: absolute;
     bottom: 6px;
@@ -467,6 +471,13 @@ header .toolbar {
 
 .local-marker-actions button:hover {
     background-color: var(--hover-background);
+}
+
+/* 添加尚未采纳标记点的样式 */
+.search-item-not-approved {
+    font-weight: 600;
+    margin-right: 8px;
+    display: none; /* 默认隐藏，由JavaScript控制显示 */
 }
 
 /* 编辑标记点模态框样式 */
