@@ -3,6 +3,7 @@ let isDragging = false;
 let dragStartX, dragStartZ;
 let dragStartClientX, dragStartClientY;
 let isPreviewUpdateScheduled = false; // 添加缺失的变量定义
+let dragEndPreviewTimer = null; // 用于拖拽结束后延迟更新预览的定时器
 
 // 本地标记点存储键名
 const LOCAL_MARKERS_KEY = 'localMarkers';
@@ -68,8 +69,12 @@ function drag(event) {
     // 鼠标/手指向右移动时，地图向左移动，显示更右边的内容（X坐标减少）
     // 鼠标/手指向下移动时，地图向上移动，显示更下边的内容（Z坐标减少）
     const sensitivity = event.type === 'touchmove' ? 8 : 4; // 提高触屏灵敏度
-    const newX = dragStartX - deltaX * sensitivity;
-    const newZ = dragStartZ - deltaY * sensitivity;
+    let newX = dragStartX - deltaX * sensitivity;
+    let newZ = dragStartZ - deltaY * sensitivity;
+    
+    // 对坐标值进行四舍五入取整
+    newX = Math.round(newX);
+    newZ = Math.round(newZ);
     
     // 更新坐标输入框
     const xInput = document.getElementById('coordinates-x');
@@ -98,7 +103,6 @@ function drag(event) {
 
 // 结束拖拽
 function endDrag() {
-    isDragging = false;
     
     // 移除所有可能的事件监听器
     document.removeEventListener('mousemove', drag);
@@ -106,6 +110,15 @@ function endDrag() {
     document.removeEventListener('touchmove', drag);
     document.removeEventListener('touchend', endDrag);
     document.removeEventListener('touchcancel', endDrag);
+    
+    // 拖拽结束后延迟更新预览图，确保最终位置正确显示
+    if (dragEndPreviewTimer) {
+        clearTimeout(dragEndPreviewTimer);
+    }
+    dragEndPreviewTimer = setTimeout(() => {
+        updatePreview();
+        isDragging = false;
+    }, 300);
 }
 
 // 1. 在script.js顶部添加防抖函数（如果不存在）
@@ -227,7 +240,7 @@ function removeDuplicateLocalMarkers(serverMarkers) {
     // 如果有删除的标记点，则更新localStorage
     if (removedCount > 0) {
         localStorage.setItem(LOCAL_MARKERS_KEY, JSON.stringify(localMarkers));
-        console.log(`已自动删除 ${removedCount} 个与服务器重复的本地标记点`);
+        //console.log(`已自动删除 ${removedCount} 个与服务器重复的本地标记点`);
     }
 }
 
@@ -264,7 +277,7 @@ async function searchMarkers(query, selectedCategory) {
         const processedText = marker.text 
             ? Array.from(marker.text).map(c => fullToHalf(c)).join('')
             : '';
-        const category = categoryMap[marker.image.replace(/\.png$/, '').replace(/-\w+$/, '')] || '其他';
+        const category = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
         return (
             processedText.toLowerCase().includes(normalizedQuery) &&
             (!selectedCategory || category === selectedCategory) // 使用分类筛选参数
@@ -295,6 +308,7 @@ const categoryMap = {
     'hot-spring': '洗浴',
     'lindong-metro': '地铁站',
     'lindong-metro-transfer': '地铁站',
+    'songshanhu-tram': '有轨站',
     'local-railway-station': '专用线车站',
     'museum': '文教设施',
     'park': '公园',
@@ -350,7 +364,7 @@ function renderResults(results) {
         ).toFixed(0);
 
         // 获取分类名称：除了去掉图标后缀名，还需要去掉-a、-b、-c1等文件名后缀
-        const categoryName = categoryMap[marker.image.replace(/\.png$/, '').replace(/-\w+$/, '')] || '其他';
+        const categoryName = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
         
         item.innerHTML = `
             <div class="search-item-text">
@@ -481,7 +495,37 @@ function isManualInput() {
 }
 
 // 新增：处理预览功能（支持多图拼接）
+// 防抖函数，用于限制updatePreview的调用频率
+let previewUpdateTimer = null;
+let lastUpdatePreviewCall = 0;
+const previewUpdateDelay = 16; // 约60FPS
+
 function updatePreview() {
+    const now = Date.now();
+    
+    // 如果距离上次调用时间很短，则推迟执行
+    if (now - lastUpdatePreviewCall < previewUpdateDelay) {
+        // 清除之前的定时器
+        if (previewUpdateTimer) {
+            clearTimeout(previewUpdateTimer);
+        }
+        
+        // 设置新的定时器
+        previewUpdateTimer = setTimeout(() => {
+            doUpdatePreview();
+            lastUpdatePreviewCall = Date.now();
+        }, previewUpdateDelay - (now - lastUpdatePreviewCall));
+        
+        return;
+    }
+    
+    // 直接执行更新
+    doUpdatePreview();
+    lastUpdatePreviewCall = now;
+}
+
+// 实际执行预览更新的函数
+function doUpdatePreview() {
     const xInput = document.getElementById('coordinates-x');
     const zInput = document.getElementById('coordinates-z');
     const x = parseFloat(xInput.value);
@@ -507,18 +551,88 @@ function updatePreview() {
         }
     }
     
-    // 清除之前的预览
-    clearPreview();
-    
-    // 创建父容器
+    // 获取预览容器，如果不存在则创建
     const previewContainer = document.querySelector('.preview-container');
-    const tileContainer = document.createElement('div');
-    tileContainer.className = 'tile-container';
-    previewContainer.appendChild(tileContainer);
+    let tileContainer = previewContainer.querySelector('.tile-container');
+    if (!tileContainer) {
+        tileContainer = document.createElement('div');
+        tileContainer.className = 'tile-container';
+        previewContainer.appendChild(tileContainer);
+    }
     
-    // 加载所有图片
-    const promises = tilesToLoad.map(tile => {
-        return new Promise((resolve, reject) => {
+    // 获取当前已加载的图片信息
+    const loadedTiles = new Map();
+    const images = tileContainer.querySelectorAll('img');
+    images.forEach(img => {
+        const key = img.dataset.tileKey;
+        if (key) {
+            loadedTiles.set(key, img);
+        }
+    });
+    
+    // 计算需要新增和需要移除的瓦片
+    const tilesToLoadMap = new Map();
+    tilesToLoad.forEach(tile => {
+        const key = `${tile.x},${tile.z}`;
+        tilesToLoadMap.set(key, tile);
+    });
+    
+    // 移除不需要的图片
+    loadedTiles.forEach((img, key) => {
+        if (!tilesToLoadMap.has(key)) {
+            img.remove();
+        }
+    });
+    
+    // 更新所有图片的位置（包括已存在的和新加载的）
+    const updateImagePosition = (img, tx, tz) => {
+        // 计算容器尺寸
+        const containerWidth = previewContainer.offsetWidth;
+        const containerHeight = previewContainer.offsetHeight;
+        
+        // 当前tile的地理左上角坐标
+        const tileLeftGeo = tx * 1024;
+        const tileTopGeo = tz * 1024;
+        
+        // 用户坐标到当前tile左上角的偏移量（地理单位）
+        const dxGeo = x - tileLeftGeo;
+        const dzGeo = z - tileTopGeo;
+        
+        // 转换为像素坐标（1像素=4地理单位）
+        const dxPixel = dxGeo / 4 - 128;
+        const dzPixel = dzGeo / 4 - 128;
+        
+        // 图片左上角相对于容器中心的偏移
+        const imgLeft = containerWidth / 2 - dxPixel - img.width / 2;
+        const imgTop = containerHeight / 2 - dzPixel - img.height / 2;
+        
+        // 设置绝对定位
+        img.style.position = 'absolute';
+        img.style.left = `${imgLeft}px`;
+        img.style.top = `${imgTop}px`;
+        
+        // 防止图片被截断
+        img.style.maxWidth = 'none';
+        img.style.maxHeight = 'none';
+    };
+    
+    // 先更新已存在的图片位置
+    loadedTiles.forEach((img, key) => {
+        if (tilesToLoadMap.has(key)) {
+            const tile = tilesToLoadMap.get(key);
+            updateImagePosition(img, tile.x, tile.z);
+        }
+    });
+    
+    // 加载需要新增的图片
+    const promises = [];
+    tilesToLoadMap.forEach((tile, key) => {
+        // 如果图片已经存在，跳过加载过程（但位置已经在上面更新了）
+        if (loadedTiles.has(key)) {
+            return;
+        }
+        
+        const promise = new Promise((resolve, reject) => {
             const { x: tx, z: tz } = tile;
             
             // 计算路径
@@ -528,37 +642,10 @@ function updatePreview() {
             
             const img = new Image();
             img.src = imageUrl;
+            img.dataset.tileKey = key; // 添加标识
             
             img.onload = () => {
-                // 计算容器尺寸
-                const containerWidth = previewContainer.offsetWidth;
-                const containerHeight = previewContainer.offsetHeight;
-                
-                // 当前tile的地理左上角坐标
-                const tileLeftGeo = tx * 1024;
-                const tileTopGeo = tz * 1024;
-                
-                // 用户坐标到当前tile左上角的偏移量（地理单位）
-                const dxGeo = x - tileLeftGeo;
-                const dzGeo = z - tileTopGeo;
-                
-                // 转换为像素坐标（1像素=4地理单位）
-                const dxPixel = dxGeo / 4 - 128;
-                const dzPixel = dzGeo / 4 - 128;
-                
-                // 图片左上角相对于容器中心的偏移
-                const imgLeft = containerWidth / 2 - dxPixel - img.width / 2;
-                const imgTop = containerHeight / 2 - dzPixel - img.height / 2;
-                
-                // 设置绝对定位
-                img.style.position = 'absolute';
-                img.style.left = `${imgLeft}px`;
-                img.style.top = `${imgTop}px`;
-                
-                // 防止图片被截断
-                img.style.maxWidth = 'none';
-                img.style.maxHeight = 'none';
-                
+                updateImagePosition(img, tx, tz);
                 tileContainer.appendChild(img);
                 resolve(img);
             };
@@ -567,46 +654,48 @@ function updatePreview() {
                 resolve(null);
             };
         });
+        
+        promises.push(promise);
     });
 
     const pinLabel = document.querySelector('.pin-label');
     const currentLocation = document.querySelector('.search-item.selected .search-item-name');
     const locationDistance = document.querySelector('.search-item.selected .search-item-coordinate');
-    if (!currentLocation || !locationDistance) { 
-        //pinLabel.style.color = 'transparent';
-    } else {
-        const distance = locationDistance.textContent.match(/\d+/)[0];
-        //console.log(distance);
-        if (distance > 0) {
-            //pinLabel.style.color = 'transparent';
-            console.log('隐藏地址');
-            if (window.location.href.includes('map.html')) {
-                pinLabel.style.color = 'transparent';
-                pinLabel.style.textShadow = 'none';
-            }
-        } else {
-            pinLabel.textContent = currentLocation.textContent
-            console.log('显示地址',pinLabel.textContent)
-            // 对map.html执行以下代码
-            if (window.location.href.includes('map.html')) {
-                pinLabel.style.color = 'white';
-                pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+    if (currentLocation && locationDistance) { 
+        const distanceMatch = locationDistance.textContent.match(/\d+/);
+        if (distanceMatch) {
+            const distance = distanceMatch[0];
+            if (distance > 0) {
+                //console.log('隐藏地址');
+                if (window.location.href.includes('map.html')) {
+                    pinLabel.style.color = 'transparent';
+                    pinLabel.style.textShadow = 'none';
+                }
+            } else {
+                pinLabel.textContent = currentLocation.textContent;
+                //console.log('显示地址', pinLabel.textContent);
+                // 对map.html执行以下代码
+                if (window.location.href.includes('map.html')) {
+                    pinLabel.style.color = 'white';
+                    pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+                }
             }
         }
     }
+    
     Promise.all(promises).then(() => {
         // 显示加载完成状态
         tileContainer.style.display = 'block';
     });
 }
 
-// 清除预览
+// 清除预览（现在不再需要完整移除容器）
 function clearPreview() {
     const previewContainer = document.querySelector('.preview-container');
-    // 仅移除动态创建的 .tile-container 元素
     const tileContainer = previewContainer.querySelector('.tile-container');
     if (tileContainer) {
-        tileContainer.remove();
+        // 清除容器内的图片，但保留容器本身
+        tileContainer.innerHTML = '';
     }
 }
 
@@ -626,11 +715,15 @@ document.getElementById('coordinates-z').addEventListener('input', function() {
 const previewContainer = document.querySelector('.preview-container');
 previewContainer.addEventListener('mousedown', startDrag);
 previewContainer.addEventListener('touchstart', startDrag, { passive: false });
+
+// 修改点击事件处理，避免拖拽后误触
 previewContainer.addEventListener('click', async (event) => {
     // 只有在非拖拽情况下才执行点击事件
     if (!isDragging) {
-        const locationName = document.querySelector('.search-item.selected .search-item-name').textContent;
-        await savePreviewImage(locationName);
+        const locationName = document.querySelector('.search-item.selected .search-item-name');
+        if (locationName) {
+            await savePreviewImage(locationName.textContent);
+        }
     }
 });
 
@@ -1108,7 +1201,7 @@ async function savePreviewImage(name) {
     const pinLabel = document.querySelector('.pin-label');
     const previewFooter = document.querySelector('.preview-footer');
     const locationDistance = document.querySelector('.search-item.selected .search-item-coordinate').textContent.match(/\d+/)[0];
-    console.log(locationDistance);
+    //console.log(locationDistance);
     if (locationDistance == 0) {
         pinLabel.style.color = 'white';
         pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
@@ -1243,7 +1336,7 @@ function renderLocalMarkersList() {
     }
     
     localMarkers.forEach((marker, index) => {
-        const category = categoryMap[marker.image.replace(/\.png$/, '').replace(/-\w+$/, '')] || '其他';
+        const category = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
         const markerElement = document.createElement('div');
         markerElement.className = 'local-marker-item';
         markerElement.innerHTML = `
@@ -1464,6 +1557,3 @@ function deleteSingleMarker(index) {
         triggerSearch();
     }
 }
-
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', init);
