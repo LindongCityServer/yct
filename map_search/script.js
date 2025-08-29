@@ -1099,6 +1099,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 添加键盘事件监听器实现快捷键功能
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
+
+    const fab = document.querySelector('.fab');
+    fab.addEventListener('click', () => {
+        window.open('http://map.shangxiaoguan.top', '_blank');
+    });
 });
 
 // 处理键盘快捷键（保持原有函数名以确保向后兼容）

@@ -551,10 +551,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // 处理微信图标点击事件
     window.handleWechatClick = () => {
+        //showToast('正在跳转，如失败请使用手机访问本站或扫描二维码');
+
+        // 如果跳转失败，展示二维码
+        
         const wechatLink = document.getElementById('wechat-link');
         const rect = wechatLink.getBoundingClientRect();
         wechatImage.style.top = `${rect.bottom + window.scrollY}px`;
-        wechatImage.style.display = wechatImage.style.display === 'block' ? 'none' : 'block';
+        wechatImage.style.display = wechatImage.style.display === 'flex' ? 'none' : 'flex';
+        const imageSize = Math.min(window.innerWidth, window.innerHeight);
+        wechatImage.style.left = `${(window.innerWidth - imageSize) / 2}px`;
+        wechatImage.querySelector('img').style.width = `${imageSize}px`;
     };
     
     // 监听滚动事件

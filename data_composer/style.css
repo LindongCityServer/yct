@@ -309,7 +309,7 @@ h1 {
     opacity: 1;
 }
 
-.add-station-button {
+.add-station-button, .add-station-info-template-button {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -321,17 +321,17 @@ h1 {
     color: var(--text-color);
 }
 
-.add-station-button img {
+.add-station-button img, .add-station-info-template-button img {
     width: 18px;
     height: 18px;
     opacity: 0.7;
 }
 
-.add-station-button:hover {
+.add-station-button:hover, .add-station-info-template-button:hover {
     background-color: var(--hover-background);
 }
 
-.add-station-button:hover img {
+.add-station-button:hover img, .add-station-info-template-button:hover img {
     opacity: 1;
 }
 
@@ -676,6 +676,13 @@ input:checked + .slider:before {
 
 .show-advanced .advanced-fields {
     display: grid;
+}
+
+/* 新增distance字段样式 */
+.distance-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 /* 拖放样式 */
@@ -1311,6 +1318,11 @@ body.show-advanced .advanced-field {
         filter: invert(1);
     }
 
+    .icon-button.fab img {
+        opacity: 1;
+        filter: none;
+    }
+
     .icon-button#back-to-home img {
         opacity: 0.8;
         filter: invert(0);
@@ -1328,4 +1340,107 @@ body.show-advanced .advanced-field {
     .line-item {
         background-color: var(--background-color);
     }
+}
+
+.station-info {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-background);
+    padding: 8px;
+    margin: 6px 0;
+    border-radius: 12px;
+    gap: 6px;
+}
+
+.station-info-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    break-inside: avoid;
+}
+
+.station-info-header .max-car-count {
+    width: 108px;
+}
+
+.station-info-template {
+    background-color: var(--background-color);
+    padding: 8px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.station-info-template-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+}
+
+.station-info-template-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px;
+}
+
+.station-info-template-header .overground {
+    width: 120px;
+}
+
+.station-layer {
+    display: flex;
+    flex-direction: row;
+    background-color: var(--card-background);
+    padding: 4px;
+    border-radius: 30px;
+}
+
+.platform-facility {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-background);
+    padding: 6px;
+    border-radius: 12px;
+}
+
+.platform-facility-header {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.platform-facility .facility-type {
+    width: 108px;
+}
+
+.platform-facility .facility-location {
+    width: -webkit-fill-available;
+}
+
+.platform-facility .elevator-controls {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.platform-facility .elevator-controls select {
+    width: fit-content;
+}
+
+.station-layer-header, .platform-facilities-header, .transfer-labels-header, .exits-header {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+}
+
+.transfer-label, .exit {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
 }
