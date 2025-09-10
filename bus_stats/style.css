@@ -1,5 +1,29 @@
 /* 添加到文件开头 */
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.sort-toggle {
+    background: var(--background-color);
+    border-radius: 16px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--secondary-text);
+    transition: all 0.3s ease;
+    max-width: fit-content;
+    text-wrap: nowrap;
+}
+
+.sort-toggle:hover {
+    background: var(--hover-background);
+    transform: scale(1.05);
+}
+
 .loading-indicator {
     display: flex;
     flex-direction: column;

@@ -1,5 +1,6 @@
 // 在模块顶部添加数据加载逻辑
 let busRoutes;
+let sortStates = {}; // 存储每个排行榜的排序状态
 
 // 动态加载数据
 async function loadBusData() {
@@ -28,11 +29,54 @@ async function initStats() {
     
     // 检查数据是否已加载
     if (typeof busRoutes !== 'undefined') {
+        // 设置默认排序状态
+        setDefaultSortStates();
         initializeStats();
+        // 添加排序按钮事件监听器
+        addSortToggleListeners();
     } else {
         console.error('公交数据未正确加载');
         showLoadingIndicator(false);
     }
+}
+
+function setDefaultSortStates() {
+    const rankingLists = [
+        'line-length-rank',
+        'station-lines-rank', 
+        'operator-lines-rank',
+        'parallel-stations-rank',
+        'segment-lines-rank',
+        'operation-time-rank',
+        'connectivity-rank' // 添加连接度排行的排序状态
+    ];
+    
+    rankingLists.forEach(list => {
+        sortStates[list] = 'desc'; // 默认降序
+    });
+}
+
+function addSortToggleListeners() {
+    const sortButtons = document.querySelectorAll('.sort-toggle');
+    sortButtons.forEach(button => {
+        const target = button.getAttribute('data-target');
+        button.addEventListener('click', () => {
+            toggleSortOrder(target);
+        });
+    });
+}
+
+function toggleSortOrder(target) {
+    // 切换排序状态
+    sortStates[target] = sortStates[target] === 'desc' ? 'asc' : 'desc';
+    
+    // 更新按钮文本
+    const button = document.querySelector(`.sort-toggle[data-target="${target}"]`);
+    button.textContent = sortStates[target] === 'desc' ? '↓ 降序' : '↑ 升序';
+    
+    // 重新显示统计数据
+    const stats = calculateStats();
+    displayStats(stats);
 }
 
 function showLoadingIndicator(show) {
@@ -76,7 +120,8 @@ function calculateStats() {
         operatorsByLines: new Map(),
         parallelStations: [], // 共线站统计（修改为数组）
         segmentLines: [], // 区间线路统计（修改为数组）
-        operationTime: new Map() // 运营时长统计
+        operationTime: new Map(), // 运营时长统计
+        connectivity: [] // 添加连接度统计
     };
 
     // 线路数量
@@ -254,6 +299,40 @@ function calculateStats() {
         }
     }
 
+    // 计算线路平均连接度（包含所有线路，包括24小时运营线路）
+    // 首先计算每个站点的连接度（连接的线路数）
+    const stationConnectivity = new Map();
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
+        for (const station of routeData.stations) {
+            const stationName = station.name;
+            if (!stationConnectivity.has(stationName)) {
+                stationConnectivity.set(stationName, 0);
+            }
+            stationConnectivity.set(stationName, stationConnectivity.get(stationName) + 1);
+        }
+    }
+
+    // 然后计算每条线路的平均连接度
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
+        let totalConnectivity = 0;
+        const stationCount = routeData.stations.length;
+        
+        for (const station of routeData.stations) {
+            totalConnectivity += stationConnectivity.get(station.name);
+        }
+        
+        const averageConnectivity = stationCount > 0 ? totalConnectivity / stationCount : 0;
+        
+        stats.connectivity.push({
+            name: routeData.name,
+            id: routeId,
+            average: averageConnectivity
+        });
+    }
+
+    // 对连接度进行排序
+    stats.connectivity.sort((a, b) => b.average - a.average);
+
     return stats;
 }
 
@@ -319,10 +398,17 @@ function displayStats(stats) {
         const lineCountEl = document.querySelector('.line-count');
         const stationCountEl = document.querySelector('.station-count');
         const operatorCountEl = document.querySelector('.operator-count');
+        const connectivityCountEl = document.querySelector('.connectivity-count'); // 添加连接度统计元素
         
         if (lineCountEl) animateNumber(lineCountEl, stats.lineCount);
         if (stationCountEl) animateNumber(stationCountEl, stats.stationCount);
         if (operatorCountEl) animateNumber(operatorCountEl, stats.operatorCount);
+        // 计算并显示线网平均连接度
+        if (connectivityCountEl && stats.connectivity.length > 0) {
+            const totalConnectivity = stats.connectivity.reduce((sum, route) => sum + route.average, 0);
+            const averageNetworkConnectivity = totalConnectivity / stats.connectivity.length;
+            animateNumber(connectivityCountEl, Math.round(averageNetworkConnectivity * 100) / 100);
+        }
 
         // 显示线路长度排行（直到包含所有奖牌获得者或达到最小数量）
         const lineLengthRankEl = document.querySelector('.line-length-rank');
@@ -330,13 +416,21 @@ function displayStats(stats) {
             lineLengthRankEl.innerHTML = '';
             // 获取所有线路并排序
             const allLinesByLength = [...stats.linesByLength];
-            allLinesByLength.sort((a, b) => b.length - a.length);
             
-            // 使用并列排名处理，获取足够多的线路直到包含所有奖牌获得者或达到最小数量
-            const rankedLines = getRankWithTiesUntilAllMedals(allLinesByLength, item => item.length);
+            // 根据排序状态调整顺序
+            let rankedLines;
+            if (sortStates['line-length-rank'] === 'asc') {
+                allLinesByLength.sort((a, b) => a.length - b.length);
+                // 升序时从后往前排
+                rankedLines = getRankWithTiesReverseUntilAllMedals(allLinesByLength, item => item.length);
+            } else {
+                allLinesByLength.sort((a, b) => b.length - a.length);
+                // 降序时正常排名
+                rankedLines = getRankWithTiesUntilAllMedals(allLinesByLength, item => item.length);
+            }
             
-            // 确定奖牌分配
-            const medalMap = getMedalMap(rankedLines);
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = sortStates['line-length-rank'] === 'desc' ? getMedalMap(rankedLines) : new Map();
             
             rankedLines.forEach((line) => {
                 const rankItem = document.createElement('div');
@@ -386,14 +480,22 @@ function displayStats(stats) {
         const stationLinesRankEl = document.querySelector('.station-lines-rank');
         if (stationLinesRankEl) {
             stationLinesRankEl.innerHTML = '';
-            const allStations = [...stats.stationsByLines.entries()]
-                .sort((a, b) => b[1] - a[1]);
+            let allStations = [...stats.stationsByLines.entries()];
             
-            // 使用并列排名处理，获取足够多的站点直到包含所有奖牌获得者或达到最小数量
-            const rankedStations = getRankWithTiesUntilAllMedals(allStations, item => item[1]);
+            // 根据排序状态调整顺序
+            let rankedStations;
+            if (sortStates['station-lines-rank'] === 'asc') {
+                allStations.sort((a, b) => a[1] - b[1]);
+                // 升序时从后往前排
+                rankedStations = getRankWithTiesReverseUntilAllMedals(allStations, item => item[1]);
+            } else {
+                allStations.sort((a, b) => b[1] - a[1]);
+                // 降序时正常排名
+                rankedStations = getRankWithTiesUntilAllMedals(allStations, item => item[1]);
+            }
             
-            // 确定奖牌分配
-            const medalMap = getMedalMap(rankedStations);
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = sortStates['station-lines-rank'] === 'desc' ? getMedalMap(rankedStations) : new Map();
             
             rankedStations.forEach((stationEntry) => {
                 const rankItem = document.createElement('div');
@@ -448,14 +550,22 @@ function displayStats(stats) {
         const operatorLinesRankEl = document.querySelector('.operator-lines-rank');
         if (operatorLinesRankEl) {
             operatorLinesRankEl.innerHTML = '';
-            const allOperators = [...stats.operatorsByLines.entries()]
-                .sort((a, b) => b[1] - a[1]);
+            let allOperators = [...stats.operatorsByLines.entries()];
             
-            // 使用并列排名处理，获取足够多的运营公司直到包含所有奖牌获得者或达到最小数量
-            const rankedOperators = getRankWithTiesUntilAllMedals(allOperators, item => item[1]);
+            // 根据排序状态调整顺序
+            let rankedOperators;
+            if (sortStates['operator-lines-rank'] === 'asc') {
+                allOperators.sort((a, b) => a[1] - b[1]);
+                // 升序时从后往前排
+                rankedOperators = getRankWithTiesReverseUntilAllMedals(allOperators, item => item[1]);
+            } else {
+                allOperators.sort((a, b) => b[1] - a[1]);
+                // 降序时正常排名
+                rankedOperators = getRankWithTiesUntilAllMedals(allOperators, item => item[1]);
+            }
             
-            // 确定奖牌分配
-            const medalMap = getMedalMap(rankedOperators);
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = sortStates['operator-lines-rank'] === 'desc' ? getMedalMap(rankedOperators) : new Map();
             
             rankedOperators.forEach((operatorEntry) => {
                 const rankItem = document.createElement('div');
@@ -510,11 +620,21 @@ function displayStats(stats) {
         const parallelStationsRankEl = document.querySelector('.parallel-stations-rank');
         if (parallelStationsRankEl) {
             parallelStationsRankEl.innerHTML = '';
-            // 使用并列排名处理，获取足够多的直到包含所有奖牌获得者或达到最小数量
-            const rankedParallelStations = getRankWithTiesUntilAllMedals(stats.parallelStations, item => item.count);
+            let rankedParallelStations = [...stats.parallelStations];
             
-            // 确定奖牌分配
-            const medalMap = getMedalMap(rankedParallelStations);
+            // 根据排序状态调整顺序
+            if (sortStates['parallel-stations-rank'] === 'asc') {
+                rankedParallelStations.sort((a, b) => a.count - b.count);
+                // 升序时从后往前排
+                rankedParallelStations = getRankWithTiesReverseUntilAllMedals(rankedParallelStations, item => item.count);
+            } else {
+                rankedParallelStations.sort((a, b) => b.count - a.count);
+                // 降序时正常排名
+                rankedParallelStations = getRankWithTiesUntilAllMedals(rankedParallelStations, item => item.count);
+            }
+            
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = sortStates['parallel-stations-rank'] === 'desc' ? getMedalMap(rankedParallelStations) : new Map();
             
             rankedParallelStations.forEach((entry) => {
                 const rankItem = document.createElement('div');
@@ -559,11 +679,21 @@ function displayStats(stats) {
         const segmentLinesRankEl = document.querySelector('.segment-lines-rank');
         if (segmentLinesRankEl) {
             segmentLinesRankEl.innerHTML = '';
-            // 使用并列排名处理，获取足够多的直到包含所有奖牌获得者或达到最小数量
-            const rankedSegmentLines = getRankWithTiesUntilAllMedals(stats.segmentLines, item => item.routes.length);
+            let rankedSegmentLines = [...stats.segmentLines];
             
-            // 确定奖牌分配
-            const medalMap = getMedalMap(rankedSegmentLines);
+            // 根据排序状态调整顺序
+            if (sortStates['segment-lines-rank'] === 'asc') {
+                rankedSegmentLines.sort((a, b) => a.routes.length - b.routes.length);
+                // 升序时从后往前排
+                rankedSegmentLines = getRankWithTiesReverseUntilAllMedals(rankedSegmentLines, item => item.routes.length);
+            } else {
+                rankedSegmentLines.sort((a, b) => b.routes.length - a.routes.length);
+                // 降序时正常排名
+                rankedSegmentLines = getRankWithTiesUntilAllMedals(rankedSegmentLines, item => item.routes.length);
+            }
+            
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = sortStates['segment-lines-rank'] === 'desc' ? getMedalMap(rankedSegmentLines) : new Map();
             
             rankedSegmentLines.forEach((segmentEntry) => {
                 const rankItem = document.createElement('div');
@@ -610,14 +740,22 @@ function displayStats(stats) {
         const operationTimeRankEl = document.querySelector('.operation-time-rank');
         if (operationTimeRankEl) {
             operationTimeRankEl.innerHTML = '';
-            const allOperationTime = [...stats.operationTime.entries()]
-                .sort((a, b) => b[1].duration - a[1].duration);
+            let allOperationTime = [...stats.operationTime.entries()];
             
-            // 使用并列排名处理，获取足够多的线路直到包含所有奖牌获得者或达到最小数量
-            const rankedOperationTime = getRankWithTiesUntilAllMedals(allOperationTime, item => item[1].duration);
+            // 根据排序状态调整顺序
+            let rankedOperationTime;
+            if (sortStates['operation-time-rank'] === 'asc') {
+                allOperationTime.sort((a, b) => a[1].duration - b[1].duration);
+                // 升序时从后往前排
+                rankedOperationTime = getRankWithTiesReverseUntilAllMedals(allOperationTime, item => item[1].duration);
+            } else {
+                allOperationTime.sort((a, b) => b[1].duration - a[1].duration);
+                // 降序时正常排名
+                rankedOperationTime = getRankWithTiesUntilAllMedals(allOperationTime, item => item[1].duration);
+            }
             
-            // 确定奖牌分配
-            const medalMap = getMedalMap(rankedOperationTime);
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = sortStates['operation-time-rank'] === 'desc' ? getMedalMap(rankedOperationTime) : new Map();
             
             rankedOperationTime.forEach((operationEntry) => {
                 const rankItem = document.createElement('div');
@@ -660,6 +798,65 @@ function displayStats(stats) {
                 }, 0);
             });
         }
+        
+        // 显示线路平均连接度排行
+        const connectivityRankEl = document.querySelector('.connectivity-rank');
+        if (connectivityRankEl) {
+            connectivityRankEl.innerHTML = '';
+            let rankedConnectivity = [...stats.connectivity];
+            
+            // 根据排序状态调整顺序
+            if (sortStates['connectivity-rank'] === 'asc') {
+                rankedConnectivity.sort((a, b) => a.average - b.average);
+                // 升序时从后往前排
+                rankedConnectivity = getRankWithTiesReverseUntilAllMedals(rankedConnectivity, item => item.average);
+            } else {
+                rankedConnectivity.sort((a, b) => b.average - a.average);
+                // 降序时正常排名
+                rankedConnectivity = getRankWithTiesUntilAllMedals(rankedConnectivity, item => item.average);
+            }
+            
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = sortStates['connectivity-rank'] === 'desc' ? getMedalMap(rankedConnectivity) : new Map();
+            
+            rankedConnectivity.forEach((connectivityEntry) => {
+                const rankItem = document.createElement('div');
+                rankItem.className = 'ranking-item';
+                
+                // 根据排名确定奖牌类型
+                let medalClass = '';
+                if (medalMap.has(connectivityEntry.rank)) {
+                    medalClass = medalMap.get(connectivityEntry.rank);
+                }
+                
+                // 创建一个容器来保存详细信息
+                const detailId = `connectivity-detail-${encodeURIComponent(connectivityEntry.id)}`;
+                
+                rankItem.innerHTML = `
+                    <div class="rank-number ${medalClass}">${connectivityEntry.rank}</div>
+                    <div class="rank-content">
+                        <div class="rank-title">${connectivityEntry.name}</div>
+                        <div class="rank-value">${Math.round(connectivityEntry.average * 100) / 100} 连接度</div>
+                    </div>
+                    <div id="${detailId}" class="rank-detail">线路平均连接度</div>
+                `;
+                connectivityRankEl.appendChild(rankItem);
+                
+                // 为排行榜项添加鼠标事件
+                setTimeout(() => {
+                    const detailElement = document.getElementById(detailId);
+                    if (detailElement) {
+                        rankItem.addEventListener('mouseenter', () => {
+                            detailElement.classList.add('show');
+                        });
+                        
+                        rankItem.addEventListener('mouseleave', () => {
+                            detailElement.classList.remove('show');
+                        });
+                    }
+                }, 0);
+            });
+        }
 
     } catch (error) {
         console.error('显示统计数据时发生错误:', error);
@@ -685,6 +882,8 @@ function getMedalMap(rankedData) {
             medalMap.set(item.rank, 'silver-medal');
         } else if (rankCount === 3) {
             medalMap.set(item.rank, 'bronze-medal');
+        } else if (rankCount === 4) {
+            medalMap.set(item.rank, 'fourth-medal');
         } else {
             break;
         }
@@ -736,6 +935,105 @@ function getRankWithTiesUntilAllMedals(sortedData, valueGetter, minCount = 10) {
     return rankedData;
 }
 
+// 添加一个函数来处理升序时的排名（从后往前排）
+function getRankWithTiesReverse(sortedData, valueGetter) {
+    if (sortedData.length === 0) {
+        return [];
+    }
+    
+    // 先按正常方式计算排名（处理并列情况）
+    const normalRanked = [];
+    let currentRank = 1;
+    let previousValue = null;
+    
+    for (let i = 0; i < sortedData.length; i++) {
+        const item = sortedData[i];
+        const currentValue = valueGetter(item);
+        
+        if (previousValue !== null && currentValue !== previousValue) {
+            currentRank = i + 1;
+        }
+        
+        normalRanked.push({
+            ...item,
+            rank: currentRank
+        });
+        
+        previousValue = currentValue;
+    }
+    
+    // 获取最大排名值
+    const maxRank = sortedData.length;
+    
+    // 反转排名数字，但保持并列组内的一致性
+    // 我们需要确保并列项获得相同的排名，并且并列时取较小的数值
+    const reversedRanked = [];
+    for (let i = 0; i < normalRanked.length; i++) {
+        const item = normalRanked[i];
+        // 计算反转后的排名
+        const reversedRank = maxRank - item.rank + 1;
+        reversedRanked.push({
+            ...item,
+            rank: reversedRank
+        });
+    }
+    
+    return reversedRanked;
+}
+
+// 添加一个函数来处理升序排列时获取前N名，包括并列情况
+function getRankWithTiesReverseUntilAllMedals(sortedData, valueGetter, minCount = 10) {
+    if (sortedData.length === 0) {
+        return [];
+    }
+    
+    // 先按正常方式计算排名（处理并列情况）
+    const normalRanked = [];
+    let currentRank = 1;
+    let previousValue = null;
+    let rankCount = 0; // 不同排名的数量
+    
+    for (let i = 0; i < sortedData.length; i++) {
+        const item = sortedData[i];
+        const currentValue = valueGetter(item);
+        
+        if (previousValue !== null && currentValue !== previousValue) {
+            currentRank = normalRanked.length + 1;
+            rankCount++;
+        }
+        
+        // 添加当前项目
+        normalRanked.push({
+            ...item,
+            rank: currentRank
+        });
+        
+        previousValue = currentValue;
+        
+        // 如果已经找到前4个不同的排名且达到最小数量，则停止添加更多项目
+        if (rankCount >= 4 && normalRanked.length >= minCount) {
+            break;
+        }
+    }
+    
+    // 获取最大排名值
+    const maxRank = sortedData.length;
+    
+    // 反转排名数字，但保持并列组内的一致性
+    const reversedRanked = [];
+    for (let i = 0; i < normalRanked.length; i++) {
+        const item = normalRanked[i];
+        // 计算反转后的排名
+        const reversedRank = maxRank - item.rank + 1;
+        reversedRanked.push({
+            ...item,
+            rank: reversedRank
+        });
+    }
+    
+    return reversedRanked;
+}
+
 // 添加一个函数来处理并列排名直到包含铜牌获得者
 function getRankWithTiesUntilBronze(sortedData, valueGetter) {
     if (sortedData.length === 0) {
@@ -761,6 +1059,8 @@ function getRankWithTiesUntilBronze(sortedData, valueGetter) {
             medalMap.set(item.rank, 'silver-medal');
         } else if (rankCount === 3) {
             medalMap.set(item.rank, 'bronze-medal');
+        } else if (rankCount === 4) {
+            medalMap.set(item.rank, 'fourth-medal');
         } else {
             break;
         }
@@ -852,12 +1152,19 @@ function performAnimation(element, finalValue) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // 使用缓出函数 - 先快后慢
-        // 使用 easeOutQuad 缓动函数: 1 - (1 - t)^2
-        const easedProgress = 1 - Math.pow(1 - progress, 4);
+        // 使用缓出函数 - 典型的 easeOutCubic: 1 - (1 - t)^3
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
         
-        currentValue = Math.round(finalValue * easedProgress);
-        element.textContent = currentValue;
+        currentValue = finalValue * easedProgress;
+        
+        // 检查元素是否为连接度计数元素
+        if (element.classList.contains('connectivity-count')) {
+            // 对于连接度，保留一位小数
+            element.textContent = currentValue.toFixed(1);
+        } else {
+            // 对于整数计数，使用原始逻辑
+            element.textContent = Math.round(currentValue);
+        }
         
         if (progress < 1) {
             requestAnimationFrame(animate);

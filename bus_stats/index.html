@@ -38,7 +38,10 @@
                     <div class="signified-number line-count"></div>
                 </div>
                 <section class="content-section" >
-                    <h3>运营站数排行</h3>
+                    <div class="section-header">
+                        <h3>运营站数排行</h3>
+                        <button class="sort-toggle" data-target="line-length-rank">↓ 降序</button>
+                    </div>
                     <div class="ranking-list line-length-rank"></div>
                 </section>
             </div>
@@ -48,7 +51,10 @@
                     <div class="signified-number station-count"></div>
                 </div>
                 <section class="content-section" >
-                    <h3>接驳线路数排行</h3>
+                    <div class="section-header">
+                        <h3>接驳线路数排行</h3>
+                        <button class="sort-toggle" data-target="station-lines-rank">↓ 降序</button>
+                    </div>
                     <div class="ranking-list station-lines-rank"></div>
                 </section>
             </div>
@@ -58,7 +64,9 @@
                     <div class="signified-number operator-count"></div>
                 </div>
                 <section class="content-section" >
-                    <h3>运营线路数排行</h3>
+                    <div class="section-header">
+                        <h3>运营线路数排行</h3>
+                    </div>
                     <div class="ranking-list operator-lines-rank"></div>
                 </section>
             </div>
@@ -82,9 +90,23 @@
                 <div class="content-banner">
                     <h3>营业时长排行</h3>
                     <div class="caption">不含24小时运营线路</div>
+                        <button class="sort-toggle" data-target="operation-time-rank">↓ 降序</button>
                 </div>
                 <section class="content-section" >
                     <div class="ranking-list operation-time-rank"></div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>线网平均连接度</h3>
+                    <div class="signified-number connectivity-count"></div>
+                </div>
+                <section class="content-section" >
+                    <div class="section-header">
+                        <h3>线路平均连接度排行</h3>
+                        <button class="sort-toggle" data-target="connectivity-rank">↓ 降序</button>
+                    </div>
+                    <div class="ranking-list connectivity-rank"></div>
                 </section>
             </div>
             
