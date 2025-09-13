@@ -34,13 +34,42 @@
         <div id="content" class="content-wrapper" style="display: none;">
             <div class="content-container">
                 <div class="content-banner">
+                    <h3>收录公司数</h3>
+                    <div class="signified-number operator-count"></div>
+                </div>
+                <section class="content-section">
+                    <div class="section-header">
+                        <div class="operator-ranking-selector">
+                            <select id="operator-ranking-type" class="ranking-type-selector">
+                                <option value="lines">运营线路数排行</option>
+                                <option value="stations">运营站数排行</option>
+                                <option value="connectivity">平均连接度排行</option>
+                                <option value="hub-contribution">枢纽贡献度排行</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="ranking-list operator-ranking-display">
+                        <div id="operator-lines-rank" class="operator-ranking-content"></div>
+                        <div id="operator-stations-rank" class="operator-ranking-content" style="display: none;"></div>
+                        <div id="operator-connectivity-rank" class="operator-ranking-content" style="display: none;"></div>
+                        <div id="operator-hub-contribution-rank" class="operator-ranking-content" style="display: none;"></div>
+                    </div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
                     <h3>收录线路</h3>
                     <div class="signified-number line-count"></div>
                 </div>
                 <section class="content-section" >
                     <div class="section-header">
                         <h3>运营站数排行</h3>
-                        <button class="sort-toggle" data-target="line-length-rank">↓ 降序</button>
+                        <div class="ranking-controls">
+                            <select class="operator-filter" data-target="line-length-rank">
+                                <option value="all">所有公司</option>
+                            </select>
+                            <button class="sort-toggle" data-target="line-length-rank">↓ 降序</button>
+                        </div>
                     </div>
                     <div class="ranking-list line-length-rank"></div>
                 </section>
@@ -53,47 +82,14 @@
                 <section class="content-section" >
                     <div class="section-header">
                         <h3>接驳线路数排行</h3>
-                        <button class="sort-toggle" data-target="station-lines-rank">↓ 降序</button>
+                        <div class="ranking-controls">
+                            <select class="operator-filter" data-target="station-lines-rank">
+                                <option value="all">所有公司</option>
+                            </select>
+                            <button class="sort-toggle" data-target="station-lines-rank">↓ 降序</button>
+                        </div>
                     </div>
                     <div class="ranking-list station-lines-rank"></div>
-                </section>
-            </div>
-            <div class="content-container">
-                <div class="content-banner">
-                    <h3>收录公司数</h3>
-                    <div class="signified-number operator-count"></div>
-                </div>
-                <section class="content-section" >
-                    <div class="section-header">
-                        <h3>运营线路数排行</h3>
-                    </div>
-                    <div class="ranking-list operator-lines-rank"></div>
-                </section>
-            </div>
-            <div class="content-container">
-                <div class="content-banner">
-                    <h3>共线站数排行</h3>
-                </div>
-                <section class="content-section" >
-                    <div class="ranking-list parallel-stations-rank"></div>
-                </section>
-            </div>
-            <div class="content-container">
-                <div class="content-banner">
-                    <h3>区间线路数排行</h3>
-                </div>
-                <section class="content-section" >
-                    <div class="ranking-list segment-lines-rank"></div>
-                </section>
-            </div>
-            <div class="content-container">
-                <div class="content-banner">
-                    <h3>营业时长排行</h3>
-                    <div class="caption">不含24小时运营线路</div>
-                        <button class="sort-toggle" data-target="operation-time-rank">↓ 降序</button>
-                </div>
-                <section class="content-section" >
-                    <div class="ranking-list operation-time-rank"></div>
                 </section>
             </div>
             <div class="content-container">
@@ -104,13 +100,82 @@
                 <section class="content-section" >
                     <div class="section-header">
                         <h3>线路平均连接度排行</h3>
-                        <button class="sort-toggle" data-target="connectivity-rank">↓ 降序</button>
+                        <div class="ranking-controls">
+                            <select class="operator-filter" data-target="connectivity-rank">
+                                <option value="all">所有公司</option>
+                            </select>
+                            <button class="sort-toggle" data-target="connectivity-rank">↓ 降序</button>
+                        </div>
                     </div>
                     <div class="ranking-list connectivity-rank"></div>
                 </section>
             </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>枢纽贡献度排行</h3>
+                </div>
+                <section class="content-section" >
+                    <div class="section-header">
+                        <h3>线路枢纽贡献度排行</h3>
+                        <div class="ranking-controls">
+                            <select class="operator-filter" data-target="hub-contribution-rank">
+                                <option value="all">所有公司</option>
+                            </select>
+                            <button class="sort-toggle" data-target="hub-contribution-rank">↓ 降序</button>
+                        </div>
+                    </div>
+                    <div class="ranking-list hub-contribution-rank"></div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>共线站数排行</h3>
+                </div>
+                <section class="content-section" >
+                    <div class="section-header">
+                        <div class="ranking-controls">
+                            <select class="operator-filter" data-target="parallel-stations-rank">
+                                <option value="all">所有公司</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="ranking-list parallel-stations-rank"></div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>区间线路数排行</h3>
+                </div>
+                <section class="content-section" >
+                    <div class="section-header">
+                        <div class="ranking-controls">
+                            <select class="operator-filter" data-target="segment-lines-rank">
+                                <option value="all">所有公司</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="ranking-list segment-lines-rank"></div>
+                </section>
+            </div>
+            <div class="content-container">
+                <div class="content-banner">
+                    <h3>营业时长排行</h3>
+                    <div class="caption">不含24小时运营线路</div>
+                </div>
+                <section class="content-section" >
+                    <div class="section-header">
+                        <div class="ranking-controls">
+                            <select class="operator-filter" data-target="operation-time-rank">
+                                <option value="all">所有公司</option>
+                            </select>
+                            <button class="sort-toggle" data-target="operation-time-rank">↓ 降序</button>
+                        </div>
+                    </div>
+                    <div class="ranking-list operation-time-rank"></div>
+                </section>
+            </div>
             
-            <div class="caption" style="padding: 0 16px;">数据来源：<a href="/bus_routemap/">公交换乘查询</a>，相较实际情况可能会有遗漏；车站及公司数量按名称计算，同一线路的不同交路可能会被计算为独立线路。</div>
+            <div class="caption" style="padding: 0 16px;">数据来源：<a href="/bus_routemap/">公交换乘查询</a>，相较实际情况可能会有遗漏；车站及公司数量按名称计算，同一线路的不同交路可能会被计算为独立线路；公交数据按运营商筛选时，连接度等数据仅相对于该运营商内部线网而言而非整个系统。</div>
             <section class="caption-section"></section>
         </div>
     </main>

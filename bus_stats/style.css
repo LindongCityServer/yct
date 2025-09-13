@@ -1,10 +1,66 @@
 /* 添加到文件开头 */
 
+.operator-ranking-selector {
+    margin-bottom: 8px;
+}
+
+.operator-ranking-selector select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.operator-ranking-selector select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.operator-ranking-selector select:hover {
+    background-color: var(--hover-background);
+}
+
+.operator-ranking-content {
+    display: none;
+}
+
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+}
+
+.ranking-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.operator-filter {
+    padding: 4px 8px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.operator-filter:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.operator-filter:hover {
+    background-color: var(--hover-background);
 }
 
 .sort-toggle {

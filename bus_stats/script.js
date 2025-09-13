@@ -1,6 +1,8 @@
 // 在模块顶部添加数据加载逻辑
 let busRoutes;
 let sortStates = {}; // 存储每个排行榜的排序状态
+let operatorFilters = {}; // 存储每个排行榜的公司筛选状态
+let fullNetworkStats = null; // 存储完整网络的统计数据
 
 // 动态加载数据
 async function loadBusData() {
@@ -31,9 +33,14 @@ async function initStats() {
     if (typeof busRoutes !== 'undefined') {
         // 设置默认排序状态
         setDefaultSortStates();
+        // 初始化统计数据
         initializeStats();
         // 添加排序按钮事件监听器
         addSortToggleListeners();
+        // 添加运营公司排行榜类型切换监听器
+        addOperatorRankingTypeListener();
+        // 触发一次默认选项的显示
+        triggerDefaultOperatorRanking();
     } else {
         console.error('公交数据未正确加载');
         showLoadingIndicator(false);
@@ -48,11 +55,16 @@ function setDefaultSortStates() {
         'parallel-stations-rank',
         'segment-lines-rank',
         'operation-time-rank',
-        'connectivity-rank' // 添加连接度排行的排序状态
+        'connectivity-rank',
+        'operator-stations-rank',
+        'operator-connectivity-rank',
+        'hub-contribution-rank', // 线路枢纽贡献度排行
+        'operator-hub-contribution-rank' // 运营公司枢纽贡献度排行
     ];
     
     rankingLists.forEach(list => {
         sortStates[list] = 'desc'; // 默认降序
+        operatorFilters[list] = 'all'; // 默认显示所有公司
     });
 }
 
@@ -60,10 +72,79 @@ function addSortToggleListeners() {
     const sortButtons = document.querySelectorAll('.sort-toggle');
     sortButtons.forEach(button => {
         const target = button.getAttribute('data-target');
-        button.addEventListener('click', () => {
-            toggleSortOrder(target);
+        // 排除运营公司排行榜的排序按钮
+        if (target !== 'operator-lines-rank' && 
+            target !== 'operator-stations-rank' && 
+            target !== 'operator-connectivity-rank' &&
+            target !== 'operator-hub-contribution-rank') {
+            button.addEventListener('click', () => {
+                toggleSortOrder(target);
+            });
+        }
+    });
+    
+    // 添加公司筛选器事件监听器
+    const filterSelectors = document.querySelectorAll('.operator-filter');
+    filterSelectors.forEach(selector => {
+        const target = selector.getAttribute('data-target');
+        selector.addEventListener('change', () => {
+            const selectedOperator = selector.value;
+            operatorFilters[target] = selectedOperator;
+            const stats = calculateStats();
+            displayStats(stats);
         });
     });
+}
+
+function addOperatorRankingTypeListener() {
+    const selector = document.getElementById('operator-ranking-type');
+    if (selector) {
+        selector.addEventListener('change', (event) => {
+            const selectedType = event.target.value;
+            switchOperatorRankingDisplay(selectedType);
+        });
+    }
+}
+
+// 新增函数：触发默认选项的显示
+function triggerDefaultOperatorRanking() {
+    const selector = document.getElementById('operator-ranking-type');
+    if (selector) {
+        // 触发默认选项的change事件
+        const defaultType = selector.value;
+        switchOperatorRankingDisplay(defaultType);
+    }
+}
+
+function switchOperatorRankingDisplay(type) {
+    // 隐藏所有内容
+    const contents = document.querySelectorAll('.operator-ranking-content');
+    contents.forEach(content => {
+        content.style.display = 'none';
+    });
+    
+    // 显示选中的内容
+    let selectedContent;
+    switch(type) {
+        case 'lines':
+            selectedContent = document.getElementById('operator-lines-rank');
+            break;
+        case 'stations':
+            selectedContent = document.getElementById('operator-stations-rank');
+            break;
+        case 'connectivity':
+            selectedContent = document.getElementById('operator-connectivity-rank');
+            break;
+        case 'hub-contribution':
+            selectedContent = document.getElementById('operator-hub-contribution-rank');
+            break;
+        default:
+            selectedContent = document.getElementById('operator-lines-rank');
+    }
+    
+    if (selectedContent) {
+        selectedContent.style.display = 'block';
+    }
 }
 
 function toggleSortOrder(target) {
@@ -72,7 +153,9 @@ function toggleSortOrder(target) {
     
     // 更新按钮文本
     const button = document.querySelector(`.sort-toggle[data-target="${target}"]`);
-    button.textContent = sortStates[target] === 'desc' ? '↓ 降序' : '↑ 升序';
+    if (button) {
+        button.textContent = sortStates[target] === 'desc' ? '↓ 降序' : '↑ 升序';
+    }
     
     // 重新显示统计数据
     const stats = calculateStats();
@@ -96,7 +179,10 @@ function showLoadingIndicator(show) {
 
 function initializeStats() {
     try {
-        // 统计数据
+        // 首先计算完整网络统计数据
+        fullNetworkStats = calculateFullNetworkStats();
+        
+        // 然后计算显示统计数据
         const stats = calculateStats();
         
         // 显示统计数据
@@ -121,33 +207,60 @@ function calculateStats() {
         parallelStations: [], // 共线站统计（修改为数组）
         segmentLines: [], // 区间线路统计（修改为数组）
         operationTime: new Map(), // 运营时长统计
-        connectivity: [] // 添加连接度统计
+        connectivity: [], // 添加连接度统计
+        operatorsByStations: new Map(), // 运营公司按站点数统计
+        operatorsByConnectivity: new Map(), // 运营公司按连接度统计
+        // 添加枢纽贡献度相关统计
+        hubContribution: [], // 线路枢纽贡献度排行
+        operatorsByHubContribution: new Map() // 运营公司枢纽贡献度排行
     };
 
-    // 线路数量
-    stats.lineCount = Object.keys(busRoutes).length;
-
-    // 统计站点和运营公司
-    const operators = new Set();
+    // 获取所有运营公司
+    const allOperators = new Set();
     
+    // 收集所有运营公司（不进行筛选）
     for (const [routeId, routeData] of Object.entries(busRoutes)) {
-        // 统计运营公司
         if (routeData.operator && routeData.operator !== "-") {
-            routeData.operator.forEach(operator => {
-                operators.add(operator);
-            });
+            routeData.operator.forEach(op => allOperators.add(op));
         }
-        
-        // 线路长度排行（去除单向线路的重复计算）
+    }
+    
+    // 更新运营公司下拉菜单选项
+    updateOperatorFilterOptions(allOperators);
+    
+    // 为每个排行榜分别计算数据
+    // 线路长度排行（根据line-length-rank筛选器过滤）
+    const lineLengthFilteredRoutes = {};
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
+        if (operatorFilters['line-length-rank'] === 'all' || 
+            (routeData.operator && routeData.operator.includes(operatorFilters['line-length-rank']))) {
+            lineLengthFilteredRoutes[routeId] = routeData;
+        }
+    }
+    
+    // 计算线路长度排行数据
+    for (const [routeId, routeData] of Object.entries(lineLengthFilteredRoutes)) {
         const stations = routeData.stations.filter(station => 
             !station.oneWay || station.oneWay === "up");
         stats.linesByLength.push({
             name: routeData.name,
             id: routeId,
-            length: stations.length
+            length: stations.length,
+            operator: routeData.operator || []
         });
-
-        // 统计每个站点出现的线路数
+    }
+    
+    // 站点接驳线路数排行（根据station-lines-rank筛选器过滤）
+    const stationLinesFilteredRoutes = {};
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
+        if (operatorFilters['station-lines-rank'] === 'all' || 
+            (routeData.operator && routeData.operator.includes(operatorFilters['station-lines-rank']))) {
+            stationLinesFilteredRoutes[routeId] = routeData;
+        }
+    }
+    
+    // 计算站点接驳线路数排行数据
+    for (const [routeId, routeData] of Object.entries(stationLinesFilteredRoutes)) {
         routeData.stations.forEach(station => {
             const stationKey = station.name;
             if (stats.stationsByLines.has(stationKey)) {
@@ -156,38 +269,183 @@ function calculateStats() {
                 stats.stationsByLines.set(stationKey, 1);
             }
         });
-        
-        // 这段代码已废弃，因为我们重新实现了segmentLines的计算逻辑
-        // 统计区间线路
-        // if (routeId.includes("A") || routeId.includes("B") || routeId.includes("C")) {
-        //     // 获取主线路名（去除A/B/C后缀）
-        //     const mainRouteId = routeId.replace(/[ABC]/, "");
-        //     const count = stats.segmentLines.get(mainRouteId) || 0;
-        //     stats.segmentLines.set(mainRouteId, count + 1);
-        // }
     }
-
-    // 运营公司数量
-    stats.operatorCount = operators.size;
-
-    // 统计每个运营公司的线路数
-    for (const routeData of Object.values(busRoutes)) {
+    
+    // 运营公司线路数排行（不筛选）
+    const operators = new Set();
+    const operatorRoutes = new Map();
+    const operatorStations = new Map();
+    
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
         if (routeData.operator && routeData.operator !== "-") {
             routeData.operator.forEach(operator => {
-                const count = stats.operatorsByLines.get(operator) || 0;
-                stats.operatorsByLines.set(operator, count + 1);
+                operators.add(operator);
+                
+                if (!operatorRoutes.has(operator)) {
+                    operatorRoutes.set(operator, new Set());
+                }
+                operatorRoutes.get(operator).add(routeId);
+                
+                if (!operatorStations.has(operator)) {
+                    operatorStations.set(operator, new Set());
+                }
+                routeData.stations.forEach(station => {
+                    operatorStations.get(operator).add(station.name);
+                });
             });
         }
+    }
+    
+    stats.operatorCount = operators.size;
+    
+    for (const [operator, routes] of operatorRoutes.entries()) {
+        stats.operatorsByLines.set(operator, routes.size);
+    }
+    
+    for (const [operator, stations] of operatorStations.entries()) {
+        stats.operatorsByStations.set(operator, stations.size);
+    }
+    
+    // 计算每个运营公司的平均连接度
+    for (const [operator, stations] of operatorStations.entries()) {
+        let totalConnectivity = 0;
+        for (const station of stations) {
+            totalConnectivity += fullNetworkStats.stationConnectivity.get(station) || 0;
+        }
+        const averageConnectivity = stations.size > 0 ? totalConnectivity / stations.size : 0;
+        stats.operatorsByConnectivity.set(operator, averageConnectivity);
+    }
+
+    // 线路数量（基于线路长度排行的筛选器）
+    stats.lineCount = Object.keys(lineLengthFilteredRoutes).length;
+    
+    // 站点数量（基于站点接驳线路数排行的筛选器）
+    stats.stationCount = stats.stationsByLines.size;
+
+    // 线路长度排行排序
+    stats.linesByLength.sort((a, b) => b.length - a.length);
+    
+    // 使用完整网络数据进行共线站数排行
+    stats.parallelStations = fullNetworkStats.parallelStations;
+    
+    // 使用完整网络数据进行区间线路数排行
+    stats.segmentLines = fullNetworkStats.segmentLines;
+    
+    // 运营时长排行（根据operation-time-rank筛选器过滤）
+    if (operatorFilters['operation-time-rank'] === 'all') {
+        stats.operationTime = fullNetworkStats.operationTime;
+    } else {
+        for (const [routeId, routeInfo] of fullNetworkStats.operationTime.entries()) {
+            const routeData = busRoutes[routeId];
+            if (routeData && routeData.operator && 
+                routeData.operator.includes(operatorFilters['operation-time-rank'])) {
+                stats.operationTime.set(routeId, routeInfo);
+            }
+        }
+    }
+    
+    // 线路平均连接度排行（根据connectivity-rank筛选器过滤）
+    if (operatorFilters['connectivity-rank'] === 'all') {
+        stats.connectivity = fullNetworkStats.connectivity;
+    } else {
+        fullNetworkStats.connectivity.forEach(connectivityEntry => {
+            const routeData = busRoutes[connectivityEntry.id];
+            if (routeData && routeData.operator && 
+                routeData.operator.includes(operatorFilters['connectivity-rank'])) {
+                stats.connectivity.push(connectivityEntry);
+            }
+        });
+    }
+    
+    // 线路枢纽贡献度排行（根据hub-contribution-rank筛选器过滤）
+    if (operatorFilters['hub-contribution-rank'] === 'all') {
+        // 使用完整网络数据
+        for (const [routeId, contributionData] of fullNetworkStats.hubContribution.entries()) {
+            stats.hubContribution.push({
+                name: contributionData.name,
+                id: routeId,
+                contribution: contributionData.contribution,
+                operator: contributionData.operator
+            });
+        }
+    } else {
+        // 根据筛选器过滤
+        for (const [routeId, contributionData] of fullNetworkStats.hubContribution.entries()) {
+            const routeData = busRoutes[routeId];
+            if (routeData && routeData.operator && 
+                routeData.operator.includes(operatorFilters['hub-contribution-rank'])) {
+                stats.hubContribution.push({
+                    name: contributionData.name,
+                    id: routeId,
+                    contribution: contributionData.contribution,
+                    operator: contributionData.operator
+                });
+            }
+        }
+    }
+    
+    // 运营公司枢纽贡献度排行（不筛选）
+    stats.operatorsByHubContribution = fullNetworkStats.operatorsByHubContribution;
+
+    return stats;
+}
+
+// 计算完整网络统计数据
+function calculateFullNetworkStats() {
+    const stats = {
+        lineCount: 0,
+        stationCount: 0,
+        operatorCount: 0,
+        stationsByLines: new Map(),
+        operationTime: new Map(),
+        connectivity: [],
+        stationConnectivity: new Map(), // 站点 -> 连接线路数
+        parallelStations: [],
+        segmentLines: [],
+        // 添加枢纽贡献度相关数据
+        hubContribution: new Map(), // 线路的枢纽贡献度
+        operatorsByHubContribution: new Map() // 运营公司的枢纽贡献度
+    };
+
+    // 线路数量
+    stats.lineCount = Object.keys(busRoutes).length;
+
+    // 统计运营公司
+    const operators = new Set();
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
+        if (routeData.operator && routeData.operator !== "-") {
+            routeData.operator.forEach(op => operators.add(op));
+        }
+    }
+    stats.operatorCount = operators.size;
+
+    // 首先计算每个站点的连接度
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
+        for (const station of routeData.stations) {
+            const stationName = station.name;
+            if (!stats.stationConnectivity.has(stationName)) {
+                stats.stationConnectivity.set(stationName, 0);
+            }
+            stats.stationConnectivity.set(stationName, stats.stationConnectivity.get(stationName) + 1);
+        }
+    }
+    
+    // 统计每个站点出现的线路数
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
+        routeData.stations.forEach(station => {
+            const stationKey = station.name;
+            if (stats.stationsByLines.has(stationKey)) {
+                stats.stationsByLines.set(stationKey, stats.stationsByLines.get(stationKey) + 1);
+            } else {
+                stats.stationsByLines.set(stationKey, 1);
+            }
+        });
     }
 
     // 统计不重复的站点数量
     stats.stationCount = stats.stationsByLines.size;
 
-    // 线路长度排行（按站点数排序）
-    stats.linesByLength.sort((a, b) => b.length - a.length);
-    
     // 新的共线站数排行计算逻辑
-    // 首先构建一个映射，记录每个站点出现在哪些线路上
     const stationToRoutes = new Map();
     for (const [routeId, routeData] of Object.entries(busRoutes)) {
         for (const station of routeData.stations) {
@@ -199,8 +457,7 @@ function calculateStats() {
         }
     }
     
-    // 然后计算每对线路之间的共线站点数
-    const routePairs = new Map(); // 用于存储线路对及其共线站点
+    const routePairs = new Map();
     const routeIds = Object.keys(busRoutes);
     
     for (let i = 0; i < routeIds.length; i++) {
@@ -208,15 +465,12 @@ function calculateStats() {
             const routeId1 = routeIds[i];
             const routeId2 = routeIds[j];
             
-            // 获取两条线路的站点集合
             const stations1 = new Set(busRoutes[routeId1].stations.map(s => s.name));
             const stations2 = new Set(busRoutes[routeId2].stations.map(s => s.name));
             
-            // 计算共线站点
             const commonStations = [...stations1].filter(station => stations2.has(station));
             
             if (commonStations.length > 0) {
-                // 创建线路对的唯一标识符（按字母顺序排列保证一致性）
                 const routePairKey = [routeId1, routeId2].sort().join('-');
                 routePairs.set(routePairKey, {
                     route1: busRoutes[routeId1].name,
@@ -228,25 +482,20 @@ function calculateStats() {
         }
     }
     
-    // 将结果转换为数组并按共线站点数排序
     const sortedParallelStations = [...routePairs.values()]
         .sort((a, b) => b.count - a.count);
     
-    // 获取前10名，但包括并列情况
     stats.parallelStations = getTopWithTies(sortedParallelStations, item => item.count, 10);
     
     // 新的区间线路数排行计算逻辑
-    // 首先构建相邻站点对及其线路映射
     const segmentToRoutes = new Map();
     
     for (const [routeId, routeData] of Object.entries(busRoutes)) {
         const stations = routeData.stations;
-        // 遍历相邻站点对
         for (let i = 0; i < stations.length - 1; i++) {
             const station1 = stations[i].name;
             const station2 = stations[i + 1].name;
             
-            // 创建站点对的唯一标识符（按字母顺序排列保证一致性）
             const segmentKey = [station1, station2].sort().join(' - ');
             
             if (!segmentToRoutes.has(segmentKey)) {
@@ -261,12 +510,10 @@ function calculateStats() {
         }
     }
     
-    // 将结果转换为数组并按线路数排序
     const sortedSegmentLines = [...segmentToRoutes.values()]
-        .filter(segment => segment.routes.length > 1) // 只考虑至少有2条线路的区间
+        .filter(segment => segment.routes.length > 1)
         .sort((a, b) => b.routes.length - a.routes.length);
     
-    // 获取前10名，但包括并列情况
     stats.segmentLines = getTopWithTies(sortedSegmentLines, item => item.routes.length, 10);
     
     // 统计运营时长（排除24小时运营线路）
@@ -275,50 +522,34 @@ function calculateStats() {
             const firstTime = routeData.firstLastBus.first;
             const lastTime = routeData.firstLastBus.last;
             
-            // 解析时间字符串
             const [firstHour, firstMinute] = firstTime.split(':').map(Number);
             const [lastHour, lastMinute] = lastTime.split(':').map(Number);
             
-            // 计算运营时长（分钟）
             let duration = (lastHour * 60 + lastMinute) - (firstHour * 60 + firstMinute);
             
-            // 处理跨天情况
             if (duration < 0) {
                 duration += 24 * 60;
             }
             
-            // 排除24小时运营线路（运营时长超过23小时）
             if (duration < 23 * 60) {
                 stats.operationTime.set(routeId, {
                     name: routeData.name,
                     duration: duration,
                     first: firstTime,
-                    last: lastTime
+                    last: lastTime,
+                    operator: routeData.operator || []
                 });
             }
         }
     }
 
-    // 计算线路平均连接度（包含所有线路，包括24小时运营线路）
-    // 首先计算每个站点的连接度（连接的线路数）
-    const stationConnectivity = new Map();
-    for (const [routeId, routeData] of Object.entries(busRoutes)) {
-        for (const station of routeData.stations) {
-            const stationName = station.name;
-            if (!stationConnectivity.has(stationName)) {
-                stationConnectivity.set(stationName, 0);
-            }
-            stationConnectivity.set(stationName, stationConnectivity.get(stationName) + 1);
-        }
-    }
-
-    // 然后计算每条线路的平均连接度
+    // 计算每条线路的平均连接度
     for (const [routeId, routeData] of Object.entries(busRoutes)) {
         let totalConnectivity = 0;
         const stationCount = routeData.stations.length;
         
         for (const station of routeData.stations) {
-            totalConnectivity += stationConnectivity.get(station.name);
+            totalConnectivity += stats.stationConnectivity.get(station.name);
         }
         
         const averageConnectivity = stationCount > 0 ? totalConnectivity / stationCount : 0;
@@ -326,14 +557,154 @@ function calculateStats() {
         stats.connectivity.push({
             name: routeData.name,
             id: routeId,
-            average: averageConnectivity
+            average: averageConnectivity,
+            operator: routeData.operator || []
         });
     }
 
-    // 对连接度进行排序
     stats.connectivity.sort((a, b) => b.average - a.average);
+    
+    // 计算枢纽贡献度（修正版本）
+    // 首先计算全网连接度总和
+    let totalNetworkConnectivity = 0;
+    for (const [stationName, connectivity] of stats.stationConnectivity.entries()) {
+        totalNetworkConnectivity += connectivity;
+    }
+    
+    // 计算每条线路的枢纽贡献度
+    // 每条线路经过的每个站点对枢纽贡献度的贡献是该站点的连接度/全网连接度总和
+    // 一条线路的枢纽贡献度是它经过的所有站点的贡献之和
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
+        let routeHubContribution = 0;
+        const stationSet = new Set(); // 用于去重，避免同一条线路多次经过同一站点时重复计算
+        
+        for (const station of routeData.stations) {
+            if (!stationSet.has(station.name)) {
+                stationSet.add(station.name);
+                // 每个站点对枢纽贡献度的贡献 = 该站点连接度 / 全网连接度总和
+                const stationContribution = totalNetworkConnectivity > 0 ? 
+                    (stats.stationConnectivity.get(station.name) / totalNetworkConnectivity) : 0;
+                routeHubContribution += stationContribution;
+            }
+        }
+        
+        const hubContributionPercentage = routeHubContribution * 100;
+        stats.hubContribution.set(routeId, {
+            name: routeData.name,
+            contribution: hubContributionPercentage,
+            operator: routeData.operator || []
+        });
+    }
+    
+    // 计算每个运营公司的枢纽贡献度
+    // 正确的方法：该运营商涵盖到的每个车站的连接度总和比上线网所有车站连接度的总和
+    const operatorStations = new Map(); // 记录每个运营商涵盖的站点
+    
+    // 先收集每个运营商涵盖的站点
+    for (const [routeId, routeData] of Object.entries(busRoutes)) {
+        if (routeData.operator && routeData.operator.length > 0) {
+            for (const operator of routeData.operator) {
+                if (!operatorStations.has(operator)) {
+                    operatorStations.set(operator, new Set());
+                }
+                
+                // 添加该线路的所有站点到运营商的站点集合中
+                for (const station of routeData.stations) {
+                    operatorStations.get(operator).add(station.name);
+                }
+            }
+        }
+    }
+    
+    // 计算每个运营商的枢纽贡献度
+    const operatorContributions = new Map();
+    for (const [operator, stations] of operatorStations.entries()) {
+        // 计算该运营商涵盖的所有站点的连接度总和
+        let operatorTotalConnectivity = 0;
+        for (const stationName of stations) {
+            operatorTotalConnectivity += stats.stationConnectivity.get(stationName) || 0;
+        }
+        
+        // 计算枢纽贡献度百分比
+        const hubContributionPercentage = totalNetworkConnectivity > 0 ? 
+            (operatorTotalConnectivity / totalNetworkConnectivity) * 100 : 0;
+            
+        operatorContributions.set(operator, hubContributionPercentage);
+    }
+    
+    // 将运营公司枢纽贡献度存入stats
+    stats.operatorsByHubContribution = operatorContributions;
 
     return stats;
+}
+
+// 检查是否应该包含某个线路用于显示（根据筛选条件）
+function shouldIncludeRouteForDisplay(routeData) {
+    // 获取所有激活的筛选器目标（选择不是"所有公司"的筛选器）
+    // 但我们只关注当前显示的排行榜相关的筛选器
+    const activeFilters = Object.keys(operatorFilters).filter(key => operatorFilters[key] !== 'all');
+    
+    // 如果没有激活的筛选器，包含所有线路
+    if (activeFilters.length === 0) {
+        return true;
+    }
+    
+    // 检查线路是否属于任何一个选中的运营公司
+    if (routeData.operator && routeData.operator !== "-") {
+        // 遍历所有激活的筛选器
+        for (const filterTarget of activeFilters) {
+            const selectedOperator = operatorFilters[filterTarget];
+            // 如果线路属于当前筛选器选中的运营公司，则包含该线路
+            if (routeData.operator.includes(selectedOperator)) {
+                return true;
+            }
+        }
+    }
+    
+    // 如果没有指定运营公司或不属于任何选中的运营公司，则不包含
+    return false;
+}
+
+// 更新所有公司筛选器的选项
+function updateOperatorFilterOptions(operators) {
+    const filterSelectors = document.querySelectorAll('.operator-filter');
+    filterSelectors.forEach(selector => {
+        // 保存当前选中的值
+        const currentValue = selector.value;
+        
+        // 创建文档片段用于批量操作
+        const fragment = document.createDocumentFragment();
+        
+        // 添加公司选项
+        [...operators].sort().forEach(operator => {
+            const option = document.createElement('option');
+            option.value = operator;
+            option.textContent = operator;
+            fragment.appendChild(option);
+        });
+        
+        // 替换现有选项（保留"所有公司"选项）
+        if (selector.children.length > 1) {
+            // 保留第一个"所有公司"选项
+            const allOption = selector.children[0];
+            // 清空除第一个外的所有选项
+            while (selector.children.length > 1) {
+                selector.removeChild(selector.lastChild);
+            }
+            // 添加新创建的选项
+            selector.appendChild(fragment);
+            // 重新添加"所有公司"选项
+            selector.insertBefore(allOption, selector.firstChild);
+        } else {
+            // 如果没有"所有公司"选项，直接添加
+            selector.appendChild(fragment);
+        }
+        
+        // 恢复之前选中的值（如果仍然有效）
+        if (currentValue !== 'all' && operators.has(currentValue)) {
+            selector.value = currentValue;
+        }
+    });
 }
 
 // 添加一个函数来处理并列排名
@@ -394,19 +765,20 @@ function formatDuration(minutes) {
 
 function displayStats(stats) {
     try {
-        // 显示基本统计数据
+        // 显示基本统计数据（只在初始化时更新一次）
         const lineCountEl = document.querySelector('.line-count');
         const stationCountEl = document.querySelector('.station-count');
         const operatorCountEl = document.querySelector('.operator-count');
         const connectivityCountEl = document.querySelector('.connectivity-count'); // 添加连接度统计元素
         
-        if (lineCountEl) animateNumber(lineCountEl, stats.lineCount);
-        if (stationCountEl) animateNumber(stationCountEl, stats.stationCount);
-        if (operatorCountEl) animateNumber(operatorCountEl, stats.operatorCount);
+        // 只有在元素还没有数值时才设置初始值
+        if (lineCountEl && !lineCountEl.textContent) animateNumber(lineCountEl, fullNetworkStats.lineCount);
+        if (stationCountEl && !stationCountEl.textContent) animateNumber(stationCountEl, fullNetworkStats.stationCount);
+        if (operatorCountEl && !operatorCountEl.textContent) animateNumber(operatorCountEl, fullNetworkStats.operatorCount);
         // 计算并显示线网平均连接度
-        if (connectivityCountEl && stats.connectivity.length > 0) {
-            const totalConnectivity = stats.connectivity.reduce((sum, route) => sum + route.average, 0);
-            const averageNetworkConnectivity = totalConnectivity / stats.connectivity.length;
+        if (connectivityCountEl && !connectivityCountEl.textContent && fullNetworkStats.connectivity.length > 0) {
+            const totalConnectivity = fullNetworkStats.connectivity.reduce((sum, route) => sum + route.average, 0);
+            const averageNetworkConnectivity = totalConnectivity / fullNetworkStats.connectivity.length;
             animateNumber(connectivityCountEl, Math.round(averageNetworkConnectivity * 100) / 100);
         }
 
@@ -547,25 +919,18 @@ function displayStats(stats) {
         }
 
         // 显示运营公司线路数排行（直到包含所有奖牌获得者或达到最小数量）
-        const operatorLinesRankEl = document.querySelector('.operator-lines-rank');
+        const operatorLinesRankEl = document.querySelector('#operator-lines-rank');
         if (operatorLinesRankEl) {
             operatorLinesRankEl.innerHTML = '';
             let allOperators = [...stats.operatorsByLines.entries()];
             
-            // 根据排序状态调整顺序
-            let rankedOperators;
-            if (sortStates['operator-lines-rank'] === 'asc') {
-                allOperators.sort((a, b) => a[1] - b[1]);
-                // 升序时从后往前排
-                rankedOperators = getRankWithTiesReverseUntilAllMedals(allOperators, item => item[1]);
-            } else {
-                allOperators.sort((a, b) => b[1] - a[1]);
-                // 降序时正常排名
-                rankedOperators = getRankWithTiesUntilAllMedals(allOperators, item => item[1]);
-            }
+            // 运营公司排行榜默认降序排列，不支持切换
+            allOperators.sort((a, b) => b[1] - a[1]);
+            // 获取排名（包括并列情况）
+            const rankedOperators = getRankWithTiesUntilAllMedals(allOperators, item => item[1]);
             
             // 确定奖牌分配（仅在降序时）
-            const medalMap = sortStates['operator-lines-rank'] === 'desc' ? getMedalMap(rankedOperators) : new Map();
+            const medalMap = getMedalMap(rankedOperators);
             
             rankedOperators.forEach((operatorEntry) => {
                 const rankItem = document.createElement('div');
@@ -601,6 +966,130 @@ function displayStats(stats) {
                 
                 // 为排行榜项添加鼠标事件
                 // 确保元素已添加到DOM后再获取
+                setTimeout(() => {
+                    const detailElement = document.getElementById(detailId);
+                    if (detailElement) {
+                        rankItem.addEventListener('mouseenter', () => {
+                            detailElement.classList.add('show');
+                        });
+                        
+                        rankItem.addEventListener('mouseleave', () => {
+                            detailElement.classList.remove('show');
+                        });
+                    }
+                }, 0);
+            });
+        }
+        
+        // 显示运营公司站点数排行
+        const operatorStationsRankEl = document.querySelector('#operator-stations-rank');
+        if (operatorStationsRankEl) {
+            operatorStationsRankEl.innerHTML = '';
+            let allOperatorsByStations = [...stats.operatorsByStations.entries()];
+            
+            // 运营公司站点数排行榜默认降序排列，不支持切换
+            allOperatorsByStations.sort((a, b) => b[1] - a[1]);
+            // 获取排名（包括并列情况）
+            const rankedOperators = getRankWithTiesUntilAllMedals(allOperatorsByStations, item => item[1]);
+            
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = getMedalMap(rankedOperators);
+            
+            rankedOperators.forEach((operatorEntry) => {
+                const rankItem = document.createElement('div');
+                rankItem.className = 'ranking-item';
+                
+                // 根据排名确定奖牌类型
+                let medalClass = '';
+                if (medalMap.has(operatorEntry.rank)) {
+                    medalClass = medalMap.get(operatorEntry.rank);
+                }
+
+                // 查找该运营公司的所有线路ID，并用斜线连接
+                const linesByOperator = [];
+                for (const [routeId, routeData] of Object.entries(busRoutes)) {
+                    if (routeData.operator.includes(operatorEntry[0])) {
+                        linesByOperator.push(routeData.name);
+                    }
+                }
+                const linesInfo = linesByOperator.join(' / ');
+                
+                // 创建一个容器来保存详细信息
+                const detailId = `operator-stations-detail-${encodeURIComponent(operatorEntry[0])}`;
+                
+                rankItem.innerHTML = `
+                    <div class="rank-number ${medalClass}">${operatorEntry.rank}</div>
+                    <div class="rank-content">
+                        <div class="rank-title">${operatorEntry[0]}</div>
+                        <div class="rank-value">${operatorEntry[1]} 个站点</div>
+                    </div>
+                    <div id="${detailId}" class="rank-detail">${linesInfo}</div>
+                `;
+                operatorStationsRankEl.appendChild(rankItem);
+                
+                // 为排行榜项添加鼠标事件
+                setTimeout(() => {
+                    const detailElement = document.getElementById(detailId);
+                    if (detailElement) {
+                        rankItem.addEventListener('mouseenter', () => {
+                            detailElement.classList.add('show');
+                        });
+                        
+                        rankItem.addEventListener('mouseleave', () => {
+                            detailElement.classList.remove('show');
+                        });
+                    }
+                }, 0);
+            });
+        }
+        
+        // 显示运营公司平均连接度排行
+        const operatorConnectivityRankEl = document.querySelector('#operator-connectivity-rank');
+        if (operatorConnectivityRankEl) {
+            operatorConnectivityRankEl.innerHTML = '';
+            let allOperatorsByConnectivity = [...stats.operatorsByConnectivity.entries()];
+            
+            // 运营公司平均连接度排行榜默认降序排列，不支持切换
+            allOperatorsByConnectivity.sort((a, b) => b[1] - a[1]);
+            // 获取排名（包括并列情况）
+            const rankedOperators = getRankWithTiesUntilAllMedals(allOperatorsByConnectivity, item => item[1]);
+            
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = getMedalMap(rankedOperators);
+            
+            rankedOperators.forEach((operatorEntry) => {
+                const rankItem = document.createElement('div');
+                rankItem.className = 'ranking-item';
+                
+                // 根据排名确定奖牌类型
+                let medalClass = '';
+                if (medalMap.has(operatorEntry.rank)) {
+                    medalClass = medalMap.get(operatorEntry.rank);
+                }
+
+                // 查找该运营公司的所有线路ID，并用斜线连接
+                const linesByOperator = [];
+                for (const [routeId, routeData] of Object.entries(busRoutes)) {
+                    if (routeData.operator.includes(operatorEntry[0])) {
+                        linesByOperator.push(routeData.name);
+                    }
+                }
+                const linesInfo = linesByOperator.join(' / ');
+                
+                // 创建一个容器来保存详细信息
+                const detailId = `operator-connectivity-detail-${encodeURIComponent(operatorEntry[0])}`;
+                
+                rankItem.innerHTML = `
+                    <div class="rank-number ${medalClass}">${operatorEntry.rank}</div>
+                    <div class="rank-content">
+                        <div class="rank-title">${operatorEntry[0]}</div>
+                        <div class="rank-value">${Math.round(operatorEntry[1] * 100) / 100} 连接度</div>
+                    </div>
+                    <div id="${detailId}" class="rank-detail">${linesInfo}</div>
+                `;
+                operatorConnectivityRankEl.appendChild(rankItem);
+                
+                // 为排行榜项添加鼠标事件
                 setTimeout(() => {
                     const detailElement = document.getElementById(detailId);
                     if (detailElement) {
@@ -841,6 +1330,127 @@ function displayStats(stats) {
                     <div id="${detailId}" class="rank-detail">线路平均连接度</div>
                 `;
                 connectivityRankEl.appendChild(rankItem);
+                
+                // 为排行榜项添加鼠标事件
+                setTimeout(() => {
+                    const detailElement = document.getElementById(detailId);
+                    if (detailElement) {
+                        rankItem.addEventListener('mouseenter', () => {
+                            detailElement.classList.add('show');
+                        });
+                        
+                        rankItem.addEventListener('mouseleave', () => {
+                            detailElement.classList.remove('show');
+                        });
+                    }
+                }, 0);
+            });
+        }
+        
+        // 显示线路枢纽贡献度排行
+        const hubContributionRankEl = document.querySelector('.hub-contribution-rank');
+        if (hubContributionRankEl) {
+            hubContributionRankEl.innerHTML = '';
+            let rankedHubContribution = [...stats.hubContribution];
+            
+            // 根据排序状态调整顺序
+            if (sortStates['hub-contribution-rank'] === 'asc') {
+                rankedHubContribution.sort((a, b) => a.contribution - b.contribution);
+                // 升序时从后往前排
+                rankedHubContribution = getRankWithTiesReverseUntilAllMedals(rankedHubContribution, item => item.contribution);
+            } else {
+                rankedHubContribution.sort((a, b) => b.contribution - a.contribution);
+                // 降序时正常排名
+                rankedHubContribution = getRankWithTiesUntilAllMedals(rankedHubContribution, item => item.contribution);
+            }
+            
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = sortStates['hub-contribution-rank'] === 'desc' ? getMedalMap(rankedHubContribution) : new Map();
+            
+            rankedHubContribution.forEach((contributionEntry) => {
+                const rankItem = document.createElement('div');
+                rankItem.className = 'ranking-item';
+                
+                // 根据排名确定奖牌类型
+                let medalClass = '';
+                if (medalMap.has(contributionEntry.rank)) {
+                    medalClass = medalMap.get(contributionEntry.rank);
+                }
+                
+                // 创建一个容器来保存详细信息
+                const detailId = `hub-contribution-detail-${encodeURIComponent(contributionEntry.id)}`;
+                
+                rankItem.innerHTML = `
+                    <div class="rank-number ${medalClass}">${contributionEntry.rank}</div>
+                    <div class="rank-content">
+                        <div class="rank-title">${contributionEntry.name}</div>
+                        <div class="rank-value">${contributionEntry.contribution.toFixed(2)}%</div>
+                    </div>
+                    <div id="${detailId}" class="rank-detail">枢纽贡献度</div>
+                `;
+                hubContributionRankEl.appendChild(rankItem);
+                
+                // 为排行榜项添加鼠标事件
+                setTimeout(() => {
+                    const detailElement = document.getElementById(detailId);
+                    if (detailElement) {
+                        rankItem.addEventListener('mouseenter', () => {
+                            detailElement.classList.add('show');
+                        });
+                        
+                        rankItem.addEventListener('mouseleave', () => {
+                            detailElement.classList.remove('show');
+                        });
+                    }
+                }, 0);
+            });
+        }
+        
+        // 显示运营公司枢纽贡献度排行
+        const operatorHubContributionRankEl = document.querySelector('#operator-hub-contribution-rank');
+        if (operatorHubContributionRankEl) {
+            operatorHubContributionRankEl.innerHTML = '';
+            let allOperatorsByHubContribution = [...stats.operatorsByHubContribution.entries()];
+            
+            // 运营公司枢纽贡献度排行榜默认降序排列，不支持切换
+            allOperatorsByHubContribution.sort((a, b) => b[1] - a[1]);
+            // 获取排名（包括并列情况）
+            const rankedOperators = getRankWithTiesUntilAllMedals(allOperatorsByHubContribution, item => item[1]);
+            
+            // 确定奖牌分配（仅在降序时）
+            const medalMap = getMedalMap(rankedOperators);
+            
+            rankedOperators.forEach((operatorEntry) => {
+                const rankItem = document.createElement('div');
+                rankItem.className = 'ranking-item';
+                
+                // 根据排名确定奖牌类型
+                let medalClass = '';
+                if (medalMap.has(operatorEntry.rank)) {
+                    medalClass = medalMap.get(operatorEntry.rank);
+                }
+
+                // 查找该运营公司的所有线路ID，并用斜线连接
+                const linesByOperator = [];
+                for (const [routeId, routeData] of Object.entries(busRoutes)) {
+                    if (routeData.operator && routeData.operator.includes(operatorEntry[0])) {
+                        linesByOperator.push(routeData.name);
+                    }
+                }
+                const linesInfo = linesByOperator.join(' / ');
+                
+                // 创建一个容器来保存详细信息
+                const detailId = `operator-hub-contribution-detail-${encodeURIComponent(operatorEntry[0])}`;
+                
+                rankItem.innerHTML = `
+                    <div class="rank-number ${medalClass}">${operatorEntry.rank}</div>
+                    <div class="rank-content">
+                        <div class="rank-title">${operatorEntry[0]}</div>
+                        <div class="rank-value">${operatorEntry[1].toFixed(2)}%</div>
+                    </div>
+                    <div id="${detailId}" class="rank-detail">${linesInfo}</div>
+                `;
+                operatorHubContributionRankEl.appendChild(rankItem);
                 
                 // 为排行榜项添加鼠标事件
                 setTimeout(() => {
