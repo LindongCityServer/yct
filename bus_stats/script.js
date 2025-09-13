@@ -926,8 +926,8 @@ function displayStats(stats) {
             
             // 运营公司排行榜默认降序排列，不支持切换
             allOperators.sort((a, b) => b[1] - a[1]);
-            // 获取排名（包括并列情况）
-            const rankedOperators = getRankWithTiesUntilAllMedals(allOperators, item => item[1]);
+            // 获取排名（包括并列情况）- 修改为显示所有公司
+            const rankedOperators = getRankWithTies(allOperators, item => item[1]);
             
             // 确定奖牌分配（仅在降序时）
             const medalMap = getMedalMap(rankedOperators);
@@ -989,8 +989,8 @@ function displayStats(stats) {
             
             // 运营公司站点数排行榜默认降序排列，不支持切换
             allOperatorsByStations.sort((a, b) => b[1] - a[1]);
-            // 获取排名（包括并列情况）
-            const rankedOperators = getRankWithTiesUntilAllMedals(allOperatorsByStations, item => item[1]);
+            // 获取排名（包括并列情况）- 修改为显示所有公司
+            const rankedOperators = getRankWithTies(allOperatorsByStations, item => item[1]);
             
             // 确定奖牌分配（仅在降序时）
             const medalMap = getMedalMap(rankedOperators);
@@ -1051,8 +1051,8 @@ function displayStats(stats) {
             
             // 运营公司平均连接度排行榜默认降序排列，不支持切换
             allOperatorsByConnectivity.sort((a, b) => b[1] - a[1]);
-            // 获取排名（包括并列情况）
-            const rankedOperators = getRankWithTiesUntilAllMedals(allOperatorsByConnectivity, item => item[1]);
+            // 获取排名（包括并列情况）- 修改为显示所有公司
+            const rankedOperators = getRankWithTies(allOperatorsByConnectivity, item => item[1]);
             
             // 确定奖牌分配（仅在降序时）
             const medalMap = getMedalMap(rankedOperators);
