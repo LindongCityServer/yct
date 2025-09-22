@@ -1301,21 +1301,21 @@ function generateMarkerCode(pointName, pointCategory, xCoordinate, zCoordinate) 
 
     const fontSize = pointCategory === 'bus-stop' ? '12px' : '14px';
     const fontWeight = pointCategory === 'lindong-metro' ? 'bold' : 'normal';
-    const offsetX = textLength * (fontSize === '12px' ? 6 : 7);
+    const offsetX = textLength * (fontSize === '12px' ? 6 : 7) + 10;
     
     // 生成标记点代码
-    const markerCode = `{
-    x: ${xCoordinate},
-    z: ${zCoordinate},
-    image: "${pointCategory}.png",
-    imageAnchor: [0.5, 0.5],
-    imageScale: 0.2,
-    text: "${paddedText}",
-    textColor: "white",
-    offsetX: ${offsetX},
-    offsetY: 1,
-    font: "${fontWeight} ${fontSize} Calibri,sans serif",
-},`;
+    const markerCode = `        {
+            x: ${xCoordinate},
+            z: ${zCoordinate},
+            image: "${pointCategory}.png",
+            imageAnchor: [0.5, 0.5],
+            imageScale: 0.2,
+            text: "${paddedText}",
+            textColor: "white",
+            offsetX: ${offsetX},
+            offsetY: 1,
+            font: "${fontWeight} ${fontSize} Calibri,sans serif",
+        },`;
     
     return markerCode;
 }

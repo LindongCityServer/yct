@@ -1414,8 +1414,8 @@ function displayStats(stats) {
             
             // 运营公司枢纽贡献度排行榜默认降序排列，不支持切换
             allOperatorsByHubContribution.sort((a, b) => b[1] - a[1]);
-            // 获取排名（包括并列情况）
-            const rankedOperators = getRankWithTiesUntilAllMedals(allOperatorsByHubContribution, item => item[1]);
+            // 获取排名（包括并列情况）- 修改为显示所有公司
+            const rankedOperators = getRankWithTies(allOperatorsByHubContribution, item => item[1]);
             
             // 确定奖牌分配（仅在降序时）
             const medalMap = getMedalMap(rankedOperators);

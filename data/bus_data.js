@@ -670,12 +670,12 @@ export const busRoutes = {
         name: "181路支线",
         operator: ["临东临北巴士有限责任公司"],
         firstLastBus: {
-            first: "07:00",
-            last: "17:40"
+            first: "08:00",
+            last: "20:05"
         },
         firstLastBusUpwards: {
             first: "07:30",
-            last: "17:10"
+            last: "19:40"
         },
         fare: 2,
         stations: [
@@ -704,12 +704,12 @@ export const busRoutes = {
         operator: ["临东临北巴士有限责任公司"],
         note: "五间房8:30、13:32、15:18、18:30发，裕隆山公园9:00、14:28、15:50、19:00发。保税区站为票价分段站。本线响应式停靠，招手上车，下车请提前告知司机。",
         firstLastBus: {
-            first: "08:30",
-            last: "18:30"
+            first: "06:45",
+            last: "19:00"
         },
         firstLastBusUpwards: {
-            first: "09:00",
-            last: "19:00"
+            first: "07:15",
+            last: "19:30"
         },
         fare: 2,
         faresForZone: {
@@ -1268,6 +1268,54 @@ export const busRoutes = {
             {name: "雪乡总医院"}
         ]
     },
+    "K301": {
+        name: "K301路",
+        operator: ["嘎联巴士（临东）有限公司"],
+        firstLastBus: {
+            first: "06:30",
+            last: "22:30"
+        },
+        fare: 5,
+        stations: [
+            { name: "公交仁德站" },
+            { name: "青年桥北" },
+            { name: "小魔仙乐园" },
+            { name: "平山客运站" },
+            { name: "碧湖南山" },
+            { name: "碧湖新城" }
+
+        ]
+    },
+    "K301快": {
+        name: "K301快速",
+        operator: ["氷峰客运公司"],
+        firstLastBus: {
+            first: "06:30",
+            last: "22:30"
+        },
+        fare: 5,
+        stations: [
+            { name: "公交仁德站" },
+            { name: "一〇二省道" },
+            { name: "翠竹道口" },
+            { name: "碧湖新城" }
+
+        ]
+    },
+    "K301直": {
+        name: "K301直达",
+        operator: ["氷峰客运公司"],
+        firstLastBus: {
+            first: "06:30",
+            last: "22:30"
+        },
+        fare: 5,
+        stations: [
+            { name: "公交仁德站" },
+            { name: "碧湖新城" }
+
+        ]
+    },
     "K801": {
         name: "K801路",
         operator: ["临东雨城客运有限公司"],
@@ -1296,11 +1344,11 @@ export const busRoutes = {
         note: "五间房6:30、9:00、16:30发，SB客运站7:30、10:00、17:30发。过分段点（远航路青年大街站）后需再次刷卡或投币!本线响应式停靠，招手上车，下车请提前告知司机！",
         firstLastBus: {
             first: "06:30",
-            last: "16:30"
+            last: "18:30"
         },
         firstLastBusUpwards: {
             first: "07:30",
-            last: "17:30"
+            last: "19:30"
         },
         fare: 2,
         faresForZone: {
@@ -1471,10 +1519,10 @@ export const busRoutes = {
     },
     " 环": {
         name: "环路",
-        operator: ["临东地铁公共交通有限公司A区"],
+        operator: ["临东地铁公共交通有限公司A区","猴市公共交通有限公司"],
         firstLastBus: {
-            first: "07:00",
-            last: "19:00"
+            first: "05:00",
+            last: "24:00"
         },
         fare: 2,
         stations: [

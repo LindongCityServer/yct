@@ -263,8 +263,8 @@ function renderBusRoute(routeId) {
         // 为环路特殊处理方向名称
         let upwardDirectionName, downwardDirectionName;
         if (route.name === '环路') {
-            upwardDirectionName = '环一路';
-            downwardDirectionName = '环二路';
+            upwardDirectionName = '环一路（反着转）';
+            downwardDirectionName = '环二路（正着转）';
         } else {
             upwardDirectionName = `${upwardTerminal}方向`;
             downwardDirectionName = `${downwardTerminal}方向`;
@@ -825,8 +825,8 @@ function showStationDetails(stationName) {
             // 为环路特殊处理方向名称
             let upwardDirectionName, downwardDirectionName;
             if (busRoutes[route.routeId].name === '环路') {
-                upwardDirectionName = '环一路';
-                downwardDirectionName = '环二路';
+                upwardDirectionName = '环一路（反着转）';
+                downwardDirectionName = '环二路（正着转）';
             } else {
                 // 判断是否为纯单向线路
                 const isPureUp = downwardStations.length === 0 && upwardStations.length > 0;
@@ -1352,9 +1352,9 @@ function getRouteDirection(routeId, fromStation, toStation) {
 
         // 判断方向
         if (upFromIndex !== -1 && upToIndex !== -1 && upFromIndex < upToIndex) {
-            return '（环一路）'; // 上行方向
+            return '（环一路“反着转”）'; // 上行方向
         } else if (downFromIndex !== -1 && downToIndex !== -1 && downFromIndex > downToIndex) {
-            return '（环二路）'; // 下行方向
+            return '（环二路“正着转”）'; // 下行方向
         }
     }
 
