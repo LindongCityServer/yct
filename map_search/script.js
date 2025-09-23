@@ -701,6 +701,103 @@ function doUpdatePreview() {
     Promise.all(promises).then(() => {
         // 显示加载完成状态
         tileContainer.style.display = 'block';
+        
+        // 更新map-scale和preview-footer的颜色
+        updateMapElementsContrast(previewContainer);
+    });
+}
+
+// 根据背景颜色调整map-scale和preview-footer的文本颜色
+function updateMapElementsContrast(container) {
+    // 获取map-scale和preview-footer元素
+    const mapScale = container.querySelector('.map-scale');
+    const previewFooter = container.querySelector('.preview-footer');
+    
+    if (!mapScale && !previewFooter) return;
+    
+    // 创建一个临时的canvas来获取中心点的颜色
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = container.offsetWidth;
+    canvas.height = container.offsetHeight;
+    
+    // 在canvas上绘制当前预览容器的内容
+    Promise.all(Array.from(container.querySelectorAll('img')).map(img => {
+        return new Promise(resolve => {
+            if (img.complete && img.naturalHeight !== 0) {
+                ctx.drawImage(img, 
+                    parseFloat(img.style.left) || 0, 
+                    parseFloat(img.style.top) || 0, 
+                    img.width, 
+                    img.height);
+                resolve();
+            } else {
+                img.onload = () => {
+                    ctx.drawImage(img, 
+                        parseFloat(img.style.left) || 0, 
+                        parseFloat(img.style.top) || 0, 
+                        img.width, 
+                        img.height);
+                    resolve();
+                };
+                img.onerror = () => resolve();
+            }
+        });
+    })).then(() => {
+        // 获取底部区域的颜色（map-scale在左下角，preview-footer在右下角）
+        try {
+            // 获取map-scale位置的颜色
+            if (mapScale) {
+                const scaleLeft = mapScale.offsetLeft + mapScale.offsetWidth / 2;
+                const scaleTop = mapScale.offsetTop + mapScale.offsetHeight / 2;
+                const scalePixel = ctx.getImageData(scaleLeft, scaleTop, 1, 1).data;
+                const scaleBrightness = (scalePixel[0] * 299 + scalePixel[1] * 587 + scalePixel[2] * 114) / 1000;
+                
+                // 根据亮度设置文本颜色
+                const scaleTextColor = scaleBrightness > 192 ? '#000' : '#fff';
+                mapScale.style.color = scaleTextColor;
+                mapScale.style.textShadow = scaleBrightness > 192 ? 
+                    '0 1px 4px rgba(255,255,255,0.5)' : 
+                    '0 1px 4px rgba(0,0,0,0.5)';
+                
+                // 更新scale-bar的颜色
+                const scaleBar = mapScale.querySelector('.scale-bar');
+                if (scaleBar) {
+                    scaleBar.style.borderBottom = `2px solid ${scaleTextColor}`;
+                    scaleBar.style.borderLeft = `1px solid ${scaleTextColor}`;
+                    scaleBar.style.borderRight = `1px solid ${scaleTextColor}`;
+                }
+                
+                const scaleText = mapScale.querySelector('.scale-text');
+                if (scaleText) {
+                    scaleText.style.color = scaleTextColor;
+                }
+            }
+            
+            // 获取preview-footer位置的颜色
+            if (previewFooter) {
+                const footerLeft = previewFooter.offsetLeft + previewFooter.offsetWidth / 2;
+                const footerTop = previewFooter.offsetTop + previewFooter.offsetHeight / 2;
+                const footerPixel = ctx.getImageData(footerLeft, footerTop, 1, 1).data;
+                const footerBrightness = (footerPixel[0] * 299 + footerPixel[1] * 587 + footerPixel[2] * 114) / 1000;
+                
+                // 根据亮度设置文本颜色
+                const footerTextColor = footerBrightness > 128 ? '#000' : '#fff';
+                previewFooter.style.color = footerTextColor;
+                previewFooter.style.textShadow = footerBrightness > 128 ? 
+                    '0 2px 2px rgba(255,255,255,0.2)' : 
+                    '0 2px 2px rgba(0,0,0,0.2)';
+                    
+                // 更新footer中所有p标签的颜色
+                const paragraphs = previewFooter.querySelectorAll('p');
+                paragraphs.forEach(p => {
+                    p.style.color = footerTextColor;
+                });
+            }
+        } catch (e) {
+            // 在跨域情况下可能无法获取像素数据，使用默认样式
+            console.warn('无法获取地图背景颜色信息，使用默认样式:', e);
+        }
     });
 }
 
@@ -731,14 +828,11 @@ const previewContainer = document.querySelector('.preview-container');
 previewContainer.addEventListener('mousedown', startDrag);
 previewContainer.addEventListener('touchstart', startDrag, { passive: false });
 
-// 修改点击事件处理，避免拖拽后误触
-previewContainer.addEventListener('click', async (event) => {
-    // 只有在非拖拽情况下才执行点击事件
-    if (!isDragging) {
-        const locationName = document.querySelector('.search-item.selected .search-item-name');
-        if (locationName) {
-            await savePreviewImage(locationName.textContent);
-        }
+const imageBtn = document.getElementById('image-btn');
+imageBtn.addEventListener('click', async () => {
+    const locationName = document.querySelector('.search-item.selected .search-item-name');
+    if (locationName) {
+        await savePreviewImage(locationName.textContent);
     }
 });
 
@@ -758,11 +852,15 @@ document.getElementById('share-btn').addEventListener('click', () => {
     });
 });
 
-document.querySelector('.add-new-point').addEventListener('click', () => {
-    const xCoordinate = document.getElementById('coordinates-x').value;
-    const zCoordinate = document.getElementById('coordinates-z').value;
-    openAddPointModal(xCoordinate, zCoordinate);
-});
+// 仅在元素存在时添加事件监听器
+const addNewPointElement = document.querySelector('.add-new-point');
+if (addNewPointElement) {
+    addNewPointElement.addEventListener('click', () => {
+        const xCoordinate = document.getElementById('coordinates-x').value;
+        const zCoordinate = document.getElementById('coordinates-z').value;
+        openAddPointModal(xCoordinate, zCoordinate);
+    });
+}
 
 // 添加新标记点模态框相关功能
 document.addEventListener('DOMContentLoaded', () => {
