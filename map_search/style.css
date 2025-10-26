@@ -177,10 +177,6 @@ header .toolbar {
     background-color: #dbe0e1;
 }
 
-.tile-container img {
-    transition: all 0.3s ease-in-out;
-}
-
 .map-scale {
     position: absolute;
     bottom: 6px;

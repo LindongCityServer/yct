@@ -356,81 +356,106 @@ function renderResults(results) {
     const resultContainer = document.querySelector('.search-result');
     resultContainer.innerHTML = '';
     
-    results.forEach((marker) => {
-        const item = document.createElement('div');
-        item.className = 'search-item';
-        item.dataset.x = marker.x;
-        item.dataset.z = marker.z;
+    // 先显示前100个结果
+    const initialResults = results.slice(0, 100);
+    const remainingResults = results.slice(100);
+    
+    // 如果有正在进行的延迟加载，清除它
+    if (renderResults.timeoutId) {
+        clearTimeout(renderResults.timeoutId);
+    }
+    
+    function renderMarkers(markers) {
+        markers.forEach((marker) => {
+            const item = document.createElement('div');
+            item.className = 'search-item';
+            item.dataset.x = marker.x;
+            item.dataset.z = marker.z;
 
-        // 计算并显示距离
-        const distance = Math.sqrt(
-            (marker.x - x) ** 2 + 
-            (marker.z - z) ** 2
-        ).toFixed(0);
+            // 计算并显示距离
+            const distance = Math.sqrt(
+                (marker.x - x) ** 2 + 
+                (marker.z - z) ** 2
+            ).toFixed(0);
 
-        // 获取分类名称：除了去掉图标后缀名，还需要去掉-a、-b、-c1等文件名后缀
-        const categoryName = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
-        
-        item.innerHTML = `
-            <div class="search-item-text">
-                <div class="search-item-name">${marker.text}</div>
-                <div class="caption">
-                    <div class="search-item-not-approved">尚未采纳</div>
-                    <div class="search-item-category">${categoryName}</div>
-                    <div class="search-item-coordinate">距离${distance}格</div>
+            // 获取分类名称：除了去掉图标后缀名，还需要去掉-a、-b、-c1等文件名后缀
+            const categoryName = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
+            
+            item.innerHTML = `
+                <div class="search-item-text">
+                    <div class="search-item-name">${marker.text}</div>
+                    <div class="caption">
+                        <div class="search-item-not-approved">尚未采纳</div>
+                        <div class="search-item-category">${categoryName}</div>
+                        <div class="search-item-coordinate">距离${distance}格</div>
+                    </div>
                 </div>
-            </div>
-            <div class="search-item-actions"> 
-                <button class="icon-button" id="teleport-button" title="复制传送指令">
-                    <img src="/UI/res/code_black.png" alt="复制传送指令"></img>
-                </button>
-                <!--<button class="icon-button" id="toggle-favorite-button" title="添加收藏">
-                    <img src="/UI/res/favorite_outline_black.png" alt="收藏标记点"></img>
-                </button>-->
-            </div>
-        `;
+                <div class="search-item-actions"> 
+                    <button class="icon-button" id="teleport-button" title="复制传送指令">
+                        <img src="/UI/res/code_black.png" alt="复制传送指令"></img>
+                    </button>
+                    <!--<button class="icon-button" id="toggle-favorite-button" title="添加收藏">
+                        <img src="/UI/res/favorite_outline_black.png" alt="收藏标记点"></img>
+                    </button>-->
+                </div>
+            `;
 
-        const notApproved = item.querySelector('.search-item-not-approved');
+            const notApproved = item.querySelector('.search-item-not-approved');
 
-        // 如果标记点能在LocalStorage中找到，则保留本地标记样式，否则隐藏
-        if (marker.source === 'local') {
-            notApproved.style.display = 'block';
-        } else {
-            notApproved.style.display = 'none';
-        }
-        
-        // 点击事件处理
-        item.addEventListener('click', function(e) {
-            // 移除所有选中项
-            const allItems = document.querySelectorAll('.search-item');
-            allItems.forEach(item => item.classList.remove('selected'));
+            // 如果标记点能在LocalStorage中找到，则保留本地标记样式，否则隐藏
+            if (marker.source === 'local') {
+                notApproved.style.display = 'block';
+            } else {
+                notApproved.style.display = 'none';
+            }
+            
+            // 点击事件处理
+            item.addEventListener('click', function(e) {
+                // 移除所有选中项
+                const allItems = document.querySelectorAll('.search-item');
+                allItems.forEach(item => item.classList.remove('selected'));
 
-            // 添加当前选中状态
-            this.classList.add('selected');
+                // 添加当前选中状态
+                this.classList.add('selected');
 
-            // 更新输入框和预览
-            document.getElementById('coordinates-x').value = marker.x;
-            document.getElementById('coordinates-z').value = marker.z;
+                // 更新输入框和预览
+                document.getElementById('coordinates-x').value = marker.x;
+                document.getElementById('coordinates-z').value = marker.z;
+                updatePreview();
+
+                // 重新触发搜索以重新排序
+                triggerSearch();
+            });
+
+            const teleportButton = item.querySelector('#teleport-button');
+            teleportButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                navigator.clipboard.writeText(`/tp @s ${marker.x} ~ ${marker.z}`)
+                    .then(() => {
+                        showToast('传送指令已复制到剪贴板');
+                    })
+                    .catch(() => {
+                        showToast('无法复制传送指令');
+                    });
+            });
+            
+            resultContainer.appendChild(item);
+        });
+    }
+    
+    // 渲染前100个结果
+    renderMarkers(initialResults);
+    
+    // 1秒后渲染剩余结果
+    if (remainingResults.length > 0) {
+        renderResults.timeoutId = setTimeout(() => {
+            renderMarkers(remainingResults);
+            renderResults.timeoutId = null;
+            
+            // 刷新 tile-container
             updatePreview();
-
-            // 重新触发搜索以重新排序
-            triggerSearch();
-        });
-
-        const teleportButton = item.querySelector('#teleport-button');
-        teleportButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            navigator.clipboard.writeText(`/tp @s ${marker.x} ~ ${marker.z}`)
-                .then(() => {
-                    showToast('传送指令已复制到剪贴板');
-                })
-                .catch(() => {
-                    showToast('无法复制传送指令');
-                });
-        });
-        
-        resultContainer.appendChild(item);
-    });
+        }, 1000);
+    }
 
     // 自动选中逻辑（保留原有条件判断）
     if (results.length > 0) {

@@ -1,24 +1,13 @@
 // 内容数据
 const contentData = [
     {
-        title: '服管会|祝|各位玩家|新年快乐！',
+        title: '2026，|新年快乐！',
         image: '#A61B29',
         link: '',
-        date: '2025-01-21',
-        releaseTime: '2025-01-21 00:00',
-        expireDate: '2025-02-12',
-        summary: '临东市服务器管理委员会祝各位玩家朋友新年快乐，身体健康，万事如意！',
-        category: '通知公告',
-        showInBanner: false
-    },
-    {
-        title: '庆祝|新中国|成立|76周年',
-        image: '#A61B29',
-        link: '',
-        date: '2025-10-01',
-        releaseTime: '2025-10-01 00:00',
-        expireDate: '2025-10-03',
-        summary: '临东市服务器管理委员会祝愿伟大祖国繁荣昌盛，国泰民安！',
+        date: '2026-01-01',
+        releaseTime: '2026-01-01 00:00',
+        expireDate: '2026-01-03',
+        summary: '临东市服务器管理委员会祝各位在新的一年里生活顺心如意，梦想都能实现！',
         category: '通知公告',
         showInBanner: true
     },
