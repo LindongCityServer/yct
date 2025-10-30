@@ -676,15 +676,17 @@ function createStationElement(station, left) {
             const isTransparent = /^#[0-9A-Fa-f]{6}00$/.test(line.color);
             // 如果不是透明的才创建transfer-line元素
             if (!isTransparent) {
-            const transferLine = document.createElement('div');
-            transferLine.className = 'transfer-line';
-            // 根据站点状态设置transfer-line的颜色
-            if (div.classList.contains('station-inactive')) {
-                transferLine.style.backgroundColor = '#6E7E81';
-            } else {
-                transferLine.style.backgroundColor = line.color;
-            }
-            transferLine.textContent = line.name.replace(/([0-9A-Z]+)(线|号线|路)$/, '$1');  // 仅在符合格式时去掉"线"、"号线"或"路"
+                const transferLine = document.createElement('div');
+                transferLine.className = 'transfer-line';
+                // 根据站点状态设置transfer-line的颜色
+                if (div.classList.contains('station-inactive')) {
+                    transferLine.style.backgroundColor = '#6E7E81';
+                } else {
+                    transferLine.style.backgroundColor = line.color;
+                }
+                // 优先使用线路ID，如果不存在则使用名称替换方案
+                const lineId = Object.keys(lines).find(key => lines[key] === line);
+                transferLine.textContent = lineId || line.name.replace(/([0-9A-Z]+)(线|号线|路)$/, '$1');
                 transferContainer.appendChild(transferLine);
             }
         });
@@ -1357,15 +1359,17 @@ function updateStationSequence() {
                 const isTransparent = /^#[0-9A-Fa-f]{6}00$/.test(line.color);
                 // 如果不是透明的才创建transfer-line元素
                 if (!isTransparent) {
-                const transferLine = document.createElement('div');
-                transferLine.className = 'transfer-line';
-                // 根据站点状态设置transfer-line的颜色
-                if (div.classList.contains('station-inactive')) {
-                    transferLine.style.backgroundColor = '#6E7E81';
-                } else {
-                    transferLine.style.backgroundColor = line.color;
-                }
-                transferLine.textContent = line.name.replace(/([0-9A-Z]+)(线|号线|路)$/, '$1');  // 仅在符合格式时去掉"线"、"号线"或"路"
+                    const transferLine = document.createElement('div');
+                    transferLine.className = 'transfer-line';
+                    // 根据站点状态设置transfer-line的颜色
+                    if (div.classList.contains('station-inactive')) {
+                        transferLine.style.backgroundColor = '#6E7E81';
+                    } else {
+                        transferLine.style.backgroundColor = line.color;
+                    }
+                    // 优先使用线路ID，如果不存在则使用名称替换方案
+                    const lineId = Object.keys(lines).find(key => lines[key] === line);
+                    transferLine.textContent = lineId || line.name.replace(/([0-9A-Z]+)(线|号线|路)$/, '$1');
                     transferContainer.appendChild(transferLine);
                 }
             });
