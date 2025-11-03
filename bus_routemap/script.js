@@ -18,8 +18,9 @@ function parseMetroData(text) {
     const linesMatch = text.match(/const lines = ({[\s\S]*?});/);
     if (linesMatch) {
         const linesObj = eval(`(${linesMatch[1]})`);
-        Object.values(linesObj).forEach(line => {
+        Object.entries(linesObj).forEach(([lineId, line]) => {
             metroLines[line.name] = {
+                id: lineId,
                 color: line.color,
                 stations: line.stations.map(station => station.name)
             };
@@ -61,7 +62,7 @@ function checkMetroConnection(busStationName) {
                 const lineNames = Object.entries(metroLines)
                     .filter(([_, lineData]) => lineData.stations.includes(station.name))
                     .map(([lineName, lineData]) => ({
-                        name: lineName,
+                        name: lineData.id || lineName,
                         color: lineData.color
                     }));
                 
@@ -407,10 +408,9 @@ function renderStationSection(stations, container) {
         const metroBadges = metroConnection.connected ? 
             metroConnection.connections.map(conn => 
                 conn.lines.map(line => 
-                    `<span class="metro-badge" style="--line-color: ${line.color}">${line.name}</span>`
+                    `<span class="metro-badge" style="--line-color:${line.color};${!line.name.match(/^\d+$/)?'padding:2px 4px;':''}">${line.name}</span>`
                 ).join('')
             ).join('') : '';
-        
         stationElement.innerHTML = `
             <div class="station-dot ${metroConnection.connected ? 'metro-connection' : ''}"></div>
             <div class="station-line ${directionClass}"></div>
@@ -992,7 +992,7 @@ function findStationRoutes(stationName) {
 }
 
 // 查找所有可能的换乘路线（使用广度优先搜索优化性能）
-function findAllPossibleTransferRoutes(startStation, endStation, maxTransfers = 3) {
+function findAllPossibleTransferRoutes(startStation, endStation, maxTransfers = 10) {
     const routes = [];
     const visited = new Set(); // 记录已访问的站点
     const queue = []; // 用于BFS的队列
@@ -1406,66 +1406,49 @@ function renderTransferResults(routes, resultsContainer) {
             ? `<div class="operation-warning">${route.operationStatus.join('，')}</div>` 
             : '';
 
+        // 统一处理路线信息
+        let routeInfo = null;
         if (route.type === 'direct') {
             // 直达路线
             const stationCount = Math.abs(route.stations[1].index - route.stations[0].index);
             const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === route.route);
             const direction = getRouteDirection(routeId, route.stations[0].name, route.stations[1].name);
-            const operatorColor = operatorColorMap[route.operator] || operatorColorMap.default;
-            //console.log(`直达路线：${route.route} ${direction} ${route.operator} ${operatorColor}`);
             
             // 检查方向信息是否存在
             if (!direction) {
                 return ''; // 跳过该直达路线
             }
 
-            routeIndex++; // 增加方案编号
-            //console.log('直达路线原始数据：', route);
-            return `
-                <div class="transfer-route ${route.operationStatus && route.operationStatus.length > 0 ? 'not-operating' : ''}" data-route-index="${routeIndex}">
-                    <h3>方案 ${routeIndex}：${route.route}</h3>
-                    ${operationWarning}
-                    <div class="route-info">
-                        <span>预计 ${route.totalTime} 分钟</span>
-                        <span>票价 ${route.fare} 元</span>
-                    </div>
-                    <ul class="route-steps">
-                        <li class="route-step start">
-                            <a href="#" class="station-link" data-station="${route.stations[0].name}" onclick="handleRouteStepClick(event, this)">${route.stations[0].name} 出发</a>
-                        </li>
-                        <li class="route-step">
-                            <a href="#" class="route-link" data-route="${route.route}" onclick="handleRouteStepClick(event, this)">${route.route}${direction}</a> 乘坐${stationCount}站
-                        </li>
-                        <li class="route-step end">
-                            <a href="#" class="station-link" data-station="${route.stations[1].name}" onclick="handleRouteStepClick(event, this)">到达 ${route.stations[1].name}</a>
-                        </li>
-                    </ul>
-                    <div class="route-actions">
-                        <button class="action-button" onclick="copyRouteText(${routeIndex})">
-                            <img src="../UI/res/copy_black.png" alt="复制" width="16" height="16">
-                            复制文本
-                        </button>
-                        <button class="action-button" onclick="saveRouteImage(${routeIndex})">
-                            <img src="../UI/res/image_black.png" alt="保存" width="16" height="16">
-                            保存图片
-                        </button>
-                        <button class="action-button" onclick="showAddTripDialog(${routeIndex})">
-                            <img src="../UI/res/agenda_black.png" alt="提醒" width="16" height="16">
-                            添加提醒
-                        </button>
-                    </div>
-                </div>
-            `;
+            routeInfo = {
+                title: route.route,
+                stationCount: stationCount,
+                direction: direction,
+                routeId: routeId,
+                operator: route.operator,
+                fare: route.fare,
+                segments: [{
+                    type: 'start',
+                    station: route.stations[0].name
+                }, {
+                    type: 'route',
+                    route: route.route,
+                    direction: direction,
+                    stationCount: stationCount,
+                    operator: route.operator
+                }, {
+                    type: 'end',
+                    station: route.stations[1].name
+                }]
+            };
         } else {
             // 换乘路线
-            let routeSteps = '';
             let routeTitle = '';
-            let hasInvalidRouteLink = false; // 标记是否存在无效的 route-link
+            let hasInvalidRouteLink = false;
+            let segments = [];
+            let fare = 0;
 
-            const transferCount = route.routes.length - 1;
-
-            //将每一段线路的票价相加行程最终票价，如果某一段线路没有记录票价则默认这一段线路2元
-            const fare = Math.round(
+            // 计算票价
+            fare = Math.round(
                 route.routes.reduce((acc, cur) => {
                     const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === cur.name);
                     if (routeId) {
@@ -1482,13 +1465,12 @@ function renderTransferResults(routes, resultsContainer) {
             );
 
             if (route.alternativeRoutes) {
-                // 渲染有多个可选线路的方案
+                // 处理有多个可选线路的方案
                 routeTitle = route.alternativeRoutes.map(segment => 
                     segment.routes.join('/')
                 ).join('→');
-                
-                routeSteps = route.alternativeRoutes.map((segment, segmentIndex) => {
-                    const routeOptions = segment.routes.join('/');
+
+                segments = route.alternativeRoutes.map((segment, segmentIndex) => {
                     // 获取该线路的站点列表
                     const routeData = findStationRoutes(segment.from).find(r => 
                         segment.routes.includes(r.routeName)
@@ -1502,60 +1484,34 @@ function renderTransferResults(routes, resultsContainer) {
                         const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === routeName);
                         return getRouteDirection(routeId, segment.from, segment.to);
                     });
-                    const routeWithDirections = segment.routes.map((r, i) => `${r}${directions[i]}`).join('/');
 
                     // 检查方向信息是否存在
                     if (directions.some(direction => !direction)) {
-                        hasInvalidRouteLink = true; // 标记存在无效的 route-link
-                        return ''; // 跳过该路线
+                        hasInvalidRouteLink = true;
+                        return null;
                     }
 
-                    const operatorColor = operatorColorMap[route.operator] || operatorColorMap.default;
-                    //console.log(`多个可选线路方案：${route.route} ${route.operator} ${operatorColor}`);
-
-                    if (segmentIndex === 0) {
-                        return `
-                            <li class="route-step start">
-                                <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from} 出发</a>
-                            </li>
-                            <li class="route-step">
-                                ${segment.routes.map(route => `
-                                    <a href="#" class="route-link" style="color:${operatorColor}" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
-                                `).join(' / ')} 乘坐${stationCount}站
-                            </li>
-                        `;
-                    } else if (segmentIndex === route.alternativeRoutes.length - 1) {
-                        return `
-                            <li class="route-step transfer">
-                                <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from}</a> 换乘
-                            </li>
-                            <li class="route-step">
-                                ${segment.routes.map(route => `
-                                    <a href="#" class="route-link" style="color:${operatorColor}" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
-                                `).join(' / ')} 乘坐${stationCount}站
-                            </li>
-                            <li class="route-step end">
-                                <a href="#" class="station-link" data-station="${segment.to}" onclick="handleRouteStepClick(event, this)">到达 ${segment.to}</a>
-                            </li>
-                        `;
-                    } else {
-                        return `
-                            <li class="route-step transfer">
-                                <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from}</a> 换乘
-                            </li>
-                            <li class="route-step">
-                                ${segment.routes.map(route => `
-                                    <a href="#" class="route-link" style="color:${operatorColor}" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${directions[segment.routes.indexOf(route)]}</a>
-                                `).join(' / ')} 乘坐${stationCount}站
-                            </li>
-                        `;
-                    }
-                }).join('');
+                    return {
+                        segmentIndex,
+                        from: segment.from,
+                        to: segment.to,
+                        routes: segment.routes,
+                        directions,
+                        stationCount,
+                        operator: route.operator,
+                        isLast: segmentIndex === route.alternativeRoutes.length - 1,
+                        isFirst: segmentIndex === 0
+                    };
+                }).filter(segment => segment !== null);
+                
+                if (hasInvalidRouteLink) {
+                    return ''; // 跳过该路线
+                }
             } else if (route.mergedSegments) {
-                // 渲染合并了换乘站的方案
+                // 处理合并了换乘站的方案
                 routeTitle = route.routes.map(r => r.name).join('→');
                 
-                routeSteps = route.mergedSegments.map((segment, segmentIndex) => {
+                segments = route.mergedSegments.map((segment, segmentIndex) => {
                     const transferOptions = segment.transfers.map(t => {
                         const [from, to] = t.split('-');
                         return from;
@@ -1573,118 +1529,197 @@ function renderTransferResults(routes, resultsContainer) {
                     const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === segment.name);
                     const direction = getRouteDirection(routeId, route.routes[segmentIndex].from, route.routes[segmentIndex].to);
 
-                    const operatorColor = operatorColorMap[segment.operator] || operatorColorMap.default;
-                    //console.log(`合并换乘站方案：${segment.route} ${direction} ${segment.operator} ${operatorColor}`);
-
-                    let transferText = '';
                     // 检查方向信息是否存在
                     if (!direction) {
-                        hasInvalidRouteLink = true; // 标记存在无效的 route-link
-                        return ''; // 跳过该路线
-                    } else if (transferOptions.length > 1) {
+                        hasInvalidRouteLink = true;
+                        return null;
+                    }
+
+                    return {
+                        segmentIndex,
+                        name: segment.name,
+                        from: route.routes[segmentIndex].from,
+                        to: route.routes[segmentIndex].to,
+                        direction,
+                        stationCount,
+                        operator: segment.operator,
+                        transferOptions,
+                        isLast: segmentIndex === route.mergedSegments.length - 1,
+                        isFirst: segmentIndex === 0
+                    };
+                }).filter(segment => segment !== null);
+                
+                if (hasInvalidRouteLink) {
+                    return ''; // 跳过该路线
+                }
+            }
+
+            routeInfo = {
+                title: routeTitle,
+                segments: segments,
+                fare: fare,
+                transferCount: route.routes.length - 1
+            };
+        }
+
+        routeIndex++; // 增加方案编号
+        const totalRouteTime = route.totalTime;
+
+        // 构建路线步骤HTML
+        let routeStepsHtml = '';
+        if (route.type === 'direct') {
+            // 构建直达路线步骤
+            routeStepsHtml = `
+                <li class="route-step start">
+                    <a href="#" class="station-link" data-station="${routeInfo.segments[0].station}" onclick="handleRouteStepClick(event, this)">${routeInfo.segments[0].station} 出发</a>
+                </li>
+                <li class="route-step">
+                    <a href="#" class="route-link" data-route="${routeInfo.segments[1].route}" onclick="handleRouteStepClick(event, this)">${routeInfo.segments[1].route}${routeInfo.segments[1].direction}</a> 乘坐${routeInfo.segments[1].stationCount}站
+                </li>
+                <li class="route-step end">
+                    <a href="#" class="station-link" data-station="${routeInfo.segments[2].station}" onclick="handleRouteStepClick(event, this)">到达 ${routeInfo.segments[2].station}</a>
+                </li>
+            `;
+        } else {
+            // 构建换乘路线步骤
+            if (route.alternativeRoutes) {
+                routeStepsHtml = routeInfo.segments.map(segment => {
+                    const operatorColor = operatorColorMap[segment.operator] || operatorColorMap.default;
+                    
+                    if (segment.isFirst) {
+                        return `
+                            <li class="route-step start">
+                                <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from} 出发</a>
+                            </li>
+                            <li class="route-step">
+                                ${segment.routes.map((route, index) => `
+                                    <a href="#" class="route-link" style="color:${operatorColor}" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${segment.directions[index]}</a>
+                                `).join(' / ')} 乘坐${segment.stationCount}站
+                            </li>
+                        `;
+                    } else if (segment.isLast) {
+                        return `
+                            <li class="route-step transfer">
+                                <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from}</a> 换乘
+                            </li>
+                            <li class="route-step">
+                                ${segment.routes.map((route, index) => `
+                                    <a href="#" class="route-link" style="color:${operatorColor}" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${segment.directions[index]}</a>
+                                `).join(' / ')} 乘坐${segment.stationCount}站
+                            </li>
+                            <li class="route-step end">
+                                <a href="#" class="station-link" data-station="${segment.to}" onclick="handleRouteStepClick(event, this)">到达 ${segment.to}</a>
+                            </li>
+                        `;
+                    } else {
+                        return `
+                            <li class="route-step transfer">
+                                <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from}</a> 换乘
+                            </li>
+                            <li class="route-step">
+                                ${segment.routes.map((route, index) => `
+                                    <a href="#" class="route-link" style="color:${operatorColor}" data-route="${route}" onclick="handleRouteStepClick(event, this)">${route}${segment.directions[index]}</a>
+                                `).join(' / ')} 乘坐${segment.stationCount}站
+                            </li>
+                        `;
+                    }
+                }).join('');
+            } else if (route.mergedSegments) {
+                routeStepsHtml = routeInfo.segments.map(segment => {
+                    const operatorColor = operatorColorMap[segment.operator] || operatorColorMap.default;
+                    
+                    let transferText = '';
+                    if (segment.transferOptions && segment.transferOptions.length > 1) {
                         transferText = `
                             <li class="route-step transfer">
-                                ${transferOptions.map(station => `
+                                ${segment.transferOptions.map(station => `
                                     <a href="#" class="station-link" data-station="${station}" onclick="handleRouteStepClick(event, this)">${station}</a>
                                 `).join(' / ')} 换乘
                             </li>
                         `;
-                    } else if (transferOptions.length === 1) {
+                    } else if (segment.transferOptions && segment.transferOptions.length === 1) {
                         transferText = `
                             <li class="route-step transfer">
-                                <a href="#" class="station-link" data-station="${transferOptions[0]}" onclick="handleRouteStepClick(event, this)">${transferOptions[0]}</a> 换乘
+                                <a href="#" class="station-link" data-station="${segment.transferOptions[0]}" onclick="handleRouteStepClick(event, this)">${segment.transferOptions[0]}</a> 换乘
                             </li>
                         `;
                     }
 
-                    if (segmentIndex === 0) {
+                    if (segment.isFirst) {
                         return `
                             <li class="route-step start">
-                                <a href="#" class="station-link" data-station="${route.routes[0].from}" onclick="handleRouteStepClick(event, this)">${route.routes[0].from} 出发</a>
+                                <a href="#" class="station-link" data-station="${segment.from}" onclick="handleRouteStepClick(event, this)">${segment.from} 出发</a>
                             </li>
                             <li class="route-step">
-                                <a href="#" class="route-link" style="color:${operatorColor}" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${direction}</a> 乘坐${stationCount}站
+                                <a href="#" class="route-link" style="color:${operatorColor}" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${segment.direction}</a> 乘坐${segment.stationCount}站
                             </li>
                         `;
-                    } else if (segmentIndex === route.mergedSegments.length - 1) {
+                    } else if (segment.isLast) {
                         return `
                             ${transferText}
                             <li class="route-step">
-                                <a href="#" class="route-link" style="color:${operatorColor}" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${direction}</a> 乘坐${stationCount}站
+                                <a href="#" class="route-link" style="color:${operatorColor}" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${segment.direction}</a> 乘坐${segment.stationCount}站
                             </li>
                             <li class="route-step end">
-                                <a href="#" class="station-link" data-station="${route.routes[route.routes.length - 1].to}" onclick="handleRouteStepClick(event, this)">到达 ${route.routes[route.routes.length - 1].to}</a>
+                                <a href="#" class="station-link" data-station="${segment.to}" onclick="handleRouteStepClick(event, this)">到达 ${segment.to}</a>
                             </li>
                         `;
                     } else {
                         return `
                             ${transferText}
                             <li class="route-step">
-                                <a href="#" class="route-link" style="color:${operatorColor}" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${direction}</a> 乘坐${stationCount}站
+                                <a href="#" class="route-link" style="color:${operatorColor}" data-route="${segment.name}" onclick="handleRouteStepClick(event, this)">${segment.name}${segment.direction}</a> 乘坐${segment.stationCount}站
                             </li>
                         `;
                     }
                 }).join('');
-            }            
-
-            // 检查每个 route-link 是否包含方向信息
-            const routeStepsArray = routeSteps.split('</li>');
-            const validRouteSteps = routeStepsArray.filter(step => {
-                const routeLink = step.match(/<a href="#" class="route-link" data-route="([^"]+)" onclick="handleRouteStepClick\(event, this\)">([^<]+)/);
-                if (routeLink) {
-                    const routeName = routeLink[1];
-                    const stationName = routeLink[2].split(' ')[0]; // 假设方向信息在名称后面
-                    const routeId = Object.keys(busRoutes).find(id => busRoutes[id].name === routeName);
-                    const direction = getRouteDirection(routeId, stationName, routeName);
-                    if (routeLink[1] === routeLink[2]) {
-                        hasInvalidRouteLink = true; // 标记存在无效的 route-link
-                    }
-                    if (routeId) {
-                        const operator = busRoutes[routeId].operator || "default";
-                        const color = operatorColorMap[operator] || operatorColorMap.default;
-                        // 将颜色应用到 route-link（例如通过 style 或 class）
-                        return step.replace('<a ', `<a style="color: ${color}" `);
-                    }
-                    return direction || routeLink[1] !== routeLink[2]; // 如果有方向信息或route-link和route文字内容不同则保留该步骤
-                }
-                return true; // 如果不是 route-link 则保留该步骤
-            }).join('</li>');
-
-            // 如果所有步骤都无效或存在无效的 route-link，则跳过该换乘方案
-            if (!validRouteSteps || hasInvalidRouteLink) {
-                return '';
             }
+        }
 
-            routeIndex++; // 增加方案编号
-            return `
-                <div class="transfer-route ${route.operationStatus && route.operationStatus.length > 0 ? 'not-operating' : ''}" data-route-index="${routeIndex}">
-                    <h3>方案 ${routeIndex}：${routeTitle}</h3>
-                    ${operationWarning}
-                    <div class="route-info">
-                        <span>预计 ${route.totalTime} 分钟</span>
-                        <span>票价 ${fare} 元</span>
-                        <span>换乘 ${transferCount} 次</span>
-                    </div>
-                    <ul class="route-steps">
-                        ${validRouteSteps}
-                    </ul>
-                    <div class="route-actions">
-                        <button class="action-button" onclick="copyRouteText(${routeIndex})">
-                            <img src="../UI/res/copy_black.png" alt="复制" width="16" height="16">
-                            复制文本
-                        </button>
-                        <button class="action-button" onclick="saveRouteImage(${routeIndex})">
-                            <img src="../UI/res/image_black.png" alt="保存" width="16" height="16">
-                            保存图片
-                        </button>
-                        <button class="action-button" onclick="showAddTripDialog(${routeIndex})">
-                            <img src="../UI/res/agenda_black.png" alt="提醒" width="16" height="16">
-                            添加提醒
-                        </button>
-                    </div>
+        // 构建路线信息HTML
+        let routeInfoHtml = '';
+        if (route.type === 'direct') {
+            routeInfoHtml = `
+                <div class="route-info">
+                    <span>预计 ${Math.ceil(totalRouteTime)} 分钟</span>
+                    <span>票价 ${routeInfo.fare} 元</span>
+                </div>
+            `;
+        } else {
+            routeInfoHtml = `
+                <div class="route-info">
+                    <span>预计 ${Math.ceil(totalRouteTime)} 分钟</span>
+                    <span>票价 ${routeInfo.fare} 元</span>
+                    <span>换乘 ${routeInfo.transferCount} 次</span>
                 </div>
             `;
         }
+
+        // 构建完整的路线HTML
+        return `
+            <div class="transfer-route ${route.operationStatus && route.operationStatus.length > 0 ? 'not-operating' : ''}" data-route-index="${routeIndex}">
+                <h3>方案 ${routeIndex}：${routeInfo.title}</h3>
+                ${operationWarning}
+                ${routeInfoHtml}
+                <ul class="route-steps">
+                    ${routeStepsHtml}
+                </ul>
+                <div class="route-actions">
+                    <button class="action-button" onclick="copyRouteText(${routeIndex})">
+                        <img src="../UI/res/copy_black.png" alt="复制" width="16" height="16">
+                        复制文本
+                    </button>
+                    <button class="action-button" onclick="saveRouteImage(${routeIndex})">
+                        <img src="../UI/res/image_black.png" alt="保存" width="16" height="16">
+                        保存图片
+                    </button>
+                    <button class="action-button" onclick="showAddTripDialog(${routeIndex})">
+                        <img src="../UI/res/agenda_black.png" alt="提醒" width="16" height="16">
+                        添加提醒
+                    </button>
+                </div>
+            </div>
+        `;
     }).filter(html => html.trim() !== '').join('');
 
     resultsContainer.innerHTML = routesHtml;

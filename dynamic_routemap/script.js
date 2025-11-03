@@ -80,7 +80,7 @@ function ensureLinesArray(lines) {
 
 // 添加线路颜色映射函数
 function getLineColorByName(lineName) {
-    const line = lines.find(l => l.name === lineName);
+    const line = Object.keys(lines).find(l => l.name === lineName);
     return line ? line.color : null;
 }
 
