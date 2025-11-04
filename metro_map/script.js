@@ -1238,12 +1238,12 @@ function displayRoute(routeInfo) {
 
             // 恢复站点和对应标签的不透明度
             station.element.classList.remove('map-dimmed');
-            const stationLabel = Array.from(document.querySelectorAll('text')).find(
+            const stationLabels = Array.from(document.querySelectorAll('text')).filter(
                 text => text.textContent === stationName
             );
-            if (stationLabel) {
-                stationLabel.classList.remove('map-dimmed');
-            }
+            stationLabels.forEach(label => {
+                label.classList.remove('map-dimmed');
+            });
         }
     });
 

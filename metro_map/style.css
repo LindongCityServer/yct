@@ -22,7 +22,7 @@ svg {
 }
 
 .map-dimmed {
-    opacity: 0.3;
+    filter: contrast(0.1) saturate(0.5) brightness(1.8);
 }
 
 .highlighted-line {
@@ -766,5 +766,9 @@ svg {
     
     .station-label {
         fill: #fff;
+    }
+
+    .map-dimmed {
+        filter: contrast(0.3) saturate(0.3) brightness(0.3);
     }
 }
