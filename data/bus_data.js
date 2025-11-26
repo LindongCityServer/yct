@@ -744,6 +744,53 @@ export const busRoutes = {
             {name: "裕隆山公园", fareZone: "保税区"}
         ]
     },
+    "187": {
+        name: "187路",
+        operator: ["临东临北巴士有限责任公司"],
+        firstLastBus: {
+            first: "06:20",
+            last: "18:50"
+        },
+        firstLastBusUpwards: {
+            first: "07:00",
+            last: "19:30"
+        },
+        fare: 2,
+        faresForZone: {
+            "碧湖": 2,
+            "保税区": 1,
+        },
+        fareOffset: 1,
+        stations: [
+            {name: "青咀子", fareZone: "碧湖"},
+            {name: "东青咀子", fareZone: "碧湖"},
+            {name: "大漠北", fareZone: "碧湖"},
+            {name: "主题公园", fareZone: "碧湖"},
+            {name: "硅化木", fareZone: "碧湖"},
+            {name: "黄金大厦", fareZone: "碧湖"},
+            {name: "东方酒店", fareZone: "碧湖"},
+            {name: "碧湖中心", fareZone: "碧湖"},
+            {name: "万安街道办事处", fareZone: "碧湖"},
+            {name: "曙光路莲池街", fareZone: "碧湖"},
+            {name: "团山村", fareZone: "碧湖"},
+            {name: "农和庄", fareZone: "碧湖"},
+            {name: "向山镇", fareZone: "碧湖"},
+            {name: "保税区东门", fareZone: "碧湖"},
+            {name: "东三家子", fareZone: "保税区"},
+            {name: "上柳壕", fareZone: "保税区"},
+            {name: "翠竹街道西", fareZone: "保税区"},
+            {name: "翠湾镇", fareZone: "保税区"},
+            {name: "翠竹街停车场", fareZone: "保税区"},
+            {name: "雨林园", fareZone: "保税区"},
+            {name: "老虎尾", fareZone: "保税区"},
+            {name: "达道湾", fareZone: "保税区"},
+            {name: "烟狼寨", fareZone: "保税区"},
+            {name: "黄家铺", fareZone: "保税区"},
+            {name: "庞屯路口", fareZone: "保税区"},
+            {name: "鱼岭路口", fareZone: "保税区"},
+            {name: "鱼岭园", fareZone: "保税区"}
+        ]
+    },
     "191": {
         name: "191路",
         operator: ["嘎联巴士（临东）有限公司"],
@@ -1687,6 +1734,35 @@ export const busRoutes = {
             {name: "市政府", oneWay: "down"},
             {name: "临东银行", oneWay: "down"},
             {name: "李家坎客运站", oneWay: "down"}
+        ]
+    },
+    "4101": {
+        name: "4101路",
+        operator: ["临东市城海区晟得发客运有限公司"],
+        firstLastBus: {
+            first: "05:00",
+            last: "19:00"
+        },
+        firstLastBusUpwards: {
+            first: "06:00",
+            last: "19:45"
+        },
+        fare: 1.5,
+        stations: [
+            {name: "雪乡特色街滑雪场"},
+            {name: "雪乡展览馆"},
+            {name: "雪乡综合服务中心"},
+            {name: "雪乡中学"},
+            {name: "雪乡总医院"},
+            {name: "雪乡客运站"},
+            {name: "雪乡消防队"},
+            {name: "彩虹小学"},
+            {name: "雪乡驾校"},
+            {name: "临东大学西门"},
+            {name: "大学里"},
+            {name: "观景台西"},
+            {name: "海港桥北"},
+            {name: "出生点"}
         ]
     },
 };
