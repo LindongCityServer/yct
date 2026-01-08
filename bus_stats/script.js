@@ -240,8 +240,7 @@ function calculateStats() {
     
     // 计算线路长度排行数据
     for (const [routeId, routeData] of Object.entries(lineLengthFilteredRoutes)) {
-        const stations = routeData.stations.filter(station => 
-            !station.oneWay || station.oneWay === "up");
+        const stations = routeData.stations;
         stats.linesByLength.push({
             name: routeData.name,
             id: routeId,

@@ -1,23 +1,23 @@
 // 内容数据
 const contentData = [
     {
-        title: '2026，|新年快乐！',
+        title: '马年阔步行，|万事皆可期！',
         image: '#A61B29',
         link: '',
-        date: '2026-01-01',
-        releaseTime: '2026-01-01 00:00',
-        expireDate: '2026-01-03',
-        summary: '临东市服务器管理委员会祝各位在新的一年里生活顺心如意，梦想都能实现！',
+        date: '2026-02-17',
+        releaseTime: '2026-02-17 00:00',
+        expireDate: '2026-02-24',
+        summary: '临东市服务器管理委员会祝各位在新春佳节心有所悦、业有所成！',
         category: '通知公告',
         showInBanner: true
     },
     {
-        title: '临东|地铁|北联|轨交展|云展厅',
-        image: '/data/content_banner/北联轨交展展厅.png',
-        link: '/content/250722.html',
-        date: '2025-07-22',
-        summary:'临东地铁确认参加2025北联第一届轨道交通展览会，点击链接立即进入临东地铁云展厅……',
-        category: '地铁运营',
+        title: '临东|地图|搜索|征集标记点',
+        image: '../data/content_banner/市府广场-升旗台卫星图像.png',
+        link: '/map_search',
+        date: '2025-08-16',
+        summary:'欢迎为临东地图搜索投稿各类标记点！只需拖动或用键盘添加标记点，在右上角打开管理界面即可提交代码以供审核。标记点如被采纳将出现在地图搜索中，供所有玩家使用！',
+        category: '通知公告',
         showInBanner: true
     },
     {
@@ -27,7 +27,7 @@ const contentData = [
         date: '2025-06-15',
         summary:'15日起，临东地铁计费方式从分区计费改为按里程分段计费。新方案起步价为2元可乘坐的计费里程为6公里，之后每增加1元，可续乘的计费里程依次为4、4、7、7、10、10公里。调整后，起步价覆盖里程平均缩短1至2站距离，但目前全线网的最高票价仍维持3元不变。点击链接或页面顶部蓝色横幅可进入地铁线网图查询具体票价。',
         category: '地铁运营',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '服管会|呼吁|共同维护|线路|运营秩序',
@@ -53,6 +53,15 @@ const contentData = [
         link: '',
         date: '2025-04-03',
         summary: '临东地铁3号线东延线（图画湾—城海新港段）、西延线（云峰街—沙岭段）先后开工，预计完工后全线车站数量将增加至23座，并连通碧湖、市区、铁西、汽车城等地区。目前东延线高架段已完成铺线，新一批列车正在上线试测试。',
+        category: '地铁运营',
+        showInBanner: false
+    },
+    {
+        title: '临东|地铁|北联|轨交展|云展厅',
+        image: '/data/content_banner/北联轨交展展厅.png',
+        link: '/content/250722.html',
+        date: '2025-07-22',
+        summary:'临东地铁确认参加2025北联第一届轨道交通展览会，点击链接立即进入临东地铁云展厅……',
         category: '地铁运营',
         showInBanner: true
     },
@@ -263,6 +272,33 @@ const contentData = [
         date: '2025-04-05',
         summary:'经过连续4小时的高强度数据采集与分析，临东地铁集团于4月4日正式公布地铁3号线延长段列车性能测试完整报告。数据显示，新一代智能列车在加速性能、制动安全及线路适配性等维度均实现跨越式提升，其中平均加速度实测达0.95m/s²，为临东地铁后续建设指明方向。',
         category: '地铁运营',
+        showInBanner: false
+    },
+    {
+        title: '李家坎|片区|公交|站点更名',
+        image: '--bus-color',
+        link: '',
+        date: '2026-01-06',
+        summary: '为顺应李家坎片区发展，原“回南控股公司”“文景屯”“怒江中心东”公交站点将分别更名为“彩塔·创新天地”“怒江公园西”及“怒江公园东”，原“加油站”临时站点将转正为“怒江商务港”站，敬请各位乘客留意。',
+        category: '公交运营',
+        showInBanner: true
+    },
+    {
+        title: '临东公交323路调整线路走向',
+        image: '--bus-color',
+        link: '/bus_routemap/index.html?route=323',
+        date: '2026-01-06',
+        summary: '临东公交323路调整在人杰湖片区及李家坎片区的线路走向，共新增4个站点，点击上方链接可查看具体线路走向。',
+        category: '公交运营',
+        showInBanner: false
+    },
+    {
+        title: '临东公交V102路即将停运',
+        image: '--bus-color',
+        link: '',
+        date: '2026-01-07',
+        summary: '临东公交V102路将于1月18日正式停运，乘客可乘坐251、323路等线路继续前往市区各站。',
+        category: '公交运营',
         showInBanner: false
     },
 ];
