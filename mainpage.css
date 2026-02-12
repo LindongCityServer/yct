@@ -343,6 +343,7 @@ main {
     justify-content: space-between;
 }
 
+/* 服务器状态样式 */
 .server-status {
     display: flex;
     align-items: center;
@@ -381,13 +382,75 @@ main {
     font-size: 0.9rem;
     line-height: 1.4;
     background-color: var(--background-color);
-    padding: 8px 12px;
+    padding: 6px;
     border-radius: 8px;
     margin-top: 4px;
 }
 
-.server-version {
+/* 新增的玩家列表样式 */
+.players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.player-entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.player-entry:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+.player-position {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 50px;
+}
+
+.coord-x, .coord-z {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.coord-x::before {
+    content: 'X: ';
     color: #999;
+}
+
+.coord-z::before {
+    content: 'Z: ';
+    color: #999;
+}
+
+.player-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.no-players {
+    color: var(--text-secondary);
+}
+
+.server-offline-message {
+    font-size: 0.9rem;
+}
+
+.server-version {
+    color: var(--text-secondary);
     font-size: 0.8rem;
 }
 
@@ -444,6 +507,20 @@ main {
     .join-btn img {
         width: 14px;
         height: 14px;
+    }
+    
+    /* 移动端玩家列表优化 */
+    .player-entry {
+        padding: 6px 10px;
+        gap: 8px;
+    }
+    
+    .player-position {
+        min-width: 40px;
+    }
+    
+    .coord-x, .coord-z {
+        font-size: 0.7rem;
     }
 }
 

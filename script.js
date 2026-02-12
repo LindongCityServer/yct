@@ -4,6 +4,87 @@ import { contentData } from './data/content_data.js';
 // 由于数据文件使用 const 声明，我们需要在这里重新导入并处理它们
 let metroLines, tramLines, localRailways;
 
+// 缓存标记点数据
+let cachedMarkers = null;
+
+// 异步加载标记点数据
+async function loadMarkersData() {
+    // 如果已有缓存，直接返回
+    if (cachedMarkers) {
+        return cachedMarkers;
+    }
+    
+    try {
+        // 直接加载本地标记点数据文件
+        const response = await fetch('./data/map_data/custom.markers.js');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const scriptContent = await response.text();
+        
+        // 创建安全执行环境
+        const sandbox = { UnminedCustomMarkers: null };
+        const func = new Function(`return (${scriptContent})`);
+        sandbox.UnminedCustomMarkers = func();
+        
+        // 验证数据结构
+        if (!sandbox.UnminedCustomMarkers || !Array.isArray(sandbox.UnminedCustomMarkers.markers)) {
+            throw new Error("数据格式错误：未找到markers数组");
+        }
+        
+        // 处理标记点数据
+        const markers = sandbox.UnminedCustomMarkers.markers.map(marker => ({
+            text: marker.text
+                ? marker.text
+                    .replace(/\n/g, '')          // 删除换行符
+                    .replace(/　/g, '')          // 删除全角空格
+                    .trim()                      // 移除首尾空格
+                : '',
+            x: marker.x,
+            z: marker.z,
+            image: marker.image
+        }));
+        
+        cachedMarkers = markers;
+        return markers;
+    } catch (error) {
+        console.error('加载标记点数据失败:', error);
+        throw error;
+    }
+}
+
+// 查找最近的标记点
+function findNearestMarker(playerX, playerZ, markers, maxDistance = 500) {
+    let nearestMarker = null;
+    let minDistance = maxDistance;
+    
+    markers.forEach(marker => {
+        const distance = Math.sqrt(
+            Math.pow(marker.x - playerX, 2) + 
+            Math.pow(marker.z - playerZ, 2)
+        );
+        
+        if (distance < minDistance) {
+            minDistance = distance;
+            nearestMarker = {
+                ...marker,
+                distance: distance
+            };
+        }
+    });
+    
+    return nearestMarker;
+}
+
+// 格式化标记点文本（去除换行符和全角空格）
+function formatMarkerText(text) {
+    if (!text) return '';
+    return text
+        .replace(/\n/g, '')      // 删除换行符
+        .replace(/　/g, '')      // 删除全角空格
+        .trim();                 // 移除首尾空格
+}
+
 // 异步加载数据文件
 async function loadTransportData() {
     try {
@@ -1101,7 +1182,6 @@ async function updateServerStatus() {
         .map(([name]) => name);
 
     if (missingRequired.length > 0) {
-        // 只在第一次检查时输出警告
         if (!window.hasLoggedMissingElements) {
             console.warn('Missing required server status elements:', missingRequired.join(', '));
             window.hasLoggedMissingElements = true;
@@ -1109,13 +1189,29 @@ async function updateServerStatus() {
         return;
     }
 
-    const SERVER_ADDRESS = 'router.cmsy.xyz';
-    const SERVER_PORT = '19132';
-    const API_URL = 'https://wiki.shangxiaoguan.top/api.php';
+    const API_URL = 'http://ld.cmsy.xyz:19136/api/getPlayerMarkers';
 
     try {
-        // 简化请求，移除可能导致问题的选项
-        const response = await fetch(`${API_URL}?action=lindongrequest&address=${SERVER_ADDRESS}&port=${SERVER_PORT}&format=json`, {
+        // 检查当前页面是否通过HTTPS访问
+        if (location.protocol === 'https:') {
+            // HTTPS环境下显示提示信息
+            requiredElements.statusIndicator.classList.remove('offline', 'online');
+            requiredElements.statusIndicator.classList.add('warning');
+            requiredElements.serverPlayers.textContent = 'HTTPS访问限制';
+            
+            if (optionalElements.serverMotd) {
+                optionalElements.serverMotd.innerHTML = `
+                    <div class="https-warning-message">
+                        <div class="warning-text">
+                            <p>此功能暂不支持HTTPS访问</p>
+                        </div>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        const response = await fetch(API_URL, {
             method: 'GET',
             mode: 'cors',
             headers: {
@@ -1123,37 +1219,96 @@ async function updateServerStatus() {
             }
         });
 
-        // 检查响应状态
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // 尝试解析 JSON
-        const data = await response.json();
+        const players = await response.json();
 
-        // 检查响应数据结构
-        if (!data || !data.lindongrequest) {
-            throw new Error('Invalid response format');
+        // 验证数据结构 - 新格式是玩家对象数组
+        if (!Array.isArray(players)) {
+            throw new Error('Invalid response format - expected array of player objects');
         }
 
-        const serverData = data.lindongrequest;
+        // 过滤有效的玩家数据
+        const validPlayers = players.filter(player => 
+            player && 
+            typeof player.text === 'string' && 
+            typeof player.x === 'number' && 
+            typeof player.z === 'number'
+        );
 
-        if (serverData.status === 'online') {
-            // 更新状态指示器
-            requiredElements.statusIndicator.classList.remove('offline');
+        // 更新状态指示器 - 区分有玩家和无玩家的情况
+        if (validPlayers.length > 0) {
+            requiredElements.statusIndicator.classList.remove('offline', 'warning');
             requiredElements.statusIndicator.classList.add('online');
-
+            
             // 更新在线人数
-            requiredElements.serverPlayers.textContent = `${serverData.online}/${serverData.max}`;
-
-            // 更新服务器信息
+            requiredElements.serverPlayers.textContent = `${validPlayers.length}人在线`;
+            
+            // 更新版本信息（这里可以显示API信息或其他相关内容）
+            //requiredElements.serverVersion.textContent = `玩家位置API | ${validPlayers.length}个活跃玩家`;
+            
+            // 更新玩家列表显示
             if (optionalElements.serverMotd) {
-                optionalElements.serverMotd.innerHTML = convertMinecraftColors(serverData.motd);
+                // 按玩家名字排序
+                const sortedPlayers = [...validPlayers].sort((a, b) => 
+                    a.text.localeCompare(b.text)
+                );
+                
+                // 使用已有的loadMarkersData函数加载标记点数据
+                loadMarkersData()
+                    .then(markers => {
+                        const playerList = sortedPlayers.map(player => {
+                            const nearestMarker = findNearestMarker(player.x, player.z, markers);
+                            const displayText = nearestMarker ? `${nearestMarker.text}附近` : `(${Math.round(player.x)} ${Math.round(player.z)})`;
+                            return `
+                                <div class="player-entry">
+                                    <span class="player-name">${player.text}</span>
+                                    <div class="player-position" title="坐标: (${Math.round(player.x)}, ${Math.round(player.z)})">
+                                        <span class="coord">${displayText}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                        
+                        optionalElements.serverMotd.innerHTML = `
+                            <div class="players-list">
+                                ${playerList}
+                            </div>
+                        `;
+                    }).catch(error => {
+                        console.error('Failed to load markers data:', error);
+                        // 如果加载失败，回退到只显示坐标的模式
+                        const playerList = sortedPlayers.map(player => `
+                            <div class="player-entry">
+                                <span class="player-name">${player.text}</span>
+                                <div class="player-position" title="坐标: (${Math.round(player.x)}, ${Math.round(player.z)})">
+                                    <span class="coord">${Math.round(player.x)} ${Math.round(player.z)}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                        
+                        optionalElements.serverMotd.innerHTML = `
+                            <div class="players-list">
+                                ${playerList}
+                            </div>
+                        `;
+                    });
+
             }
-            requiredElements.serverVersion.textContent = `游戏版本：${serverData.version} | 延迟：${serverData.delay}ms`;
         } else {
-            throw new Error('Server offline');
+            // 没有在线玩家，但仍显示服务器在线状态
+            requiredElements.statusIndicator.classList.remove('offline', 'warning');
+            requiredElements.statusIndicator.classList.add('online');
+            requiredElements.serverPlayers.textContent = '0人在线';
+            
+            // 显示无玩家提示
+            if (optionalElements.serverMotd) {
+                optionalElements.serverMotd.innerHTML = '<div class="no-players">当前无在线玩家</div>';
+            }
         }
+        
     } catch (error) {
         // 详细的错误日志
         console.error('服务器状态获取失败:', {
@@ -1162,16 +1317,34 @@ async function updateServerStatus() {
             stack: error.stack
         });
 
-        // 显示错误状态
-        requiredElements.statusIndicator.classList.remove('online');
+        // 显示错误状态 - 真正的连接失败
+        requiredElements.statusIndicator.classList.remove('online', 'warning');
         requiredElements.statusIndicator.classList.add('offline');
         requiredElements.serverPlayers.textContent = '离线';
+        
         if (optionalElements.serverMotd) {
-            optionalElements.serverMotd.textContent = '服务器当前不可用';
+            optionalElements.serverMotd.innerHTML = `
+                <div class="server-offline-message">
+                    服务器当前不可用
+                </div>
+            `;
         }
-        requiredElements.serverVersion.textContent = '';
+        
+        //requiredElements.serverVersion.textContent = '玩家位置API - 连接失败';
     }
 }
+
+// 添加切换到HTTP的函数
+window.switchToHttp = function() {
+    try {
+        const httpUrl = location.href.replace('https://', 'http://');
+        window.location.href = httpUrl;
+    } catch (error) {
+        console.error('切换到HTTP失败:', error);
+        // 如果自动切换失败，提示用户手动切换
+        alert('请手动将网址中的 https:// 改为 http:// 来访问此功能');
+    }
+};
 
 // 定期更新服务器状态（每5秒更新一次）
 function initServerStatus() {
@@ -1197,7 +1370,7 @@ function initServerStatus() {
                 retryCount++;
                 setTimeout(updateWithRetry, retryDelay);
             }
-        }
+}
     }
 
     updateWithRetry(); // 立即更新一次
