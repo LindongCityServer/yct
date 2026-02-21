@@ -46,6 +46,14 @@
                 <div class="scale-bar" style="border-bottom: 2px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #fff;"></div>
                 <div class="scale-text" style="color: #fff;">200格</div>
             </div>
+            <div class="zoom-controls">
+                <button class="icon-button zoom-button" id="zoom-in">
+                    <img src="/UI/res/plus_black.png" alt="放大">
+                </button>
+                <button class="icon-button zoom-button" id="zoom-out">
+                    <img src="/UI/res/minus_black.png" alt="缩小">
+                </button>
+            </div>
             <div class="pin-container">
                 <img src="/UI/res/map_pin.png" alt="Pin" class="pin">
                 <div class="pin-label">当前位置</div>
@@ -68,7 +76,7 @@
                     <option value="">全部分类</option>
                 </select>
             </div>
-            <div class="caption shorcut-container" style="display: inline-flex;flex-direction: row;align-items: center;padding: 0;">
+            <div class="caption shorcut-container" style="display: flex;flex-direction: row;flex-wrap: wrap;align-items: center;padding: 0;">
                 <div class="move-container" style="display: inline-flex; flex-direction: column; align-items: center;">
                     <div class="shortcut-key" style="margin-left: 0;">W</div>
                     <div style="display: flex; flex-direction: row; align-items: center;">
@@ -80,7 +88,12 @@
                 移动±10
                 <div class="shortcut-key" style="display: inline-flex;">Alt</div>
                 ±1<div class="shortcut-key" style="display: inline-flex;">Shift</div>
-                ±100
+                ±100，
+                <div>
+                    <div class="shortcut-key" style="margin-left: 0;">-</div>
+                    <div class="shortcut-key" style="margin-left: 0;">=</div>
+                    <span>或滚轮缩放</span>
+                </div>
             </div>
             <div class="caption no-results">
                 此处未被标记，可浏览以下周边标记点或<div class="add-new-point">申请新标记</div>

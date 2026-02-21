@@ -73,7 +73,6 @@
     --text-color-t: #1E3A8A;  /* 原#21497b优化 */
     --text-color-u: #9370DB;  /* 原#9a5cc6优化 */
     --text-color-v: #FF7F24;  /* 原#eb7114优化 */
-    --icon-filter: none; /* 默认值 */
     --logo-filter: none;
     /* 新增深色模式滤镜基础变量 */
     --dark-icon-base: invert(35%) sepia(100%) saturate(7000%) hue-rotate(160deg);
@@ -1155,6 +1154,38 @@ footer {
     background-color: var(--primary-color-hover);
 }
 
+/* 图标按钮样式 */
+.icon-button {
+    padding: 8px;
+    border: none;
+    border-radius: 30px;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.icon-button:hover {
+    background-color: var(--hover-background);
+}
+
+.icon-button:not(.fab) img {
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+    filter: var(--icon-filter);
+}
+
+.icon-button:hover img {
+    opacity: 1;
+}
+
+#back-to-home img {
+    filter: none;
+}
+
 .icon-button.fab {
     background-color: var(--primary-color);
     color: #fff;
@@ -1282,33 +1313,6 @@ footer {
 .toast-text {
     margin: 0;
     font-size: 14px;
-}
-
-/* 图标按钮样式 */
-.icon-button {
-    padding: 8px;
-    border: none;
-    border-radius: 30px;
-    background: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-
-.icon-button:hover {
-    background-color: var(--hover-background);
-}
-
-.icon-button img {
-    width: 24px;
-    height: 24px;
-    opacity: 0.7;
-}
-
-.icon-button:hover img {
-    opacity: 1;
 }
 
 /* 浮动工具栏样式 */

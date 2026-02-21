@@ -12,6 +12,16 @@ const contentData = [
         showInBanner: true
     },
     {
+        title: '服管会|发表|2025年|年度报告',
+        image: '../data/content_banner/25报告头图.png',
+        link: '/content/260215年度报告2025.html',
+        date: '2026-02-16',
+        releaseTime: '2026-02-15 18:00',
+        summary: '丙午蛇年到来之际，临东市服务器管理委员会通过互联网发表了临东市服务器2025年年度报告。',
+        category: '通知公告',
+        showInBanner: true
+    },
+    {
         title: '临东|地图|搜索|征集标记点',
         image: '../data/content_banner/市府广场-升旗台卫星图像.png',
         link: '/map_search',

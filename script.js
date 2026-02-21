@@ -16,7 +16,7 @@ async function loadMarkersData() {
     
     try {
         // 直接加载本地标记点数据文件
-        const response = await fetch('./data/map_data/custom.markers.js');
+        const response = await fetch('https://map.shangxiaoguan.top/custom.markers.js');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

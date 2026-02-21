@@ -4,6 +4,7 @@ let dragStartX, dragStartZ;
 let dragStartClientX, dragStartClientY;
 let isPreviewUpdateScheduled = false; // 添加缺失的变量定义
 let dragEndPreviewTimer = null; // 用于拖拽结束后延迟更新预览的定时器
+let zoomLevel = -1; // 当前缩放级别，默认为-2（1024方块/片）
 
 // 本地标记点存储键名
 const LOCAL_MARKERS_KEY = 'localMarkers';
@@ -68,7 +69,7 @@ function drag(event) {
     // 根据移动距离计算新的坐标
     // 鼠标/手指向右移动时，地图向左移动，显示更右边的内容（X坐标减少）
     // 鼠标/手指向下移动时，地图向上移动，显示更下边的内容（Z坐标减少）
-    const sensitivity = event.type === 'touchmove' ? 8 : 4; // 提高触屏灵敏度
+    const sensitivity = (event.type === 'touchmove' ? 2 : 1) * Math.pow(2, zoomLevel * -1); // 提高触屏灵敏度
     let newX = dragStartX - deltaX * sensitivity;
     let newZ = dragStartZ - deltaY * sensitivity;
     
@@ -166,7 +167,7 @@ async function fetchMarkersData() {
     if (cachedMarkers) return cachedMarkers;
     
     try {
-        const response = await fetch('/data/map_data/custom.markers.js');
+        const response = await fetch('https://map.shangxiaoguan.top/custom.markers.js');
         if (!response.ok) throw new Error(`HTTP错误: ${response.status}`);
         const scriptContent = await response.text();
         
@@ -356,9 +357,9 @@ function renderResults(results) {
     const resultContainer = document.querySelector('.search-result');
     resultContainer.innerHTML = '';
     
-    // 先显示前100个结果
-    const initialResults = results.slice(0, 100);
-    const remainingResults = results.slice(100);
+    // 先显示前10个结果
+    const initialResults = results.slice(0, 10);
+    const remainingResults = results.slice(10);
     
     // 如果有正在进行的延迟加载，清除它
     if (renderResults.timeoutId) {
@@ -430,6 +431,7 @@ function renderResults(results) {
             const teleportButton = item.querySelector('#teleport-button');
             teleportButton.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 navigator.clipboard.writeText(`/tp @s ${marker.x} ~ ${marker.z}`)
                     .then(() => {
                         showToast('传送指令已复制到剪贴板');
@@ -443,7 +445,7 @@ function renderResults(results) {
         });
     }
     
-    // 渲染前100个结果
+    // 渲染前10个结果
     renderMarkers(initialResults);
     
     // 1秒后渲染剩余结果
@@ -577,8 +579,8 @@ function doUpdatePreview() {
     }
     
     // 计算当前tile坐标
-    const tileX = Math.floor(x / 1024);
-    const tileZ = Math.floor(z / 1024);
+    const tileX = Math.floor(x / 256 / Math.pow(2, zoomLevel * -1));
+    const tileZ = Math.floor(z / 256 / Math.pow(2, zoomLevel * -1));
     
     // 需要加载的tile列表：当前及周围8个方向
     const tilesToLoad = [];
@@ -586,7 +588,8 @@ function doUpdatePreview() {
         for (let dz = -1; dz <= 1; dz++) {
             tilesToLoad.push({
                 x: tileX + dx,
-                z: tileZ + dz
+                z: tileZ + dz,
+                zoomLevel: zoomLevel
             });
         }
     }
@@ -613,7 +616,7 @@ function doUpdatePreview() {
     // 计算需要新增和需要移除的瓦片
     const tilesToLoadMap = new Map();
     tilesToLoad.forEach(tile => {
-        const key = `${tile.x},${tile.z}`;
+        const key = `${tile.x},${tile.z}@${tile.zoomLevel >= 0 ? `${Math.pow(2, tile.zoomLevel)}x` : `1/${Math.pow(2, -tile.zoomLevel)}x`}`;
         tilesToLoadMap.set(key, tile);
     });
     
@@ -625,22 +628,22 @@ function doUpdatePreview() {
     });
     
     // 更新所有图片的位置（包括已存在的和新加载的）
-    const updateImagePosition = (img, tx, tz) => {
+    const updateImagePosition = (img, tx, tz, zoomLevel) => {
         // 计算容器尺寸
         const containerWidth = previewContainer.offsetWidth;
         const containerHeight = previewContainer.offsetHeight;
         
         // 当前tile的地理左上角坐标
-        const tileLeftGeo = tx * 1024;
-        const tileTopGeo = tz * 1024;
+        const tileLeftGeo = tx * 256 * Math.pow(2, zoomLevel * -1);
+        const tileTopGeo = tz * 256 * Math.pow(2, zoomLevel * -1);
         
         // 用户坐标到当前tile左上角的偏移量（地理单位）
         const dxGeo = x - tileLeftGeo;
         const dzGeo = z - tileTopGeo;
         
-        // 转换为像素坐标（1像素=4地理单位）
-        const dxPixel = dxGeo / 4 - 128;
-        const dzPixel = dzGeo / 4 - 128;
+        // 转换为像素坐标（对于缩放等级-2，1像素=4地理单位）
+        const dxPixel = dxGeo / Math.pow(2, zoomLevel * -1) - 128;
+        const dzPixel = dzGeo / Math.pow(2, zoomLevel * -1) - 128;
         
         // 图片左上角相对于容器中心的偏移
         const imgLeft = containerWidth / 2 - dxPixel - img.width / 2;
@@ -660,7 +663,7 @@ function doUpdatePreview() {
     loadedTiles.forEach((img, key) => {
         if (tilesToLoadMap.has(key)) {
             const tile = tilesToLoadMap.get(key);
-            updateImagePosition(img, tile.x, tile.z);
+            updateImagePosition(img, tile.x, tile.z, tile.zoomLevel);
         }
     });
     
@@ -678,14 +681,14 @@ function doUpdatePreview() {
             // 计算路径
             const xDir = Math.floor(tx / 10);
             const zDir = Math.floor(tz / 10);
-            const imageUrl = `/data/map_data/tiles/zoom.-2/${xDir}/${zDir}/tile.${tx}.${tz}.jpeg`;
+            const imageUrl = `https://map.shangxiaoguan.top/tiles/zoom.${zoomLevel}/${xDir}/${zDir}/tile.${tx}.${tz}.jpeg`;
             
             const img = new Image();
             img.src = imageUrl;
             img.dataset.tileKey = key; // 添加标识
             
             img.onload = () => {
-                updateImagePosition(img, tx, tz);
+                updateImagePosition(img, tx, tz, tile.zoomLevel);
                 tileContainer.appendChild(img);
                 resolve(img);
             };
@@ -722,13 +725,61 @@ function doUpdatePreview() {
             }
         }
     }
+
+    const mapScale = previewContainer.querySelector('.map-scale');
+    if (mapScale) {
+        const scaleBar = mapScale.querySelector('.scale-bar');
+        const scaleText = mapScale.querySelector('.scale-text');
+        switch (zoomLevel) {
+            case 2: 
+                scaleText.textContent = '10格';
+                scaleBar.style.width = '40px';
+                break;
+            case 1: 
+                scaleText.textContent = '20格';
+                scaleBar.style.width = '40px';
+                break;
+            case 0: 
+                scaleText.textContent = '50格';
+                scaleBar.style.width = '50px';
+                break;
+            case -1: 
+                scaleText.textContent = '100格';
+                scaleBar.style.width = '50px';
+                break;
+            case -2: 
+                scaleText.textContent = '200格';
+                scaleBar.style.width = '50px';
+                break;
+            case -3: 
+                scaleText.textContent = '500格';
+                scaleBar.style.width = '62.5px';
+                break;
+            case -4: 
+                scaleText.textContent = '1000格';
+                scaleBar.style.width = '62.5px';
+                break;
+            case -5: 
+                scaleText.textContent = '2000格';
+                scaleBar.style.width = '62.5px';
+                break;
+            case -6: 
+                scaleText.textContent = '5000格';
+                scaleBar.style.width = '78.125px';
+                break;
+            default:
+                scaleText.textContent = '1格';
+                scaleBar.style.width = '8px';
+                break;
+        }
+    }
     
     Promise.all(promises).then(() => {
         // 显示加载完成状态
         tileContainer.style.display = 'block';
         
-        // 更新map-scale和preview-footer的颜色
-        updateMapElementsContrast(previewContainer);
+        // 更新map-scale和preview-footer的颜色（目前因跨域问题暂无法启用）
+        //updateMapElementsContrast(previewContainer);
     });
 }
 
@@ -853,11 +904,34 @@ const previewContainer = document.querySelector('.preview-container');
 previewContainer.addEventListener('mousedown', startDrag);
 previewContainer.addEventListener('touchstart', startDrag, { passive: false });
 
+// 添加缩放按钮事件监听器
+document.getElementById('zoom-in').addEventListener('click', handleZoomIn);
+document.getElementById('zoom-out').addEventListener('click', handleZoomOut);
+document.querySelector('.preview-container').addEventListener('wheel', function(e) {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+        handleZoomIn();
+    } else {
+        handleZoomOut();
+    }
+});
+
+function handleZoomIn() {
+    zoomLevel = Math.min(zoomLevel + 1, 2);
+    updatePreview();
+}
+
+function handleZoomOut() {
+    zoomLevel = Math.max(zoomLevel - 1, -6);
+    updatePreview();
+}
+
 const imageBtn = document.getElementById('image-btn');
 imageBtn.addEventListener('click', async () => {
     const locationName = document.querySelector('.search-item.selected .search-item-name');
     if (locationName) {
-        await savePreviewImage(locationName.textContent);
+        showToast('暂不支持该功能，可长按或右键地图保存对应图像');
+        //await savePreviewImage(locationName.textContent);
     }
 });
 
@@ -867,7 +941,7 @@ document.getElementById('share-btn').addEventListener('click', () => {
     const query = document.getElementById('search-input').value.trim(); // 获取当前搜索词
 
     const urlBase = window.location.href.split('?')[0];
-    let url = `${urlBase}?x=${x}&z=${z}`;
+    let url = `${urlBase}?x=${x}&z=${z}&zoom=${zoomLevel}`; // 添加缩放等级参数
     if (query) {
         url += `&q=${encodeURIComponent(query)}`; // 添加关键词参数
     }
@@ -902,6 +976,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const zParam = parseFloat(urlParams.get('z'));
     const queryParam = urlParams.get('q'); // 新增：获取关键词参数
     const categoryParam = urlParams.get('cat'); // 新增：获取分类参数
+    const zoomParam = parseInt(urlParams.get('zoom')); // 新增：获取缩放等级参数
 
     // 优先使用URL参数覆盖默认值
     if (!isNaN(xParam)) xInput.value = xParam;
@@ -910,6 +985,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ✅ 新增：如果坐标由URL参数设置，则不标记为手动输入
     if (urlParams.has('x') || urlParams.has('z')) {
         isCoordinatesEdited = false; // 重置为非手动输入
+    }
+
+    if (!isNaN(zoomParam)) { // 新增：处理缩放等级参数
+        zoomLevel = zoomParam;
+        updatePreview();
     }
 
     // 触发输入事件以更新预览
@@ -1286,6 +1366,8 @@ function processMovement(event) {
     const isAPressed = keysPressed.has('a');
     const isSPressed = keysPressed.has('s');
     const isDPressed = keysPressed.has('d');
+    const isMinusPressed = keysPressed.has('-') || keysPressed.has('_');
+    const isPlusPressed = keysPressed.has('=') || keysPressed.has('+');
     
     // 计算移动方向
     let moved = false;
@@ -1327,6 +1409,9 @@ function processMovement(event) {
         // 阻止默认行为（如页面滚动）
         event.preventDefault();
     }
+
+    if (isPlusPressed) handleZoomIn();
+    if (isMinusPressed) handleZoomOut();
 }
 
 function updateURLCategory(category) {
@@ -1347,6 +1432,8 @@ async function savePreviewImage(name) {
     const pinLabel = document.querySelector('.pin-label');
     const previewFooter = document.querySelector('.preview-footer');
     const locationDistance = document.querySelector('.search-item.selected .search-item-coordinate').textContent.match(/\d+/)[0];
+    const zoomControls = document.querySelector('.zoom-controls');
+    zoomControls.style.display = 'none'; // 隐藏缩放控件以避免出现在截图中
     //console.log(locationDistance);
     if (locationDistance == 0) {
         pinLabel.style.color = 'white';
@@ -1368,6 +1455,7 @@ async function savePreviewImage(name) {
         pinLabel.style.color = 'transparent';
         previewFooter.style.display = 'none';
         pinLabel.style.textShadow = 'none';
+        zoomControls.style.display = 'flex';
     }
 }
 
