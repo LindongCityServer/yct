@@ -905,8 +905,13 @@ previewContainer.addEventListener('mousedown', startDrag);
 previewContainer.addEventListener('touchstart', startDrag, { passive: false });
 
 // 添加缩放按钮事件监听器
-document.getElementById('zoom-in').addEventListener('click', handleZoomIn);
-document.getElementById('zoom-out').addEventListener('click', handleZoomOut);
+const zoomButtons = document.querySelectorAll('.zoom-button');
+if (zoomButtons.length > 0) { 
+    document.getElementById('zoom-in').addEventListener('click', handleZoomIn);
+    document.getElementById('zoom-in').addEventListener('touchstart', handleZoomIn, { passive: false });
+    document.getElementById('zoom-out').addEventListener('click', handleZoomOut);
+    document.getElementById('zoom-out').addEventListener('touchstart', handleZoomOut, { passive: false });
+}
 document.querySelector('.preview-container').addEventListener('wheel', function(e) {
     e.preventDefault();
     if (e.deltaY < 0) {
@@ -927,13 +932,14 @@ function handleZoomOut() {
 }
 
 const imageBtn = document.getElementById('image-btn');
-imageBtn.addEventListener('click', async () => {
-    const locationName = document.querySelector('.search-item.selected .search-item-name');
-    if (locationName) {
-        showToast('暂不支持该功能，可长按或右键地图保存对应图像');
-        //await savePreviewImage(locationName.textContent);
-    }
-});
+if (imageBtn) { 
+    imageBtn.addEventListener('click', async () => {
+        const locationName = document.querySelector('.search-item.selected .search-item-name');
+        if (locationName) {
+            await savePreviewImage(locationName.textContent);
+        }
+    });
+}
 
 document.getElementById('share-btn').addEventListener('click', () => {
     const x = document.getElementById('coordinates-x').value;
@@ -1434,22 +1440,35 @@ async function savePreviewImage(name) {
     const locationDistance = document.querySelector('.search-item.selected .search-item-coordinate').textContent.match(/\d+/)[0];
     const zoomControls = document.querySelector('.zoom-controls');
     zoomControls.style.display = 'none'; // 隐藏缩放控件以避免出现在截图中
-    //console.log(locationDistance);
+    
     if (locationDistance == 0) {
         pinLabel.style.color = 'white';
         pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
     }
     previewFooter.style.display = 'flex';
-    html2canvas(previewContainer, {
-        backgroundColor: 'transparent',
-        lineHeight: 1,
-    }).then(canvas => {        
+    
+    try {
+        const canvas = await html2canvas(previewContainer, {
+            backgroundColor: 'transparent',
+            lineHeight: 1,
+            useCORS: true, // 启用CORS支持以处理跨域图片
+            allowTaint: false, // 禁止污染，确保图片能正确加载
+            scale: 2, // 提高截图质量
+            logging: false // 减少控制台输出
+        });
+        
         const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = imgData;
-        link.download = `${name}${locationDistance > 0?'附近':''}卫星图像.png`;
+        link.download = `${name}${locationDistance > 0?'附近':''}卫星图像`;
         link.click();
-    });
+        
+        console.log('图片保存成功');
+    } catch (error) {
+        console.error('截图保存失败:', error);
+        showToast('图片保存失败，请重试', 'error');
+    }
+    
     // 不对map.html执行以下代码
     if (window.location.href.indexOf('map.html') === -1) {
         pinLabel.style.color = 'transparent';
