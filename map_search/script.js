@@ -147,11 +147,12 @@ function drag(event) {
     // 标记为手动修改
     isCoordinatesEdited = true;
     
-    // 延迟更新预览，提高拖拽流畅度
+    // 优化：适度的实时预览更新，平衡性能和用户体验
     if (!isPreviewUpdateScheduled) {
         isPreviewUpdateScheduled = true;
         requestAnimationFrame(() => {
-            updatePreview();
+            // 拖拽过程中也更新预览，但使用更低的更新频率
+            updatePreview(true); // 传入参数表示这是拖拽更新
             triggerSearch();
             isPreviewUpdateScheduled = false;
         });
@@ -517,6 +518,9 @@ function renderResults(results) {
             
             // 刷新 tile-container
             updatePreview();
+            
+            // 触发自定义事件通知瓦片清理
+            window.dispatchEvent(new CustomEvent('searchResultsComplete'));
         }, 1000);
     }
 
@@ -601,13 +605,20 @@ function isManualInput() {
 // 防抖函数，用于限制updatePreview的调用频率
 let previewUpdateTimer = null;
 let lastUpdatePreviewCall = 0;
-const previewUpdateDelay = 16; // 约60FPS
+const previewUpdateDelay = 24; // 调整为24ms，约42FPS，在性能和流畅性之间取得平衡
 
-function updatePreview() {
+
+function updatePreview(isDragUpdate = false) {
     const now = Date.now();
     
+    // 性能监控：记录执行时间
+    const startTime = performance.now();
+    
+    // 拖拽更新使用更宽松的限制，普通更新使用严格限制
+    const effectiveDelay = isDragUpdate ? 64 : previewUpdateDelay; // 拖拽时64ms，普通时32ms
+    
     // 如果距离上次调用时间很短，则推迟执行
-    if (now - lastUpdatePreviewCall < previewUpdateDelay) {
+    if (now - lastUpdatePreviewCall < effectiveDelay || isZooming) {
         // 清除之前的定时器
         if (previewUpdateTimer) {
             clearTimeout(previewUpdateTimer);
@@ -615,7 +626,7 @@ function updatePreview() {
         
         // 设置新的定时器
         previewUpdateTimer = setTimeout(() => {
-            doUpdatePreview();
+            doUpdatePreview(isDragUpdate);
             lastUpdatePreviewCall = Date.now();
         }, previewUpdateDelay - (now - lastUpdatePreviewCall));
         
@@ -668,6 +679,8 @@ function doUpdatePreview() {
     const loadedTiles = new Map();
     const images = tileContainer.querySelectorAll('img');
     images.forEach(img => {
+        img.style.position = 'relative';
+        img.style.opacity = 0;
         const key = img.dataset.tileKey;
         if (key) {
             loadedTiles.set(key, img);
@@ -714,6 +727,7 @@ function doUpdatePreview() {
         img.style.position = 'absolute';
         img.style.left = `${imgLeft}px`;
         img.style.top = `${imgTop}px`;
+        img.style.opacity = 1;
         
         // 防止图片被截断
         img.style.maxWidth = 'none';
