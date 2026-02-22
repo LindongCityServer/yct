@@ -4,10 +4,71 @@ let dragStartX, dragStartZ;
 let dragStartClientX, dragStartClientY;
 let isPreviewUpdateScheduled = false; // 添加缺失的变量定义
 let dragEndPreviewTimer = null; // 用于拖拽结束后延迟更新预览的定时器
-let zoomLevel = -1; // 当前缩放级别，默认为-2（1024方块/片）
+let zoomLevel = -1; // 当前缩放级别，默认为-1
+let isZooming = false;
+let initialPinchDistance = 0; // 双指初始距离
+let currentPinchDistance = 0; // 双指当前距离
+let initialZoomLevel = 0; // 初始缩放级别
 
 // 本地标记点存储键名
 const LOCAL_MARKERS_KEY = 'localMarkers';
+
+// 计算两点间距离
+function getDistance(touch1, touch2) {
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// 开始缩放
+function startZoom(event) {
+    if (event.touches && event.touches.length >= 2) {
+        isZooming = true;
+        initialPinchDistance = getDistance(event.touches[0], event.touches[1]);
+        initialZoomLevel = zoomLevel;
+        event.preventDefault();
+        
+        // 添加触摸移动和结束事件监听器
+        document.addEventListener('touchmove', handlePinch, { passive: false });
+        document.addEventListener('touchend', stopZoom, { passive: false });
+        document.addEventListener('touchcancel', stopZoom, { passive: false });
+    }
+}
+
+// 处理双指捏合缩放
+function handlePinch(event) {
+    if (!isZooming || event.touches.length < 2) return;
+    
+    currentPinchDistance = getDistance(event.touches[0], event.touches[1]);
+    
+    // 计算缩放比例
+    const scaleRatio = currentPinchDistance / initialPinchDistance;
+    
+    // 根据缩放比例调整缩放级别
+    // 使用对数计算使缩放更平滑
+    const zoomDelta = Math.log2(scaleRatio);
+    if (zoomDelta > 0) {
+        handleZoomIn(zoomDelta);
+    } else {
+        handleZoomOut(zoomDelta);
+    }
+    
+    event.preventDefault();
+}
+
+// 停止缩放
+function stopZoom() {
+    if (!isZooming) return;
+    isZooming = false;
+    initialPinchDistance = 0;
+    currentPinchDistance = 0;
+    updatePreview();
+    
+    // 移除事件监听器
+    document.removeEventListener('touchmove', handlePinch);
+    document.removeEventListener('touchend', stopZoom);
+    document.removeEventListener('touchcancel', stopZoom);
+}
 
 // 开始拖拽
 function startDrag(event) {
@@ -733,39 +794,39 @@ function doUpdatePreview() {
         switch (zoomLevel) {
             case 2: 
                 scaleText.textContent = '10格';
-                scaleBar.style.width = '40px';
+                setTimeout(() => { scaleBar.style.width = '40px'; }, 200);
                 break;
             case 1: 
                 scaleText.textContent = '20格';
-                scaleBar.style.width = '40px';
+                setTimeout(() => { scaleBar.style.width = '40px'; }, 200);
                 break;
             case 0: 
                 scaleText.textContent = '50格';
-                scaleBar.style.width = '50px';
+                setTimeout(() => { scaleBar.style.width = '50px'; }, 200);
                 break;
             case -1: 
                 scaleText.textContent = '100格';
-                scaleBar.style.width = '50px';
+                setTimeout(() => { scaleBar.style.width = '50px'; }, 200);
                 break;
             case -2: 
                 scaleText.textContent = '200格';
-                scaleBar.style.width = '50px';
+                setTimeout(() => { scaleBar.style.width = '50px'; }, 200);
                 break;
             case -3: 
                 scaleText.textContent = '500格';
-                scaleBar.style.width = '62.5px';
+                setTimeout(() => { scaleBar.style.width = '62.5px'; }, 200);
                 break;
             case -4: 
                 scaleText.textContent = '1000格';
-                scaleBar.style.width = '62.5px';
+                setTimeout(() => { scaleBar.style.width = '62.5px'; }, 200);
                 break;
             case -5: 
                 scaleText.textContent = '2000格';
-                scaleBar.style.width = '62.5px';
+                setTimeout(() => { scaleBar.style.width = '62.5px'; }, 200);
                 break;
             case -6: 
                 scaleText.textContent = '5000格';
-                scaleBar.style.width = '78.125px';
+                setTimeout(() => { scaleBar.style.width = '78.125px'; }, 200);
                 break;
             default:
                 scaleText.textContent = '1格';
@@ -902,7 +963,25 @@ document.getElementById('coordinates-z').addEventListener('input', function() {
 // 添加拖拽事件监听器
 const previewContainer = document.querySelector('.preview-container');
 previewContainer.addEventListener('mousedown', startDrag);
-previewContainer.addEventListener('touchstart', startDrag, { passive: false });
+previewContainer.addEventListener('touchstart', (event) => {
+    // 区分拖拽和缩放
+    if (event.touches && event.touches.length >= 2) {
+        // 双指触摸 - 缩放
+        event.preventDefault();
+        startZoom(event);
+    } else if (event.touches && event.touches.length === 1) {
+        // 单指触摸 - 拖拽
+        event.preventDefault();
+        startDrag(event);
+    }
+}, { passive: false });
+
+// 防止双指触摸时的页面缩放
+previewContainer.addEventListener('touchmove', (event) => {
+    if (event.touches && event.touches.length >= 2) {
+        event.preventDefault();
+    }
+}, { passive: false });
 
 // 添加缩放按钮事件监听器
 const zoomButtons = document.querySelectorAll('.zoom-button');
@@ -922,13 +1001,55 @@ document.querySelector('.preview-container').addEventListener('wheel', function(
 });
 
 function handleZoomIn() {
+    const oldZoomLevel = zoomLevel;
     zoomLevel = Math.min(zoomLevel + 1, 2);
-    updatePreview();
+    
+    try {
+        // 尝试更新缩放条宽度
+        const scaleBar = document.querySelector('.scale-bar');
+        if (scaleBar) {
+            const scaleBarWidth = scaleBar.offsetWidth;
+            scaleBar.style.width = `${scaleBarWidth * 1.1}px`;
+        }
+        
+        // 更新预览
+        updatePreview();
+        
+        // 提供用户反馈
+        showToast(`缩放级别: ${zoomLevel >= 0 ? zoomLevel : `1/${Math.pow(2, -zoomLevel)}`}`, 1000);
+        
+    } catch (error) {
+        console.warn('缩放操作遇到跨域限制:', error);
+        // 回滚缩放级别
+        zoomLevel = oldZoomLevel;
+        showToast('缩放操作受限，但仍可继续使用地图功能', 3000);
+    }
 }
 
 function handleZoomOut() {
+    const oldZoomLevel = zoomLevel;
     zoomLevel = Math.max(zoomLevel - 1, -6);
-    updatePreview();
+    
+    try {
+        // 尝试更新缩放条宽度
+        const scaleBar = document.querySelector('.scale-bar');
+        if (scaleBar) {
+            const scaleBarWidth = scaleBar.offsetWidth;
+            scaleBar.style.width = `${scaleBarWidth * 0.9}px`;
+        }
+        
+        // 更新预览
+        updatePreview();
+        
+        // 提供用户反馈
+        showToast(`缩放级别: ${zoomLevel >= 0 ? zoomLevel : `1/${Math.pow(2, -zoomLevel)}`}`, 1000);
+        
+    } catch (error) {
+        console.warn('缩放操作遇到跨域限制:', error);
+        // 回滚缩放级别
+        zoomLevel = oldZoomLevel;
+        showToast('缩放操作受限，但仍可继续使用地图功能', 3000);
+    }
 }
 
 const imageBtn = document.getElementById('image-btn');
