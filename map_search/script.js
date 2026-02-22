@@ -198,8 +198,16 @@ function adjustPreviewLayout() {
     const preview = document.querySelector('.preview-container');
     const tileContainer = preview.querySelector('.tile-container');
     if (tileContainer) {
+        tileContainer.querySelectorAll('img').forEach(img => {
+            img.style.transition = 'all 0.3s ease-in-out';
+        });
         // 重新计算图片位置
         updatePreview();
+        setTimeout(() => {
+            tileContainer.querySelectorAll('img').forEach(img => {
+                img.style.transition = '';
+            });
+        }, 100);
     }
 }
 
@@ -1000,9 +1008,9 @@ previewContainer.addEventListener('touchmove', (event) => {
 // 添加缩放按钮事件监听器
 const zoomButtons = document.querySelectorAll('.zoom-button');
 if (zoomButtons.length > 0) { 
-    document.getElementById('zoom-in').addEventListener('click', handleZoomIn);
+    document.getElementById('zoom-in').addEventListener('mousedown', handleZoomIn);
     document.getElementById('zoom-in').addEventListener('touchstart', handleZoomIn, { passive: false });
-    document.getElementById('zoom-out').addEventListener('click', handleZoomOut);
+    document.getElementById('zoom-out').addEventListener('mousedown', handleZoomOut);
     document.getElementById('zoom-out').addEventListener('touchstart', handleZoomOut, { passive: false });
 }
 document.querySelector('.preview-container').addEventListener('wheel', function(e) {
@@ -1016,21 +1024,27 @@ document.querySelector('.preview-container').addEventListener('wheel', function(
 
 function handleZoomIn() {
     const oldZoomLevel = zoomLevel;
-    zoomLevel = Math.min(zoomLevel + 1, 2);
-    
     try {
+    
         // 尝试更新缩放条宽度
         const scaleBar = document.querySelector('.scale-bar');
         if (scaleBar) {
             const scaleBarWidth = scaleBar.offsetWidth;
             scaleBar.style.width = `${scaleBarWidth * 1.1}px`;
         }
+        zoomLevel = zoomLevel + 1;
+        if (zoomLevel > 2) {
+            zoomLevel = 2;
+            showToast('已到达最大缩放级别', 1000);
+            updatePreview();
+            return;
+        }
         
         // 更新预览
         updatePreview();
         
         // 提供用户反馈
-        showToast(`缩放级别: ${zoomLevel >= 0 ? zoomLevel : `1/${Math.pow(2, -zoomLevel)}`}`, 1000);
+        //showToast('缩放级别: ' + (zoomLevel >= 0 ? '' : '1/') + Math.pow(2, Math.abs(zoomLevel)) + 'x', 1000);
         
     } catch (error) {
         console.warn('缩放操作遇到跨域限制:', error);
@@ -1042,7 +1056,6 @@ function handleZoomIn() {
 
 function handleZoomOut() {
     const oldZoomLevel = zoomLevel;
-    zoomLevel = Math.max(zoomLevel - 1, -6);
     
     try {
         // 尝试更新缩放条宽度
@@ -1051,12 +1064,19 @@ function handleZoomOut() {
             const scaleBarWidth = scaleBar.offsetWidth;
             scaleBar.style.width = `${scaleBarWidth * 0.9}px`;
         }
+        zoomLevel = zoomLevel - 1;
+        if (zoomLevel < -6) {
+            zoomLevel = -6;
+            showToast('已到达最小缩放级别', 1000);
+            updatePreview();
+            return;
+        }
         
         // 更新预览
         updatePreview();
         
         // 提供用户反馈
-        showToast(`缩放级别: ${zoomLevel >= 0 ? zoomLevel : `1/${Math.pow(2, -zoomLevel)}`}`, 1000);
+        //showToast('缩放级别: ' + (zoomLevel >= 0 ? '' : '1/') + Math.pow(2, Math.abs(zoomLevel)) + 'x', 1000);
         
     } catch (error) {
         console.warn('缩放操作遇到跨域限制:', error);
