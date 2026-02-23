@@ -9,6 +9,7 @@ let isZooming = false;
 let initialPinchDistance = 0; // 双指初始距离
 let currentPinchDistance = 0; // 双指当前距离
 let initialZoomLevel = 0; // 初始缩放级别
+let lastZoomDelta = 0; // 上一次的缩放增量，用于检测变化
 
 // 本地标记点存储键名
 const LOCAL_MARKERS_KEY = 'localMarkers';
@@ -26,6 +27,7 @@ function startZoom(event) {
         isZooming = true;
         initialPinchDistance = getDistance(event.touches[0], event.touches[1]);
         initialZoomLevel = zoomLevel;
+        lastZoomDelta = 0; // 重置上一次的缩放增量
         event.preventDefault();
         
         // 添加触摸移动和结束事件监听器
@@ -46,11 +48,25 @@ function handlePinch(event) {
     
     // 根据缩放比例调整缩放级别
     // 使用对数计算使缩放更平滑
-    const zoomDelta = Math.log2(scaleRatio);
-    if (zoomDelta > 0) {
-        handleZoomIn(zoomDelta);
-    } else {
-        handleZoomOut(zoomDelta);
+    const zoomDelta = Math.round(Math.log2(scaleRatio) * 1.5);
+    
+    // 只有当zoomDelta发生变化时才触发缩放
+    if (zoomDelta !== lastZoomDelta) {
+        const deltaChange = zoomDelta - lastZoomDelta;
+        
+        if (deltaChange > 0) {
+            handleZoomIn();
+            if (navigator.vibrate) {
+                navigator.vibrate(50); // 跨越整数级别时震动反馈
+            }
+        } else if (deltaChange < 0) {
+            handleZoomOut();
+            if (navigator.vibrate) {
+                navigator.vibrate(50); // 跨越整数级别时震动反馈
+            }
+        }
+        
+        lastZoomDelta = zoomDelta; // 更新上一次的缩放增量
     }
     
     event.preventDefault();
@@ -62,7 +78,7 @@ function stopZoom() {
     isZooming = false;
     initialPinchDistance = 0;
     currentPinchDistance = 0;
-    updatePreview();
+    //updatePreview();
     
     // 移除事件监听器
     document.removeEventListener('touchmove', handlePinch);
@@ -78,19 +94,21 @@ function startDrag(event) {
     
     isDragging = true;
     // 处理鼠标和触屏事件
-    if (event.type === 'touchstart' && event.touches.length > 0) {
-        dragStartClientX = event.touches[0].clientX;
-        dragStartClientY = event.touches[0].clientY;
-    } else if (event.type === 'mousedown') {
-        dragStartClientX = event.clientX;
-        dragStartClientY = event.clientY;
-    } else {
-        return; // 其他情况不处理
+    let clientX, clientY;
+    if (event.type === 'mousedown') {
+        clientX = event.clientX;
+        clientY = event.clientY;
+    } else if (event.type === 'touchstart') {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
     }
     
     // 获取当前坐标
     const xInput = document.getElementById('coordinates-x');
     const zInput = document.getElementById('coordinates-z');
+    // 记录起始坐标
+    dragStartClientX = clientX;
+    dragStartClientY = clientY;
     dragStartX = parseFloat(xInput.value);
     dragStartZ = parseFloat(zInput.value);
     
@@ -1023,67 +1041,52 @@ document.querySelector('.preview-container').addEventListener('wheel', function(
 });
 
 function handleZoomIn() {
-    const oldZoomLevel = zoomLevel;
-    try {
     
-        // 尝试更新缩放条宽度
-        const scaleBar = document.querySelector('.scale-bar');
-        if (scaleBar) {
-            const scaleBarWidth = scaleBar.offsetWidth;
-            scaleBar.style.width = `${scaleBarWidth * 1.1}px`;
-        }
-        zoomLevel = zoomLevel + 1;
-        if (zoomLevel > 2) {
-            zoomLevel = 2;
-            showToast('已到达最大缩放级别', 1000);
-            updatePreview();
-            return;
-        }
-        
-        // 更新预览
-        updatePreview();
-        
-        // 提供用户反馈
-        //showToast('缩放级别: ' + (zoomLevel >= 0 ? '' : '1/') + Math.pow(2, Math.abs(zoomLevel)) + 'x', 1000);
-        
-    } catch (error) {
-        console.warn('缩放操作遇到跨域限制:', error);
-        // 回滚缩放级别
-        zoomLevel = oldZoomLevel;
-        showToast('缩放操作受限，但仍可继续使用地图功能', 3000);
+    // 尝试更新缩放条宽度
+    const scaleBar = document.querySelector('.scale-bar');
+    if (scaleBar) {
+        const scaleBarWidth = scaleBar.offsetWidth;
+        scaleBar.style.width = `${scaleBarWidth * 1.1}px`;
     }
+    zoomLevel = zoomLevel + 1;
+    if (zoomLevel > 2) {
+        zoomLevel = 2;
+        showToast('已到达最大缩放级别', 1000);
+        updatePreview();
+        return;
+    }
+    
+    // 更新预览
+    updatePreview();
+    
+    // 提供用户反馈
+    //showToast('缩放级别: ' + (zoomLevel >= 0 ? '' : '1/') + Math.pow(2, Math.abs(zoomLevel)) + 'x', 1000);
+        
+    
 }
 
 function handleZoomOut() {
-    const oldZoomLevel = zoomLevel;
-    
-    try {
-        // 尝试更新缩放条宽度
-        const scaleBar = document.querySelector('.scale-bar');
-        if (scaleBar) {
-            const scaleBarWidth = scaleBar.offsetWidth;
-            scaleBar.style.width = `${scaleBarWidth * 0.9}px`;
-        }
-        zoomLevel = zoomLevel - 1;
-        if (zoomLevel < -6) {
-            zoomLevel = -6;
-            showToast('已到达最小缩放级别', 1000);
-            updatePreview();
-            return;
-        }
-        
-        // 更新预览
-        updatePreview();
-        
-        // 提供用户反馈
-        //showToast('缩放级别: ' + (zoomLevel >= 0 ? '' : '1/') + Math.pow(2, Math.abs(zoomLevel)) + 'x', 1000);
-        
-    } catch (error) {
-        console.warn('缩放操作遇到跨域限制:', error);
-        // 回滚缩放级别
-        zoomLevel = oldZoomLevel;
-        showToast('缩放操作受限，但仍可继续使用地图功能', 3000);
+    // 尝试更新缩放条宽度
+    const scaleBar = document.querySelector('.scale-bar');
+    if (scaleBar) {
+        const scaleBarWidth = scaleBar.offsetWidth;
+        scaleBar.style.width = `${scaleBarWidth * 0.9}px`;
     }
+    zoomLevel = zoomLevel - 1;
+    if (zoomLevel < -6) {
+        zoomLevel = -6;
+        showToast('已到达最小缩放级别', 1000);
+        updatePreview();
+        return;
+    }
+    
+    // 更新预览
+    updatePreview();
+    
+    // 提供用户反馈
+    //showToast('缩放级别: ' + (zoomLevel >= 0 ? '' : '1/') + Math.pow(2, Math.abs(zoomLevel)) + 'x', 1000);
+        
+    
 }
 
 const imageBtn = document.getElementById('image-btn');
