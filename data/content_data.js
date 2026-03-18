@@ -9,7 +9,7 @@ const contentData = [
         expireDate: '2026-02-24',
         summary: '临东市服务器管理委员会祝各位在新春佳节心有所悦、业有所成！',
         category: '通知公告',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '服管会|发表|2025年|年度报告',
@@ -291,7 +291,7 @@ const contentData = [
         date: '2026-01-06',
         summary: '为顺应李家坎片区发展，原“回南控股公司”“文景屯”“怒江中心东”公交站点将分别更名为“彩塔·创新天地”“怒江公园西”及“怒江公园东”，原“加油站”临时站点将转正为“怒江商务港”站，敬请各位乘客留意。',
         category: '公交运营',
-        showInBanner: true
+        showInBanner: false
     },
     {
         title: '临东公交323路调整线路走向',
@@ -311,6 +311,15 @@ const contentData = [
         category: '公交运营',
         showInBanner: false
     },
+	{
+		title: '临东|大学|片区|公交|站点调整',
+		image: '--bus-color',
+		link: '',
+		date: '2026-03-18',
+		summary: '为顺应临东大学片区发展，原“临东大学西门”“大学里”“临东交通大学”公交站点将分别更名为“平山隧道北”“临东大学西门”及“临东大学北门”，原“大学城地铁站”站点取消。251路增设“临东大学北门”站，原“沙海绿洲”站取消。本次更名以线路为单位推进，由于部分站点更名涉及线路较多，更新期间存在同一站点不同线路更名不同步，期间可能出现站牌、报站信息暂不一致的情况。由此给广大乘客带来的不便，敬请谅解。',
+		category: '公交运营',
+		showInBanner: true
+	},
 ];
 
 // 导出数据

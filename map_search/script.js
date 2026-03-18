@@ -499,7 +499,7 @@ function renderResults(results) {
             }
             
             // 点击事件处理
-            item.addEventListener('click', function(e) {
+            item.addEventListener('click', async function(e) {
                 // 移除所有选中项
                 const allItems = document.querySelectorAll('.search-item');
                 allItems.forEach(item => item.classList.remove('selected'));
@@ -510,7 +510,12 @@ function renderResults(results) {
                 // 更新输入框和预览
                 document.getElementById('coordinates-x').value = marker.x;
                 document.getElementById('coordinates-z').value = marker.z;
-                updatePreview();
+                
+                // 处理道路路径显示
+                // 如果不是道路点，则正常更新预览
+                if (!marker.image.includes('road') && !marker.image.includes('highway-')) {
+                    updatePreview();
+                } else await handleRoadPathDisplay(marker);
 
                 // 重新触发搜索以重新排序
                 triggerSearch();
