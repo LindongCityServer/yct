@@ -15,21 +15,21 @@ function handleRoadPathDisplay(marker) {
         // 根据marker.x和marker.z创建路径
         path.push([marker.x, marker.z]);
     });
-    displayPath(path);
+    displayPath(path, marker.image.includes('highway-')?marker.image:marker.text);
 }
 
-function getRoadMarkersByText(text, type = 'road') {
+function getRoadMarkersByText(text, type = 'roadpoint') {
     const markers = window.markers || [];
     console.log('获取与', text, '同名的道路标记', markers.filter(marker => marker.text === text && marker.image === 'road.png'), markers.filter(marker => marker.image === text));
     switch (type) {
         case 'highway':
             return markers.filter(marker => marker.image === text);
         default:
-            return markers.filter(marker => marker.text === text && marker.image === 'road.png');
+            return markers.filter(marker => marker.text === text && marker.image === 'roadpoint.png');
     }
 }
 
-function displayPath(path) {
+function displayPath(path, name) {
     // 根据path在svg对象中画一条折线
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
@@ -40,17 +40,19 @@ function displayPath(path) {
     const maxX = Math.max(...path.map(p => p[0]));
     const maxZ = Math.max(...path.map(p => p[1]));
     
-    line.setAttribute("points", path.map(point => (point[0]-minX) + ',' + (point[1]-minZ)).join(' '));
-    line.style.stroke = "yellow";
+    line.setAttribute("points", path.map(point => (point[0]-minX+300) + ',' + (point[1]-minZ+300)).join(' '));
+    line.style.stroke = "aquamarine";
     line.style.strokeWidth = 16/window.zoomLevel;
+    line.style.mixBlendMode = "overlay";
     line.setAttribute("fill", "none");
     svg.appendChild(line);
 
     svg.style.display = "block";
     svg.style.position = "absolute";
-    svg.setAttribute("width", `${maxX - minX + 1}px`);
-    svg.setAttribute("height", `${maxZ - minZ + 1}px`);
-    svg.setAttribute("viewPort", `${minX} ${minZ} ${maxX - minX} ${maxZ - minZ}`);
+    svg.setAttribute("width", `${maxX - minX + 600}px`);
+    svg.setAttribute("height", `${maxZ - minZ + 600}px`);
+    svg.setAttribute("viewPort", `${minX - 300} ${minZ - 300} ${maxX - minX + 600} ${maxZ - minZ + 600}`);
+    svg.setAttribute("data-name", name);
     const tileContainer = document.querySelector('.tile-container');
     const oldSvg = tileContainer.querySelectorAll('svg');
     oldSvg.forEach(svg => tileContainer.removeChild(svg));

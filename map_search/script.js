@@ -381,7 +381,8 @@ async function searchMarkers(query, selectedCategory) {
         const category = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
         return (
             processedText.toLowerCase().includes(normalizedQuery) &&
-            (!selectedCategory || category === selectedCategory) // 使用分类筛选参数
+            (!selectedCategory || category === selectedCategory) && // 使用分类筛选参数
+            marker.image !== 'road.png' // 过滤掉 image 为 road.png 的标记点
         );
     });
 }
@@ -421,7 +422,7 @@ const categoryMap = {
     'public-service': '政府机构',
     'railway-station': '火车站',
     'residence': '住宅',
-    'road': '道路',
+    'roadpoint': '道路',
     'scenery': '景点',
     'school': '学校',
     'shop': '店铺',
@@ -521,7 +522,7 @@ function renderResults(results) {
                 
                 // 处理道路路径显示
                 // 如果不是道路点，则正常更新预览
-                if (!marker.image.includes('road') && !marker.image.includes('highway-')) {
+                if (!marker.image.includes('roadpoint') && !marker.image.includes('highway-')) {
                     updatePreview();
                 } else {
                     await handleRoadPathDisplay(marker);
@@ -831,7 +832,7 @@ function doUpdatePreview() {
                 // 重构SVG定位和缩放代码
                 const svg = document.querySelector('svg');
                 
-                if (svg) {
+                if (svg && svg.dataset.name === currentLocation.textContent) {
                     // 获取SVG的viewport信息
                     const viewBoxValues = svg.getAttribute('viewPort').split(' ');
                     const minX = parseFloat(viewBoxValues[0]);
@@ -868,7 +869,10 @@ function doUpdatePreview() {
                     if (polyline) {
                         polyline.style.strokeWidth = `${32 / Math.sqrt(scale)}px`;
                     }
+                } else { 
+                    handleRoadPathDisplay({text: currentLocation.textContent, x: x, z: z, image: 'road.png'});
                 }
+                pinLabel.parentElement.style.opacity = 0;
             } else { 
                 const oldSvgs = previewContainer.querySelectorAll('svg');
                 if (oldSvgs) {
@@ -876,20 +880,21 @@ function doUpdatePreview() {
                         svg.remove();
                     });
                 }
-            }
-            if (distance > 0) {
-                //console.log('隐藏地址');
-                if (window.location.href.includes('map.html')) {
-                    pinLabel.style.color = 'transparent';
-                    pinLabel.style.textShadow = 'none';
-                }
-            } else {
-                pinLabel.textContent = currentLocation.textContent;
-                //console.log('显示地址', pinLabel.textContent);
-                // 对map.html执行以下代码
-                if (window.location.href.includes('map.html')) {
-                    pinLabel.style.color = 'white';
-                    pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+                pinLabel.parentElement.style.opacity = 1;
+                if (distance > 0) {
+                    //console.log('隐藏地址');
+                    if (window.location.href.includes('map.html')) {
+                        pinLabel.style.color = 'transparent';
+                        pinLabel.style.textShadow = 'none';
+                    }
+                } else {
+                    pinLabel.textContent = currentLocation.textContent;
+                    //console.log('显示地址', pinLabel.textContent);
+                    // 对map.html执行以下代码
+                    if (window.location.href.includes('map.html')) {
+                        pinLabel.style.color = 'white';
+                        pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+                    }
                 }
             }
         }
@@ -1679,6 +1684,52 @@ async function savePreviewImage(name) {
     previewFooter.style.display = 'flex';
     
     try {
+        // 检查是否有SVG元素
+        const hasSvg = previewContainer.querySelector('svg');
+        
+        if (hasSvg) {
+            // 使用canvg处理SVG元素
+            const svgs = previewContainer.querySelectorAll('svg');
+            const promises = [];
+            
+            // 为每个SVG创建临时canvas并转换
+            svgs.forEach(svg => {
+                const originalDisplay = svg.style.display;
+                svg.style.display = 'block'; // 确保SVG可见
+                
+                const bbox = svg.getBBox();
+                const width = Math.max(bbox.width || 100, 100);
+                const height = Math.max(bbox.height || 100, 100);
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                canvas.style.position = 'absolute';
+                canvas.style.left = svg.style.left || '0';
+                canvas.style.top = svg.style.top || '0';
+                //canvas.style.transform = svg.style.transform || '';
+                canvas.style.zIndex = svg.style.zIndex || '0';
+                canvas.style.transformOrigin = svg.style.transformOrigin || 'top left';
+                canvas.strokeWidth = svg.style.strokeWidth || 16;
+                canvas.style.opacity = 0.6;
+                canvas.style.overflow = 'visible';
+                canvas.style.zIndex = svg.style.zIndex || '10';
+                
+                // 使用canvg将SVG渲染到canvas
+                const ctx = canvas.getContext('2d');
+                const svgString = new XMLSerializer().serializeToString(svg);
+                const v = canvg.Canvg.fromString(ctx, svgString);
+                promises.push(v.render());
+                
+                // 替换SVG为canvas（临时）
+                svg.parentNode.insertBefore(canvas, svg);
+                svg.style.opacity = 0;
+            });
+            
+            // 等待所有SVG渲染完成
+            await Promise.all(promises);
+        }
+        
         const canvas = await html2canvas(previewContainer, {
             backgroundColor: 'transparent',
             lineHeight: 1,
@@ -1687,6 +1738,18 @@ async function savePreviewImage(name) {
             scale: 2, // 提高截图质量
             logging: false // 减少控制台输出
         });
+        
+        // 恢复SVG元素（如果之前被替换）
+        if (hasSvg) {
+            const canvases = previewContainer.querySelectorAll('canvas');
+            canvases.forEach(canvas => {
+                const nextElement = canvas.nextElementSibling;
+                if (nextElement && nextElement.tagName === 'SVG') {
+                    nextElement.style.display = 'block';
+                    canvas.remove();
+                }
+            });
+        }
         
         const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
@@ -1699,6 +1762,16 @@ async function savePreviewImage(name) {
         console.error('截图保存失败:', error);
         showToast('图片保存失败，请重试', 'error');
     }
+        
+    // 确保在错误情况下也能恢复SVG
+    const canvases = previewContainer.querySelectorAll('canvas');
+    canvases.forEach(canvas => {
+        const nextElement = canvas.nextElementSibling;
+        if (nextElement && nextElement.tagName === 'SVG') {
+            nextElement.style.display = 'block';
+        }
+        canvas.remove();
+    });
     
     // 不对map.html执行以下代码
     if (window.location.href.indexOf('map.html') === -1) {
