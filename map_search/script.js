@@ -11,6 +11,12 @@ let currentPinchDistance = 0; // 双指当前距离
 let initialZoomLevel = 0; // 初始缩放级别
 let lastZoomDelta = 0; // 上一次的缩放增量，用于检测变化
 
+// 导出到window对象
+window.zoomLevel = zoomLevel;
+window.isZooming = isZooming;
+window.initialZoomLevel = initialZoomLevel;
+window.isPreviewUpdateScheduled = isPreviewUpdateScheduled;
+
 // 本地标记点存储键名
 const LOCAL_MARKERS_KEY = 'localMarkers';
 
@@ -295,6 +301,7 @@ async function fetchMarkersData() {
         
         // 检查并删除本地重复的标记点
         removeDuplicateLocalMarkers(markers);
+        window.markers = markers;
         
         return markers;
     } catch (err) {
@@ -414,6 +421,7 @@ const categoryMap = {
     'public-service': '政府机构',
     'railway-station': '火车站',
     'residence': '住宅',
+    'road': '道路',
     'scenery': '景点',
     'school': '学校',
     'shop': '店铺',
@@ -515,7 +523,9 @@ function renderResults(results) {
                 // 如果不是道路点，则正常更新预览
                 if (!marker.image.includes('road') && !marker.image.includes('highway-')) {
                     updatePreview();
-                } else await handleRoadPathDisplay(marker);
+                } else {
+                    await handleRoadPathDisplay(marker);
+                }
 
                 // 重新触发搜索以重新排序
                 triggerSearch();
@@ -668,6 +678,7 @@ function updatePreview(isDragUpdate = false) {
     doUpdatePreview();
     lastUpdatePreviewCall = now;
 }
+window.updatePreview = updatePreview;
 
 // 实际执行预览更新的函数
 function doUpdatePreview() {
@@ -814,6 +825,58 @@ function doUpdatePreview() {
         const distanceMatch = locationDistance.textContent.match(/\d+/);
         if (distanceMatch) {
             const distance = distanceMatch[0];
+
+            const currentLocationCategory = currentLocation.parentElement.querySelector('.search-item-category');
+            if (currentLocationCategory.textContent === '道路') {
+                // 重构SVG定位和缩放代码
+                const svg = document.querySelector('svg');
+                
+                if (svg) {
+                    // 获取SVG的viewport信息
+                    const viewBoxValues = svg.getAttribute('viewPort').split(' ');
+                    const minX = parseFloat(viewBoxValues[0]);
+                    const minZ = parseFloat(viewBoxValues[1]);
+                    const width = parseFloat(viewBoxValues[2]);
+                    const height = parseFloat(viewBoxValues[3]);
+                    
+                    // 获取容器尺寸
+                    const containerRect = previewContainer.getBoundingClientRect();
+                    const containerWidth = containerRect.width;
+                    const containerHeight = containerRect.height;
+                    
+                    // 计算缩放倍数
+                    const scale = Math.pow(2, zoomLevel);
+                    
+                    // 计算SVG元素的新位置，使其居中于指定坐标点(x, z)
+                    // 这里假设x和z是之前已经定义好的坐标变量
+                    const newTop = (containerHeight/2 - (z - minZ) * scale) + 'px';
+                    const newLeft = (containerWidth/2 - (x - minX) * scale) + 'px';
+                    
+                    // 应用样式
+                    svg.style.position = 'absolute';
+                    svg.style.top = newTop;
+                    svg.style.left = newLeft;
+                    svg.style.overflow = 'visible';
+                    svg.style.mixBlendMode = "overlay";
+                    svg.style.zIndex = 10;
+                    
+                    // 应用缩放变换
+                    svg.style.transform = `scale(${scale})`;
+                    svg.style.transformOrigin = 'top left';
+
+                    const polyline = svg.querySelector('polyline');
+                    if (polyline) {
+                        polyline.style.strokeWidth = `${16 / scale}px`;
+                    }
+                }
+            } else { 
+                const oldSvgs = previewContainer.querySelectorAll('svg');
+                if (oldSvgs) {
+                    oldSvgs.forEach(svg => {
+                        svg.remove();
+                    });
+                }
+            }
             if (distance > 0) {
                 //console.log('隐藏地址');
                 if (window.location.href.includes('map.html')) {
@@ -1054,8 +1117,10 @@ function handleZoomIn() {
         scaleBar.style.width = `${scaleBarWidth * 1.1}px`;
     }
     zoomLevel = zoomLevel + 1;
+    window.zoomLevel = zoomLevel;
     if (zoomLevel > 2) {
         zoomLevel = 2;
+        window.zoomLevel = zoomLevel;
         showToast('已到达最大缩放级别', 1000);
         updatePreview();
         return;
@@ -1078,8 +1143,10 @@ function handleZoomOut() {
         scaleBar.style.width = `${scaleBarWidth * 0.9}px`;
     }
     zoomLevel = zoomLevel - 1;
+    window.zoomLevel = zoomLevel;
     if (zoomLevel < -6) {
         zoomLevel = -6;
+        window.zoomLevel = zoomLevel;
         showToast('已到达最小缩放级别', 1000);
         updatePreview();
         return;
@@ -1158,6 +1225,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!isNaN(zoomParam)) { // 新增：处理缩放等级参数
         zoomLevel = zoomParam;
+        window.zoomLevel = zoomLevel;
         updatePreview();
     }
 
