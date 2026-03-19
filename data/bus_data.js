@@ -1198,6 +1198,23 @@ export const busRoutes = {
             {name: "观景台南停车场"}
         ]
     },
+    "317": {
+        name: "317路",
+        operator: ["嘎联巴士（临东）有限公司"],
+        firstLastBus: {
+            first: "06:30",
+            last: "22:30"
+        },
+        fare: 2,
+        stations: [
+            {name: "临东站"},
+            {name: "中华路立交桥南"},
+            {name: "怒江公园"},
+            {name: "新才中学"},
+            {name: "出生点"},
+            {name: "临东大学北门"}
+        ]
+    },
     "323": {
         name: "323路",
         operator: ["临东客运集团丰河公共汽车分公司"],

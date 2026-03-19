@@ -866,7 +866,7 @@ function doUpdatePreview() {
 
                     const polyline = svg.querySelector('polyline');
                     if (polyline) {
-                        polyline.style.strokeWidth = `${16 / scale}px`;
+                        polyline.style.strokeWidth = `${32 / Math.sqrt(scale)}px`;
                     }
                 }
             } else { 
