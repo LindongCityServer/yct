@@ -44,14 +44,46 @@ function nearestNeighborSort(points) {
     const unvisited = points.map(p => ({ ...p }));
     const sorted = [];
     
-    // 选择起点：选择x和z最小的点作为起点（先按x排序，x相同时按z排序）
-    unvisited.sort((a, b) => {
-        if (a.x !== b.x) {
-            return a.x - b.x;
+    // 计算x和z的差距
+    const xValues = unvisited.map(p => p.x);
+    const zValues = unvisited.map(p => p.z);
+    const xRange = Math.max(...xValues) - Math.min(...xValues);
+    const zRange = Math.max(...zValues) - Math.min(...zValues);
+    
+    // 根据差距大小决定排序依据，并确保选择的点image为'roadpoint.png'
+    let startPoint;
+    if (xRange > zRange) {
+        // x差距更大，按x排序选择最小x的点
+        const roadpointMarkers = unvisited.filter(p => p.image === 'roadpoint.png');
+        if (roadpointMarkers.length > 0) {
+            roadpointMarkers.sort((a, b) => a.x - b.x);
+            startPoint = roadpointMarkers[0];
+        } else {
+            // 如果没有roadpoint.png的标记，使用原来的逻辑
+            unvisited.sort((a, b) => a.x - b.x);
+            startPoint = unvisited[0];
         }
-        return a.z - b.z;
-    });
-    sorted.push(unvisited.shift()); // 第一个点作为起点
+    } else {
+        // z差距更大或相等，按z排序选择最小z的点
+        const roadpointMarkers = unvisited.filter(p => p.image === 'roadpoint.png');
+        if (roadpointMarkers.length > 0) {
+            roadpointMarkers.sort((a, b) => a.z - b.z);
+            startPoint = roadpointMarkers[0];
+        } else {
+            // 如果没有roadpoint.png的标记，使用原来的逻辑
+            unvisited.sort((a, b) => a.z - b.z);
+            startPoint = unvisited[0];
+        }
+    }
+    
+    // 从unvisited中移除选中的起点
+    const startIndex = unvisited.findIndex(p => p.x === startPoint.x && p.z === startPoint.z && p.image === startPoint.image);
+    if (startIndex !== -1) {
+        sorted.push(unvisited.splice(startIndex, 1)[0]);
+    } else {
+        // 如果找不到完全匹配的点（理论上不应该发生），使用第一个点
+        sorted.push(unvisited.shift());
+    }
     
     while (unvisited.length > 0) {
         const current = sorted[sorted.length - 1];

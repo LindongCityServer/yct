@@ -872,9 +872,11 @@ function doUpdatePreview() {
                 } else { 
                     handleRoadPathDisplay({text: currentLocation.textContent, x: x, z: z, image: 'road.png'});
                 }
-                const polyline = svg.querySelector('polyline');
-                const points = polyline.getAttribute('points').split(' ');
-                pinLabel.parentElement.style.opacity = points.length > 1 ? 0 : 1;
+                const polyline = svg?.querySelector('polyline');
+                if (polyline) {
+                    const points = polyline.getAttribute('points').split(' ');
+                    pinLabel.parentElement.style.opacity = points.length > 1 ? 0 : 1;
+                }
             } else { 
                 const oldSvgs = previewContainer.querySelectorAll('svg');
                 if (oldSvgs) {
