@@ -10,28 +10,30 @@ function handleRoadPathDisplay(marker) {
     let markers;
     // 获取与marker.text同名的所有标记
     if (marker.image.includes('highway-')) {
-        console.log('处理道路路径显示和导航逻辑', marker);
+        console.log('处理高速公路路径，即将调用getRoadMarkersByText', marker);
         markers = getRoadMarkersByText(marker.image, 'highway');
     }
     else markers = getRoadMarkersByText(marker.text);
-    console.log('获取与', marker.text, '同名的道路标记', markers);
+    //console.log('获取与', marker.text, '同名的道路标记', markers);
     const path = createPath(markers);
     displayPath(path, marker.image.includes('highway-')?marker.image:marker.text);
 }
 
 function getRoadMarkersByText(text, type = 'roadpoint') {
     const markers = window.markers || [];
-    console.log('获取与', text, '同名的道路标记', markers.filter(marker => marker.text === text && marker.image === 'road.png'), markers.filter(marker => marker.image === text));
-    let filteredMarkers = [];
+    let filteredMarkers;
     switch (type) {
         case 'highway':
+            console.log('处理高速公路路径，即将赋值filteredMarkers', markers.filter(marker => marker.image === text));
             filteredMarkers = markers.filter(marker => marker.image === text);
+            break;
         default:
             filteredMarkers = markers.filter(marker =>(
                 (marker.text === text && marker.image === 'roadpoint.png') ||
                 (marker.text === text && marker.image === 'road.png')
             ));
     }
+    console.log('获取与', text, '同名的道路标记', filteredMarkers);
     // 对filteredMarkers进行最近邻贪心排序
     const sortedMarkers = nearestNeighborSort(filteredMarkers);
     return sortedMarkers;

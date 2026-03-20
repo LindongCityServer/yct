@@ -477,11 +477,21 @@ function renderResults(results) {
             ).toFixed(0);
 
             // 获取分类名称：除了去掉图标后缀名，还需要去掉-a、-b、-c1等文件名后缀
-            const categoryName = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
+            const categoryName = 
+                categoryMap[marker.image.replace(/\.png$/, '')] || 
+                (marker.image.includes('highway-') ? '高速公路' : '其他');
+            item.setAttribute('data-category', marker.image);
+            const itemTitle = 
+                marker.text || 
+                (
+                    marker.image.includes('highway-') ?
+                    marker.image.replace(/^highway-/, '').split('.')[0].toUpperCase() :
+                    categoryName
+                );
             
             item.innerHTML = `
                 <div class="search-item-text">
-                    <div class="search-item-name">${marker.text}</div>
+                    <div class="search-item-name">${itemTitle}</div>
                     <div class="caption">
                         <div class="search-item-not-approved">尚未采纳</div>
                         <div class="search-item-category">${categoryName}</div>
@@ -831,11 +841,12 @@ function doUpdatePreview() {
             const distance = distanceMatch[0];
 
             const currentLocationCategory = currentLocation.parentElement.querySelector('.search-item-category');
-            if (currentLocationCategory.textContent === '道路') {
+            const currentCategoryData = document.querySelector('.search-item.selected').dataset.category;
+            if (currentLocationCategory.textContent === '道路' || currentLocationCategory.textContent === '高速公路') {
                 // 重构SVG定位和缩放代码
                 const svg = document.querySelector('svg');
                 
-                if (svg && svg.dataset.name === currentLocation.textContent) {
+                if (svg && (svg.dataset.name === currentLocation.textContent || svg.dataset.name === currentCategoryData)) {
                     // 获取SVG的viewport信息
                     const viewBoxValues = svg.getAttribute('viewPort').split(' ');
                     const minX = parseFloat(viewBoxValues[0]);
@@ -873,7 +884,15 @@ function doUpdatePreview() {
                         polyline.style.strokeWidth = `${32 / Math.sqrt(scale)}px`;
                     }
                 } else { 
-                    handleRoadPathDisplay({text: currentLocation.textContent, x: x, z: z, image: 'road.png'});
+                    const currentCategory = document.querySelector('.search-item.selected').dataset.category;
+                    console.log('currentCategory', currentCategory);
+                    switch (currentLocationCategory.textContent) {
+                        case '高速公路':
+                            handleRoadPathDisplay({text: currentCategory, x: x, z: z, image: currentCategory});
+                            break;
+                        default: 
+                            handleRoadPathDisplay({text: currentLocation.textContent, x: x, z: z, image: 'road.png'});
+                    }
                 }
                 const polyline = svg?.querySelector('polyline');
                 if (polyline) {
