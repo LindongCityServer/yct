@@ -620,12 +620,14 @@ async function triggerSearch() {
     // 检查附近是否有标记点（使用完整数据集）
     const hasNearbyMarkers = await checkNearbyMarkers(x, z);
     const noResultsElement = document.querySelector('.no-results');
-    if (!hasNearbyMarkers) {
-        // 1格范围内没有标记点，显示提示
-        noResultsElement.style.display = 'block';
-    } else {
-        // 1格范围内有标记点，隐藏提示
-        noResultsElement.style.display = 'none';
+    if (noResultsElement) {
+        if (!hasNearbyMarkers) {
+            // 1格范围内没有标记点，显示提示
+            noResultsElement.style.display = 'block';
+        } else {
+            // 1格范围内有标记点，隐藏提示
+            noResultsElement.style.display = 'none';
+        }
     }
     
     try {
@@ -820,6 +822,7 @@ function doUpdatePreview() {
     });
 
     const pinLabel = document.querySelector('.pin-label');
+    const pinImg = pinLabel.parentElement.querySelector('img');
     const currentLocation = document.querySelector('.search-item.selected .search-item-name');
     const locationDistance = document.querySelector('.search-item.selected .search-item-coordinate');
     if (currentLocation && locationDistance) { 
@@ -875,7 +878,7 @@ function doUpdatePreview() {
                 const polyline = svg?.querySelector('polyline');
                 if (polyline) {
                     const points = polyline.getAttribute('points').split(' ');
-                    pinLabel.parentElement.style.opacity = points.length > 1 ? 0 : 1;
+                    pinImg.style.opacity = points.length > 1 ? 0 : 1;
                 }
             } else { 
                 const oldSvgs = previewContainer.querySelectorAll('svg');
@@ -884,22 +887,47 @@ function doUpdatePreview() {
                         svg.remove();
                     });
                 }
-                pinLabel.parentElement.style.opacity = 1;
-                if (distance > 0) {
-                    //console.log('隐藏地址');
-                    if (window.location.href.includes('map.html')) {
-                        pinLabel.style.color = 'transparent';
-                        pinLabel.style.textShadow = 'none';
-                    }
-                } else {
-                    pinLabel.textContent = currentLocation.textContent;
-                    //console.log('显示地址', pinLabel.textContent);
-                    // 对map.html执行以下代码
-                    if (window.location.href.includes('map.html')) {
-                        pinLabel.style.color = 'white';
-                        pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
-                    }
+                pinImg.style.opacity = 1;
+            }
+            if (distance > 0) {
+                //console.log('隐藏地址');
+                if (window.location.href.includes('map.html')) {
+                    pinLabel.style.opacity = 0;
                 }
+            } else {
+                const svg = document.querySelector('svg');
+                const polyline = svg?.querySelector('polyline');
+                const points = polyline?.getAttribute('points').split(' ');
+                if (currentLocationCategory.textContent === '道路' && points.length > 1) {
+                    const svgWidth = svg.getBoundingClientRect().width;
+                    const svgHeight = svg.getBoundingClientRect().height;
+                    if (svgWidth < svgHeight) { 
+                        pinLabel.style.width = '1em';
+                        pinLabel.style.textWrap = 'wrap';
+                        pinLabel.style.transform = 'translateY(-400%)';
+                    } else { 
+                        pinLabel.style.width = '';
+                        pinLabel.style.textWrap = '';
+                        pinLabel.style.transform = 'translateY(-125%)';
+                    }
+                    
+                    pinLabel.style.color = 'black';
+                    pinLabel.style.textShadow = '0 0 4px white';
+                    pinLabel.style.letterSpacing = '0.5em';
+                    pinLabel.style.opacity = window.location.href.includes('map.html')? 1 : 0;
+                } else {
+                    // 对map.html执行以下代码
+                    pinLabel.style.color = 'white';
+                    pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+                    pinLabel.style.width = '';
+                    pinLabel.style.textWrap = '';
+                    pinLabel.style.transform = '';
+                    pinLabel.style.letterSpacing = '';
+                    pinLabel.style.opacity = window.location.href.includes('map.html')?1:0;
+                }
+                pinLabel.textContent = currentLocation.textContent;
+                console.log('显示地址', pinLabel.textContent);
+                
             }
         }
     }
@@ -1261,19 +1289,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 生成添加标记点模态框中的分类选项
     const pointCategorySelect = document.getElementById('point-category');
-    // 添加一个默认选项
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = '请选择分类';
-    pointCategorySelect.appendChild(defaultOption);
+    if (pointCategorySelect) {
+        // 添加一个默认选项
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '请选择分类';
+        pointCategorySelect.appendChild(defaultOption);
     
-    // 添加所有分类选项
-    Object.keys(categoryMap).forEach(key => {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = categoryMap[key];
-        pointCategorySelect.appendChild(option);
-    });
+        // 添加所有分类选项
+        Object.keys(categoryMap).forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = categoryMap[key];
+            pointCategorySelect.appendChild(option);
+        });
+    }
 
     // 监听分类选择变化
     categoryFilter.addEventListener('change', async () => {
@@ -1326,10 +1356,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 200));
     
     // 添加模态框相关事件监听器
-    document.getElementById('close-modal').addEventListener('click', closeAddPointModal);
+    const closeModal = document.getElementById('close-modal')
+    if (closeModal) closeModal.addEventListener('click', closeAddPointModal);
     
     // 修改保存标记点按钮的事件监听器
-    document.getElementById('save-point').addEventListener('click', () => {
+    const savePointButton = document.getElementById('save-point');
+    if (savePointButton) savePointButton.addEventListener('click', () => {
         const pointName = document.getElementById('point-name').value.trim();
         const pointCategory = document.getElementById('point-category').value;
         const xCoordinate = document.getElementById('coordinates-x').value;
@@ -1369,7 +1401,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    document.getElementById('copy-point-code').addEventListener('click', () => {
+    const copyPointCodeButton = document.getElementById('copy-point-code');
+    if (copyPointCodeButton) copyPointCodeButton.addEventListener('click', () => {
         const pointName = document.getElementById('point-name').value.trim();
         const pointCategory = document.getElementById('point-category').value;
         const xCoordinate = document.getElementById('coordinates-x').value;
@@ -1405,7 +1438,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    document.getElementById('send-via-email').addEventListener('click', () => {
+    const sendViaEmailButton = document.getElementById('send-via-email');
+    if (sendViaEmailButton) sendViaEmailButton.addEventListener('click', () => {
         const pointName = document.getElementById('point-name').value.trim();
         const pointCategory = document.getElementById('point-category').value;
         const xCoordinate = document.getElementById('coordinates-x').value;
@@ -1681,10 +1715,8 @@ async function savePreviewImage(name) {
     const zoomControls = document.querySelector('.zoom-controls');
     zoomControls.style.display = 'none'; // 隐藏缩放控件以避免出现在截图中
     
-    if (locationDistance == 0) {
-        pinLabel.style.color = 'white';
-        pinLabel.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
-    }
+    pinLabel.style.opacity = locationDistance > 0 ? 0 : 1;
+    console.log(locationDistance);
     previewFooter.style.display = 'flex';
     
     try {
@@ -1776,13 +1808,13 @@ async function savePreviewImage(name) {
         }
         canvas.remove();
     });
+
+    previewFooter.style.display = 'none';
+    zoomControls.style.display = '';
     
     // 不对map.html执行以下代码
     if (window.location.href.indexOf('map.html') === -1) {
-        pinLabel.style.color = 'transparent';
-        previewFooter.style.display = 'none';
-        pinLabel.style.textShadow = 'none';
-        zoomControls.style.display = 'flex';
+        pinLabel.style.opacity = 0;
     }
 }
 
