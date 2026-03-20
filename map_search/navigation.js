@@ -1,4 +1,9 @@
 // 道路路径处理和导航逻辑
+function getCurrentLocation() {
+    const xInput = document.getElementById('coordinates-x');
+    const zInput = document.getElementById('coordinates-z');
+    return {x: xInput.value, z: zInput.value};
+}
 
 function handleRoadPathDisplay(marker) {
     console.log('处理道路路径显示和导航逻辑');
@@ -10,23 +15,76 @@ function handleRoadPathDisplay(marker) {
     }
     else markers = getRoadMarkersByText(marker.text);
     console.log('获取与', marker.text, '同名的道路标记', markers);
-    let path = [];
-    markers.forEach(marker => { 
-        // 根据marker.x和marker.z创建路径
-        path.push([marker.x, marker.z]);
-    });
+    const path = createPath(markers);
     displayPath(path, marker.image.includes('highway-')?marker.image:marker.text);
 }
 
 function getRoadMarkersByText(text, type = 'roadpoint') {
     const markers = window.markers || [];
     console.log('获取与', text, '同名的道路标记', markers.filter(marker => marker.text === text && marker.image === 'road.png'), markers.filter(marker => marker.image === text));
+    let filteredMarkers = [];
     switch (type) {
         case 'highway':
-            return markers.filter(marker => marker.image === text);
+            filteredMarkers = markers.filter(marker => marker.image === text);
         default:
-            return markers.filter(marker => marker.text === text && marker.image === 'roadpoint.png');
+            filteredMarkers = markers.filter(marker =>(
+                (marker.text === text && marker.image === 'roadpoint.png') ||
+                (marker.text === text && marker.image === 'road.png')
+            ));
     }
+    // 对filteredMarkers进行最近邻贪心排序
+    const sortedMarkers = nearestNeighborSort(filteredMarkers);
+    return sortedMarkers;
+}
+
+function nearestNeighborSort(points) {
+    if (points.length === 0) return [];
+    
+    // 复制一份，避免修改原数组
+    const unvisited = points.map(p => ({ ...p }));
+    const sorted = [];
+    
+    // 选择起点：选择x和z最小的点作为起点（先按x排序，x相同时按z排序）
+    unvisited.sort((a, b) => {
+        if (a.x !== b.x) {
+            return a.x - b.x;
+        }
+        return a.z - b.z;
+    });
+    sorted.push(unvisited.shift()); // 第一个点作为起点
+    
+    while (unvisited.length > 0) {
+        const current = sorted[sorted.length - 1];
+        // 在剩余点中找距离 current 最近的点
+        let nearestIdx = 0;
+        let minDist = distance(current, unvisited[0]);
+        for (let i = 1; i < unvisited.length; i++) {
+            const dist = distance(current, unvisited[i]);
+            if (dist < minDist) {
+                minDist = dist;
+                nearestIdx = i;
+            }
+        }
+        // 将最近点加入排序结果，并从 unvisited 中移除
+        sorted.push(unvisited[nearestIdx]);
+        unvisited.splice(nearestIdx, 1);
+    }
+    return sorted;
+}
+
+function distance(p1, p2) {
+    const dx = p1.x - p2.x;
+    const dz = p1.z - p2.z;
+    return Math.sqrt(dx * dx + dz * dz);
+}
+
+function createPath(markers) { 
+    let path = [];
+    markers.forEach(marker => { 
+        // 根据marker.x和marker.z创建路径
+        path.push([marker.x, marker.z]);
+    });
+    return path;
 }
 
 function displayPath(path, name) {
@@ -62,3 +120,5 @@ function displayPath(path, name) {
 
 // 导出为window全局变量
 window.handleRoadPathDisplay = handleRoadPathDisplay;
+window.getRoadMarkersByText = getRoadMarkersByText;
+window.createPath = createPath;

@@ -381,8 +381,7 @@ async function searchMarkers(query, selectedCategory) {
         const category = categoryMap[marker.image.replace(/\.png$/, '')] || '其他';
         return (
             processedText.toLowerCase().includes(normalizedQuery) &&
-            (!selectedCategory || category === selectedCategory) && // 使用分类筛选参数
-            marker.image !== 'road.png' // 过滤掉 image 为 road.png 的标记点
+            (!selectedCategory || category === selectedCategory)// 使用分类筛选参数
         );
     });
 }
@@ -422,6 +421,7 @@ const categoryMap = {
     'public-service': '政府机构',
     'railway-station': '火车站',
     'residence': '住宅',
+    'road': '道路',
     'roadpoint': '道路',
     'scenery': '景点',
     'school': '学校',
@@ -872,7 +872,9 @@ function doUpdatePreview() {
                 } else { 
                     handleRoadPathDisplay({text: currentLocation.textContent, x: x, z: z, image: 'road.png'});
                 }
-                pinLabel.parentElement.style.opacity = 0;
+                const polyline = svg.querySelector('polyline');
+                const points = polyline.getAttribute('points').split(' ');
+                pinLabel.parentElement.style.opacity = points.length > 1 ? 0 : 1;
             } else { 
                 const oldSvgs = previewContainer.querySelectorAll('svg');
                 if (oldSvgs) {
