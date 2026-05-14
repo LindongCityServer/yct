@@ -6,6 +6,10 @@ const routeList = document.getElementById('route-list');
 const lineSummary = document.getElementById('line-summary');
 const fareZoneSummary = document.getElementById('fare-zone-summary'); // 新增付费区总结元素
 let zoomLevel = 1;
+let minZoomLevel = 0.1;
+const MAX_ZOOM_LEVEL = 5;
+const ZOOM_PADDING = 40;
+let resizeTimeout = null;
 let startPoint = null;
 let endPoint = null;
 let currentStation = null;
@@ -53,12 +57,16 @@ function drawLine(x1, y1, x2, y2, color, lineId) {
     line.setAttribute("stroke", color);
     line.setAttribute("id", lineId);
     line.classList.add("line");
+    line.dataset.baseWidth = "3";
     map.appendChild(line);
     if (!linesData[color]) linesData[color] = [];
     linesData[color].push({ x1, y1, x2, y2, id: lineId });
 }
 
 function drawStation(x, y, name, isTransfer, lineColor, labelOffset) {
+    const existingText = map.querySelector(`text[station-name="${name}"]`);
+    if (existingText) return;
+
     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circle.setAttribute("cx", x);
     circle.setAttribute("cy", y);
@@ -71,6 +79,7 @@ function drawStation(x, y, name, isTransfer, lineColor, labelOffset) {
     text.setAttribute("x", x + labelOffset.x);
     text.setAttribute("y", y + labelOffset.y);
     text.textContent = name;
+    text.setAttribute("station-name", name);
     text.addEventListener("click", (event) => showStationInfo(circle, name, event));
     text.style.cursor = "pointer";
 
@@ -752,25 +761,53 @@ function markStation(name, className) {
 }
 
 function zoomIn() {
-    zoomLevel += 0.1; // 调整缩放速度
-    if (zoomLevel > 5) { // 防止缩放级别为负数
-        zoomLevel = 5
+    zoomLevel *= 1.5;
+    if (zoomLevel > MAX_ZOOM_LEVEL) {
+        zoomLevel = MAX_ZOOM_LEVEL;
     }
     updateTransform();
 }
 
 function zoomOut() {
-    zoomLevel -= 0.1; // 调整缩放速度
-    if (zoomLevel < 0.1) { // 防止缩放级别为负数
-        zoomLevel = 0.1
+    zoomLevel /= 1.5;
+    if (zoomLevel < minZoomLevel) {
+        zoomLevel = minZoomLevel;
     }
     updateTransform();
 }
 
 function updateTransform() {
-    map.setAttribute("transform", `translate(${offsetX}, ${offsetY}) scale(${zoomLevel})`);
+    if (!zoomLevel || zoomLevel <= 0) zoomLevel = 1;
     
-    // 如果当前有显示的站点信息，更新其位置
+    const scaleFactor = Math.pow(zoomLevel, 1 / 5);
+    const lineScaleFactor = Math.pow(zoomLevel, 1 / 20);
+    
+    map.style.transition = 'transform 0.15s ease-out';
+    map.setAttribute("transform", `translate(${offsetX}, ${offsetY}) scale(${zoomLevel})`);
+
+    map.querySelectorAll('text').forEach(text => {
+        text.style.transition = 'transform 0.15s ease-out';
+        text.style.transform = `scale(${1 / scaleFactor})`;
+        text.style.transformOrigin = `${text.getAttribute('x')}px ${text.getAttribute('y')}px`;
+    });
+
+    map.querySelectorAll('.station').forEach(circle => {
+        const cx = circle.getAttribute('cx');
+        const cy = circle.getAttribute('cy');
+        circle.style.transition = 'transform 0.15s ease-out';
+        circle.style.transform = `scale(${1 / scaleFactor})`;
+        circle.style.transformOrigin = `${cx}px ${cy}px`;
+    });
+
+    map.querySelectorAll('line.line').forEach(line => {
+        const baseWidth = parseFloat(line.dataset.baseWidth) || 3;
+        line.setAttribute('stroke-width', Math.max(1, Math.min(3, baseWidth * lineScaleFactor)));
+    });
+
+    if (labelLoadingState.collisionDetected) {
+        dynamicCollisionDetection();
+    }
+
     if (currentStation && tooltip.style.display === "block") {
         showStationInfo(null, currentStation);
     }
@@ -1460,16 +1497,1126 @@ Object.values(lines).forEach(line => {
     });
 });
 
-// Auto-resize the SVG canvas based on the maximum coordinates
-map.setAttribute("viewBox", `${minX - 100} ${minY - 100} ${maxX + 1200} ${maxY + 300}`);
+// ==================== 文本碰撞检测与智能避让系统 ====================
+let overlapHiddenTexts = new Map();
+let labelStateCache = new Map();
+let labelOptimizationResults = new Map();
+let collisionDetectionThrottle = null;
+let lastCollisionCheckTime = 0;
+const COLLISION_CHECK_INTERVAL = 100;
+const DEBOUNCE_DELAY = 50;
 
-// Ensure stations are drawn after lines
-const stationsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-map.querySelectorAll(".station").forEach(station => {
-    stationsGroup.appendChild(station.nextSibling); // Append label text
-    stationsGroup.appendChild(station);
-});
-map.appendChild(stationsGroup);
+function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180;
+    return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+    };
+}
+
+function getAnchorFromAngle(angle) {
+    const normalizedAngle = ((angle % 360) + 360) % 360;
+    
+    if (normalizedAngle >= 270 || normalizedAngle <= 90) {
+        return 'start';
+    } else if (normalizedAngle > 90 && normalizedAngle < 270) {
+        return 'end';
+    }
+    
+    return 'middle';
+}
+
+function generateCandidates(sx, sy, textWidth, textHeight, spacing = 6) {
+    if (isNaN(sx) || isNaN(sy) || isNaN(textWidth) || isNaN(textHeight)) return [];
+    
+    const candidates = [];
+    const angles = [0, 20, -20, 40, -40, 60, -60, 80, -80, 
+                    180, 160, 200, 140, 220, 120, 240, 100, 260, 
+                    90, 270];
+    
+    angles.forEach((angleDeg, index) => {
+        let x, y, anchor;
+        
+        const normalizedAngle = ((angleDeg % 360) + 360) % 360;
+        
+        if (normalizedAngle === 0 || normalizedAngle === 180) {
+            const direction = normalizedAngle === 0 ? 1 : -1;
+            x = sx + direction * spacing;
+            y = sy + textHeight * 0.35;
+            anchor = normalizedAngle === 0 ? 'start' : 'end';
+        } else if (normalizedAngle === 90 || normalizedAngle === 270) {
+            x = sx - textWidth / 2;
+            y = normalizedAngle === 90 ? sy - spacing - textHeight : sy + spacing + textHeight * 0.8;
+            anchor = 'middle';
+        } else if ((normalizedAngle > 0 && normalizedAngle < 90) || 
+                   (normalizedAngle > 270 && normalizedAngle < 360)) {
+            x = sx + spacing;
+            const offsetRatio = normalizedAngle > 270 ? 
+                (360 - normalizedAngle) / 90 : normalizedAngle / 90;
+            y = sy + textHeight * (1 - offsetRatio);
+            anchor = 'start';
+        } else if (normalizedAngle > 90 && normalizedAngle < 270) {
+            x = sx - spacing;
+            const offsetRatio = normalizedAngle > 180 ? 
+                (normalizedAngle - 180) / 90 : (180 - normalizedAngle) / 90;
+            y = sy + textHeight * (1 - offsetRatio);
+            anchor = 'end';
+        } else {
+            return;
+        }
+        
+        candidates.push({ 
+            x: x, 
+            y: y, 
+            anchor: anchor, 
+            angle: angleDeg,
+            radius: spacing,
+            index: index
+        });
+    });
+    
+    return candidates.filter(c => c.x !== undefined && !isNaN(c.x));
+}
+
+function isTextsOverlapping(text1, text2) {
+    try {
+        const bbox1 = text1.getBBox();
+        const bbox2 = text2.getBBox();
+        
+        if (!bbox1 || !bbox2) return false;
+        
+        const padding = 2;
+        return !(bbox1.x + bbox1.width + padding < bbox2.x ||
+                 bbox2.x + bbox2.width + padding < bbox1.x ||
+                 bbox1.y + bbox1.height + padding < bbox2.y ||
+                 bbox2.y + bbox2.height + padding < bbox1.y);
+    } catch (e) {
+        return false;
+    }
+}
+
+function isTextOverlappingLine(textBBox, line) {
+    try {
+        const x1 = parseFloat(line.getAttribute('x1'));
+        const y1 = parseFloat(line.getAttribute('y1'));
+        const x2 = parseFloat(line.getAttribute('x2'));
+        const y2 = parseFloat(line.getAttribute('y2'));
+        
+        if ([x1, y1, x2, y2].some(isNaN)) return false;
+        
+        const lineWidth = parseFloat(line.getAttribute('stroke-width')) || 3;
+        const linePadding = lineWidth + 4;
+        
+        const lineBounds = {
+            x: Math.min(x1, x2) - linePadding,
+            y: Math.min(y1, y2) - linePadding,
+            width: Math.abs(x2 - x1) + linePadding * 2,
+            height: Math.abs(y2 - y1) + linePadding * 2
+        };
+        
+        return !(textBBox.x + textBBox.width < lineBounds.x ||
+                 lineBounds.x + lineBounds.width < textBBox.x ||
+                 textBBox.y + textBBox.height < lineBounds.y ||
+                 lineBounds.y + lineBounds.height < textBBox.y);
+    } catch (e) {
+        return false;
+    }
+}
+
+function isTextOverlappingCircle(textBBox, circle) {
+    try {
+        const cx = parseFloat(circle.getAttribute('cx'));
+        const cy = parseFloat(circle.getAttribute('cy'));
+        const r = parseFloat(circle.getAttribute('r')) || 6;
+        
+        if (isNaN(cx) || isNaN(cy) || isNaN(r)) return false;
+        
+        const circlePadding = r + 4;
+        const circleBounds = {
+            x: cx - circlePadding,
+            y: cy - circlePadding,
+            width: circlePadding * 2,
+            height: circlePadding * 2
+        };
+        
+        return !(textBBox.x + textBBox.width < circleBounds.x ||
+                 circleBounds.x + circleBounds.width < textBBox.x ||
+                 textBBox.y + textBBox.height < circleBounds.y ||
+                 circleBounds.y + circleBounds.height < textBBox.y);
+    } catch (e) {
+        return false;
+    }
+}
+
+function calculateTextCollisionScore(text) {
+    try {
+        const bbox = text.getBBox();
+        if (!bbox) return { total: 0, textCollisions: 0, lineCollisions: 0, circleCollisions: 0 };
+        
+        const paddedBBox = {
+            x: bbox.x - 3,
+            y: bbox.y - 3,
+            width: bbox.width + 6,
+            height: bbox.height + 6
+        };
+        
+        let textCollisions = 0;
+        let lineCollisions = 0;
+        let circleCollisions = 0;
+        
+        const allTexts = Array.from(map.querySelectorAll('text'));
+        for (const otherText of allTexts) {
+            if (otherText !== text && isTextsOverlapping(text, otherText)) {
+                textCollisions++;
+            }
+        }
+        
+        const allLines = Array.from(map.querySelectorAll('line.line'));
+        for (const line of allLines) {
+            if (isTextOverlappingLine(paddedBBox, line)) {
+                lineCollisions++;
+            }
+        }
+        
+        const allCircles = Array.from(map.querySelectorAll('.station'));
+        for (const circle of allCircles) {
+            if (isTextOverlappingCircle(paddedBBox, circle)) {
+                circleCollisions++;
+            }
+        }
+        
+        return {
+            total: textCollisions * 10 + lineCollisions * 5 + circleCollisions * 8,
+            textCollisions,
+            lineCollisions,
+            circleCollisions
+        };
+    } catch (e) {
+        return { total: 0, textCollisions: 0, lineCollisions: 0, circleCollisions: 0 };
+    }
+}
+
+function checkAndHandleOverlaps() {
+    try {
+        const allTexts = Array.from(map.querySelectorAll('text'));
+        const currentZoomLevel = zoomLevel;
+        
+        if (currentZoomLevel >= 0.8) {
+            restoreAllLabelsToDefault();
+            return;
+        }
+
+        const optimizationResults = resolveCollisions();
+
+        const labelsToHide = [];
+        const labelsToShow = [];
+
+        allTexts.forEach(text => {
+            const result = optimizationResults.get(text);
+            if (!result) return;
+
+            const priority = result.priority || parseInt(text.dataset.labelPriority) || 1;
+            const stationName = text.getAttribute('station-name');
+            
+            labelStateCache.set(stationName || text, {
+                originalCollisions: result.originalCollisions,
+                bestCollisions: result.bestCollisions,
+                candidatesExhausted: result.candidatesExhausted,
+                priority: priority,
+                zoomLevel: currentZoomLevel,
+                timestamp: Date.now()
+            });
+
+            if (result.candidatesExhausted && result.bestCollisions > 0) {
+                const hideThreshold = currentZoomLevel < 0.4 ? 0 :
+                                     currentZoomLevel < 0.6 ? (priority < 2 ? 5 : 10) :
+                                     (priority < 2 ? 8 : 15);
+                
+                if (result.bestCollisions >= hideThreshold) {
+                    labelsToHide.push({
+                        text: text,
+                        priority: priority,
+                        collisionCount: result.bestCollisions,
+                        originalCollisions: result.originalCollisions
+                    });
+                } else {
+                    labelsToShow.push(text);
+                }
+            } else {
+                labelsToShow.push(text);
+            }
+        });
+
+        labelsToHide.sort((a, b) => {
+            if (a.priority !== b.priority) return a.priority - b.priority;
+            return b.collisionCount - a.collisionCount;
+        });
+
+        const maxHideRatio = currentZoomLevel < 0.4 ? 0.8 :
+                             currentZoomLevel < 0.6 ? 0.5 : 0.3;
+        const maxHideCount = Math.floor(allTexts.length * maxHideRatio);
+        const finalToHide = labelsToHide.slice(0, maxHideCount);
+
+        finalToHide.forEach(({ text, collisionCount }) => {
+            if (!overlapHiddenTexts.has(text)) {
+                const currentOpacity = text.style.opacity || getComputedStyle(text).opacity || "1";
+                overlapHiddenTexts.set(text, {
+                    originalOpacity: currentOpacity,
+                    hideReason: 'candidates_exhausted',
+                    collisionScore: collisionCount,
+                    candidatesExhausted: true
+                });
+                text.style.opacity = "0";
+                text.dataset.autoHidden = "true";
+            }
+        });
+
+        labelsToShow.forEach(text => {
+            if (overlapHiddenTexts.has(text)) {
+                const state = overlapHiddenTexts.get(text);
+                text.style.opacity = state.originalOpacity || "1";
+                delete text.dataset.autoHidden;
+                overlapHiddenTexts.delete(text);
+            }
+        });
+        
+    } catch (error) {
+        console.warn("重叠检测出错:", error);
+    }
+}
+
+function restoreAllLabelsToDefault() {
+    if (overlapHiddenTexts.size > 0) {
+        overlapHiddenTexts.forEach((state, text) => {
+            if (text && text.parentNode) {
+                text.style.opacity = state.originalOpacity || "1";
+                delete text.dataset.autoHidden;
+            }
+        });
+        overlapHiddenTexts.clear();
+    }
+}
+
+function dynamicCollisionDetection() {
+    const now = Date.now();
+    
+    if (now - lastCollisionCheckTime < COLLISION_CHECK_INTERVAL) {
+        if (collisionDetectionThrottle) {
+            clearTimeout(collisionDetectionThrottle);
+        }
+        collisionDetectionThrottle = setTimeout(() => {
+            performDynamicCollisionCheck();
+        }, DEBOUNCE_DELAY);
+        return;
+    }
+    
+    lastCollisionCheckTime = now;
+    performDynamicCollisionCheck();
+}
+
+function performDynamicCollisionCheck() {
+    if (!labelLoadingState.collisionDetected) return;
+    
+    try {
+        resolveCollisions();
+        checkAndHandleOverlaps();
+        
+        if (labelLoadingState.debugMode) {
+            visualizeCollisionResults();
+        }
+    } catch (error) {
+        console.error("动态碰撞检测错误:", error);
+    }
+}
+
+function resolveCollisions() {
+    try {
+        const allCircles = Array.from(map.querySelectorAll('circle'));
+        const allTexts = Array.from(map.querySelectorAll('text'));
+        const allLines = Array.from(map.querySelectorAll('line'));
+        const PADDING = 4;
+        
+        labelOptimizationResults.clear();
+
+        function getBBox(el) {
+            try {
+                const bbox = el.getBBox();
+                return {
+                    x: bbox.x - PADDING,
+                    y: bbox.y - PADDING,
+                    width: bbox.width + PADDING * 2,
+                    height: bbox.height + PADDING * 2
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function getCircleBounds(circle) {
+            const cx = parseFloat(circle.getAttribute('cx'));
+            const cy = parseFloat(circle.getAttribute('cy'));
+            const r = parseFloat(circle.getAttribute('r')) || 6;
+            
+            if (isNaN(cx) || isNaN(cy) || isNaN(r)) {
+                return { x: 0, y: 0, width: 12, height: 12 };
+            }
+            
+            return {
+                x: cx - r - PADDING,
+                y: cy - r - PADDING,
+                width: r * 2 + PADDING * 2,
+                height: r * 2 + PADDING * 2
+            };
+        }
+
+        function getLineBounds(line) {
+            const x1 = parseFloat(line.getAttribute('x1'));
+            const y1 = parseFloat(line.getAttribute('y1'));
+            const x2 = parseFloat(line.getAttribute('x2'));
+            const y2 = parseFloat(line.getAttribute('y2'));
+            const baseWidth = parseFloat(line.dataset.baseWidth) || 3;
+            const lineWidth = Math.max(baseWidth * 2, 8);
+            
+            if ([x1, y1, x2, y2].some(isNaN)) {
+                return { x: 0, y: 0, width: 10, height: 10 };
+            }
+            
+            return {
+                x: Math.min(x1, x2) - lineWidth,
+                y: Math.min(y1, y2) - lineWidth,
+                width: Math.abs(x2 - x1) + lineWidth * 2,
+                height: Math.abs(y2 - y1) + lineWidth * 2
+            };
+        }
+
+        function checkCollision(bbox1, bbox2) {
+            if (!bbox1 || !bbox2) return false;
+            return !(bbox1.x + bbox1.width < bbox2.x ||
+                     bbox2.x + bbox2.width < bbox1.x ||
+                     bbox1.y + bbox1.height < bbox2.y ||
+                     bbox2.y + bbox2.height < bbox1.y);
+        }
+
+        function countCollisions(bbox, excludeText) {
+            let count = 0;
+            let lineCollisions = 0;
+            let circleCollisions = 0;
+            let textCollisions = 0;
+            
+            for (const circle of allCircles) {
+                if (checkCollision(bbox, getCircleBounds(circle))) {
+                    circleCollisions++;
+                    count++;
+                }
+            }
+            for (const line of allLines) {
+                if (checkCollision(bbox, getLineBounds(line))) {
+                    lineCollisions++;
+                    count += 3;
+                }
+            }
+            for (const text of allTexts) {
+                if (text === excludeText) continue;
+                const textBBox = getBBox(text);
+                if (textBBox && checkCollision(bbox, textBBox)) {
+                    textCollisions++;
+                    count += 2;
+                }
+            }
+            
+            return { 
+                total: count,
+                lineCollisions: lineCollisions,
+                circleCollisions: circleCollisions,
+                textCollisions: textCollisions
+            };
+        }
+
+        const viewBounds = {
+            x: minX - 50,
+            y: minY - 50,
+            width: (maxX - minX) + 1200,
+            height: (maxY - minY) + 400
+        };
+
+        function isInView(bbox) {
+            return bbox.x >= viewBounds.x &&
+                   bbox.y >= viewBounds.y &&
+                   bbox.x + bbox.width <= viewBounds.x + viewBounds.width &&
+                   bbox.y + bbox.height <= viewBounds.y + viewBounds.height;
+        }
+
+        allTexts.forEach(text => {
+            const stationName = text.textContent;
+            const stationData = stationsData[stationName];
+            if (!stationData) return;
+
+            const sx = stationData.x;
+            const sy = stationData.y;
+            
+            if (isNaN(sx) || isNaN(sy)) return;
+            
+            const currentBBox = getBBox(text);
+            if (!currentBBox) return;
+
+            const originalResult = countCollisions(currentBBox, text);
+            const originalCollisions = originalResult.total;
+            
+            if (originalCollisions === 0 && isInView(currentBBox)) {
+                labelOptimizationResults.set(text, {
+                    originalCollisions: 0,
+                    bestCollisions: 0,
+                    candidatesExhausted: false,
+                    wasRelocated: false,
+                    priority: parseInt(text.dataset.labelPriority) || 1
+                });
+                return;
+            }
+
+            const textWidth = currentBBox.width;
+            const textHeight = currentBBox.height;
+            
+            if (isNaN(textWidth) || isNaN(textHeight)) return;
+
+            const candidates = generateCandidates(sx, sy, textWidth, textHeight, 6);
+
+            let bestCandidate = null;
+            let bestScore = Infinity;
+            let bestCollisionResult = null;
+            let allCandidatesHaveCollisions = true;
+
+            candidates.forEach(candidate => {
+                const testBBox = {
+                    x: candidate.x,
+                    y: candidate.y,
+                    width: textWidth,
+                    height: textHeight
+                };
+
+                const collisionResult = countCollisions(testBBox, text);
+                const inView = isInView(testBBox);
+                
+                const score = collisionResult.total * 1000 + 
+                             collisionResult.lineCollisions * 500 +
+                             (inView ? 0 : 500);
+
+                if (collisionResult.total === 0 && inView) {
+                    allCandidatesHaveCollisions = false;
+                }
+
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestCandidate = candidate;
+                    bestCollisionResult = collisionResult;
+                }
+            });
+
+            const bestCollisionCount = bestCollisionResult ? bestCollisionResult.total : Infinity;
+
+            const shouldRelocate = bestCandidate && 
+                                   bestCollisionCount < originalCollisions && 
+                                   bestScore < Infinity;
+
+            if (shouldRelocate) {
+                text.setAttribute('x', bestCandidate.x);
+                text.setAttribute('y', bestCandidate.y);
+                text.setAttribute('text-anchor', bestCandidate.anchor);
+                
+                labelOptimizationResults.set(text, {
+                    originalCollisions: originalCollisions,
+                    bestCollisions: bestCollisionCount,
+                    candidatesExhausted: allCandidatesHaveCollisions && bestCollisionCount > 0,
+                    wasRelocated: true,
+                    newCandidate: bestCandidate,
+                    priority: parseInt(text.dataset.labelPriority) || 1
+                });
+            } else {
+                labelOptimizationResults.set(text, {
+                    originalCollisions: originalCollisions,
+                    bestCollisions: originalCollisions,
+                    candidatesExhausted: allCandidatesHaveCollisions,
+                    wasRelocated: false,
+                    priority: parseInt(text.dataset.labelPriority) || 1
+                });
+            }
+        });
+        
+        return labelOptimizationResults;
+    } catch (error) {
+        console.error("碰撞检测系统错误:", error);
+        return labelOptimizationResults;
+    }
+}
+
+// ==================== 图形范围自适应调整功能 ====================
+function calculateGraphBounds() {
+    let bounds = {
+        minX: Infinity,
+        minY: Infinity,
+        maxX: -Infinity,
+        maxY: -Infinity
+    };
+
+    const allElements = map.querySelectorAll('circle, line, text, rect, path');
+    allElements.forEach(el => {
+        try {
+            const bbox = el.getBBox();
+            if (bbox.width === 0 && bbox.height === 0) {
+                const cx = parseFloat(el.getAttribute('cx')) || 0;
+                const cy = parseFloat(el.getAttribute('cy')) || 0;
+                const r = parseFloat(el.getAttribute('r')) || 0;
+                bounds.minX = Math.min(bounds.minX, cx - r);
+                bounds.minY = Math.min(bounds.minY, cy - r);
+                bounds.maxX = Math.max(bounds.maxX, cx + r);
+                bounds.maxY = Math.max(bounds.maxY, cy + r);
+            } else {
+                bounds.minX = Math.min(bounds.minX, bbox.x);
+                bounds.minY = Math.min(bounds.minY, bbox.y);
+                bounds.maxX = Math.max(bounds.maxX, bbox.x + bbox.width);
+                bounds.maxY = Math.max(bounds.maxY, bbox.y + bbox.height);
+            }
+        } catch (e) {
+            // 忽略无法获取边界框的元素
+        }
+    });
+
+    return bounds;
+}
+
+function updateViewBox() {
+    const bounds = calculateGraphBounds();
+    const padding = 80;
+    const width = bounds.maxX - bounds.minX + padding * 2;
+    const height = bounds.maxY - bounds.minY + padding * 2;
+    map.setAttribute("viewBox", `${bounds.minX - padding} ${bounds.minY - padding} ${width} ${height}`);
+}
+
+function calculateMinZoomLevel() {
+    try {
+        const svgRect = map.getBoundingClientRect();
+        const containerWidth = svgRect.width || window.innerWidth * 0.8;
+        const containerHeight = svgRect.height || window.innerHeight * 0.7;
+        
+        const viewBox = map.getAttribute('viewBox');
+        if (!viewBox) return 0.1;
+        
+        const parts = viewBox.split(/\s+/).map(Number);
+        if (parts.length !== 4 || parts.some(isNaN)) return 0.1;
+        
+        const vbWidth = parts[2];
+        const vbHeight = parts[3];
+        
+        if (vbWidth <= 0 || vbHeight <= 0) return 0.1;
+        
+        const scaleX = containerWidth / vbWidth;
+        const scaleY = containerHeight / vbHeight;
+        const fitZoom = Math.min(scaleX, scaleY);
+        
+        return Math.max(0.1, Math.min(fitZoom, MAX_ZOOM_LEVEL));
+    } catch (error) {
+        console.warn('计算最小缩放级别失败:', error);
+        return 0.1;
+    }
+}
+
+function updateZoomLimits() {
+    minZoomLevel = calculateMinZoomLevel();
+    
+    if (zoomLevel < minZoomLevel) {
+        zoomLevel = minZoomLevel;
+        updateTransform();
+    }
+}
+
+function initZoomLimitSystem() {
+    updateZoomLimits();
+    
+    window.addEventListener('resize', () => {
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        
+        resizeTimeout = setTimeout(() => {
+            updateZoomLimits();
+        }, 150);
+    });
+}
+
+// ==================== 标签加载与碰撞检测系统 ====================
+let labelLoadingState = {
+    phase: 'idle',
+    linesLoaded: false,
+    circlesLoaded: false,
+    labelsLoaded: false,
+    collisionDetected: false,
+    debugMode: false,
+    collisionVisualizer: null
+};
+
+let labelPriorityMap = new Map();
+let hiddenLabelsByPriority = new Map();
+
+function initializeLabelSystem() {
+    labelLoadingState.phase = 'loading';
+    
+    requestAnimationFrame(() => {
+        loadPhase1_LinesAndCircles();
+    });
+}
+
+function loadPhase1_LinesAndCircles() {
+    labelLoadingState.phase = 'phase1';
+    
+    Object.values(lines).forEach(line => {
+        const color = line.color;
+        line.stations.forEach((station, index) => {
+            const { name, coordinates, fareZone, labelOffset } = station;
+            const isTransfer = Object.values(lines).some(l => l.stations.some(s => s.name === name && l.color !== color));
+            
+            drawStationCircleOnly(coordinates.x, coordinates.y, name, isTransfer, color);
+            
+            if (index < line.stations.length - 1) {
+                const nextStation = line.stations[index + 1];
+                drawLine(coordinates.x, coordinates.y, nextStation.coordinates.x, nextStation.coordinates.y, color, `line_${line.name.replace(/\s+/g, '_').toLowerCase()}_${index}`);
+            }
+            
+            const priority = isTransfer ? 2 : 1;
+            labelPriorityMap.set(name, Math.max(labelPriorityMap.get(name) || 0, priority));
+        });
+    });
+    
+    labelLoadingState.linesLoaded = true;
+    labelLoadingState.circlesLoaded = true;
+    
+    setTimeout(() => {
+        loadPhase2_Labels();
+    }, 50);
+}
+
+function drawStationCircleOnly(x, y, name, isTransfer, lineColor) {
+    const existingCircle = map.querySelector(`circle[station-name="${name}"]`);
+    
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", x);
+    circle.setAttribute("cy", y);
+    circle.setAttribute("r", 6);
+    circle.classList.add("station");
+    circle.style.stroke = lineColor;
+    circle.setAttribute("station-name", name);
+    circle.addEventListener("click", (event) => showStationInfo(circle, name, event));
+
+    if (isTransfer) {
+        circle.setAttribute("r", 7);
+        circle.style.stroke = "#888";
+        circle.style.strokeWidth = 3.5;
+    }
+
+    if (!existingCircle) {
+        stationsData[name] = {
+            x,
+            y,
+            element: circle,
+            fareZones: Object.values(lines)
+                .filter(line => line.stations.some(station => station.name === name))
+                .reduce((acc, line) => {
+                    const station = line.stations.find(s => s.name === name);
+                    acc[line.name] = station?.fareZone || '市区';
+                    return acc;
+               }, {}),
+        };
+
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+    }
+    
+    map.appendChild(circle);
+}
+
+function loadPhase2_Labels() {
+    labelLoadingState.phase = 'phase2';
+    
+    const labelBatch = [];
+    
+    Object.values(lines).forEach(line => {
+        line.stations.forEach(station => {
+            const { name, coordinates, labelOffset } = station;
+            const existingText = map.querySelector(`text[station-name="${name}"]`);
+            
+            if (!existingText && stationsData[name]) {
+                labelBatch.push({
+                    name,
+                    x: coordinates.x,
+                    y: coordinates.y,
+                    offset: labelOffset
+                });
+            }
+        });
+    });
+
+    let currentIndex = 0;
+    const batchSize = 10;
+    
+    function processBatch() {
+        const endIndex = Math.min(currentIndex + batchSize, labelBatch.length);
+        
+        for (let i = currentIndex; i < endIndex; i++) {
+            const item = labelBatch[i];
+            drawLabelOnly(item.x, item.y, item.name, item.offset);
+        }
+        
+        currentIndex = endIndex;
+        
+        if (currentIndex < labelBatch.length) {
+            requestAnimationFrame(processBatch);
+        } else {
+            labelLoadingState.labelsLoaded = true;
+            setTimeout(() => {
+                loadPhase3_CollisionDetection();
+            }, 100);
+        }
+    }
+    
+    processBatch();
+}
+
+function drawLabelOnly(x, y, name, labelOffset) {
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", x + labelOffset.x);
+    text.setAttribute("y", y + labelOffset.y);
+    text.textContent = name;
+    text.setAttribute("station-name", name);
+    text.style.cursor = "pointer";
+    
+    const priority = labelPriorityMap.get(name) || 1;
+    text.dataset.labelPriority = priority;
+    
+    if (priority >= 2) {
+        text.style.fontWeight = "bold";
+    }
+    
+    text.addEventListener("click", (event) => {
+        const station = stationsData[name];
+        if (station) {
+            showStationInfo(station.element, name, event);
+        }
+    });
+    
+    map.appendChild(text);
+}
+
+function loadPhase3_CollisionDetection() {
+    labelLoadingState.phase = 'phase3';
+    
+    requestAnimationFrame(() => {
+        performCollisionDetection();
+        
+        updateViewBox();
+        updateZoomLimits();
+        
+        const stationsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        map.querySelectorAll(".station").forEach(station => {
+            const nextSibling = station.nextSibling;
+            if (nextSibling && nextSibling.tagName === 'text') {
+                stationsGroup.appendChild(nextSibling);
+            }
+            stationsGroup.appendChild(station);
+        });
+        map.appendChild(stationsGroup);
+        
+        labelLoadingState.collisionDetected = true;
+        labelLoadingState.phase = 'complete';
+        
+        if (labelLoadingState.debugMode) {
+            visualizeCollisionResults();
+        }
+        
+        console.log(`✅ 标签系统初始化完成: ${map.querySelectorAll('text').length} 个标签已加载并检测碰撞`);
+    });
+}
+
+function performCollisionDetection() {
+    try {
+        resolveCollisions();
+        checkAndHandleOverlaps();
+    } catch (error) {
+        console.error("碰撞检测执行错误:", error);
+    }
+}
+
+function selectiveHideLabels(hideCount = null) {
+    const allLabels = Array.from(map.querySelectorAll('text'));
+    
+    if (allLabels.length === 0) return;
+    
+    const labelsWithCollisions = [];
+    
+    allLabels.forEach(text => {
+        let collisionCount = 0;
+        
+        allLabels.forEach(otherText => {
+            if (text !== otherText && isTextsOverlapping(text, otherText)) {
+                collisionCount++;
+            }
+        });
+        
+        if (collisionCount > 0) {
+            labelsWithCollisions.push({
+                element: text,
+                collisions: collisionCount,
+                priority: parseInt(text.dataset.labelPriority) || 1,
+                originalOpacity: text.style.opacity || "1"
+            });
+        }
+    });
+    
+    if (labelsWithCollisions.length === 0) return;
+    
+    labelsWithCollisions.sort((a, b) => {
+        if (a.priority !== b.priority) return a.priority - b.priority;
+        return a.collisions - b.collisions;
+    });
+    
+    const targetHideCount = hideCount || Math.ceil(labelsWithCollisions.length * 0.3);
+    const toHide = labelsWithCollisions.slice(0, targetHideCount);
+    
+    toHide.forEach(item => {
+        item.element.style.opacity = "0";
+        item.element.dataset.wasAutoHidden = "true";
+        hiddenLabelsByPriority.set(item.element, item.originalOpacity);
+    });
+    
+    console.log(`🔒 选择性隐藏了 ${toHide.length} 个标签 (共 ${labelsWithCollisions.length} 个冲突标签)`);
+    
+    return toHide.length;
+}
+
+function restoreHiddenLabels() {
+    hiddenLabelsByPriority.forEach((originalOpacity, element) => {
+        if (element && element.parentNode) {
+            element.style.opacity = originalOpacity || "1";
+            delete element.dataset.wasAutoHidden;
+        }
+    });
+    hiddenLabelsByPriority.clear();
+    
+    console.log('🔓 已恢复所有被隐藏的标签');
+}
+
+function toggleDebugMode(enabled = null) {
+    labelLoadingState.debugMode = enabled !== null ? enabled : !labelLoadingState.debugMode;
+    
+    if (labelLoadingState.debugMode) {
+        createCollisionVisualizer();
+        visualizeCollisionResults();
+        console.log('🔍 碰撞检测调试模式已启用');
+    } else {
+        removeCollisionVisualizer();
+        console.log('🔍 碰撞检测调试模式已禁用');
+    }
+    
+    return labelLoadingState.debugMode;
+}
+
+function createCollisionVisualizer() {
+    removeCollisionVisualizer();
+    
+    labelLoadingState.collisionVisualizer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    labelLoadingState.collisionVisualizer.id = "collision-debug-layer";
+    labelLoadingState.collisionVisualizer.style.pointerEvents = "none";
+    
+    map.insertBefore(labelLoadingState.collisionVisualizer, map.firstChild);
+}
+
+function removeCollisionVisualizer() {
+    if (labelLoadingState.collisionVisualizer) {
+        labelLoadingState.collisionVisualizer.remove();
+        labelLoadingState.collisionVisualizer = null;
+    }
+}
+
+function visualizeCollisionResults() {
+    if (!labelLoadingState.debugMode || !labelLoadingState.collisionVisualizer) return;
+    
+    labelLoadingState.collisionVisualizer.innerHTML = '';
+    
+    const allTexts = Array.from(map.querySelectorAll('text'));
+    const collisionPairs = [];
+    const lineCollisions = [];
+    
+    for (let i = 0; i < allTexts.length; i++) {
+        for (let j = i + 1; j < allTexts.length; j++) {
+            if (isTextsOverlapping(allTexts[i], allTexts[j])) {
+                collisionPairs.push([allTexts[i], allTexts[j]]);
+            }
+        }
+    }
+    
+    allTexts.forEach(text => {
+        try {
+            const bbox = text.getBBox();
+            if (!bbox) return;
+            
+            const paddedBBox = {
+                x: bbox.x - 3,
+                y: bbox.y - 3,
+                width: bbox.width + 6,
+                height: bbox.height + 6
+            };
+            
+            const allLines = Array.from(map.querySelectorAll('line.line'));
+            for (const line of allLines) {
+                if (isTextOverlappingLine(paddedBBox, line)) {
+                    lineCollisions.push({ text, line });
+                    break;
+                }
+            }
+        } catch (e) {}
+    });
+    
+    collisionPairs.forEach(([text1, text2], index) => {
+        try {
+            const bbox1 = text1.getBBox();
+            const bbox2 = text2.getBBox();
+            
+            if (!bbox1 || !bbox2) return;
+            
+            const rect1 = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect1.setAttribute("x", bbox1.x - 2);
+            rect1.setAttribute("y", bbox1.y - 2);
+            rect1.setAttribute("width", bbox1.width + 4);
+            rect1.setAttribute("height", bbox1.height + 4);
+            rect1.setAttribute("fill", "none");
+            rect1.setAttribute("stroke", "#ff0000");
+            rect1.setAttribute("stroke-width", "1");
+            rect1.setAttribute("stroke-dasharray", "3,3");
+            rect1.style.opacity = "0.6";
+            
+            const rect2 = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect2.setAttribute("x", bbox2.x - 2);
+            rect2.setAttribute("y", bbox2.y - 2);
+            rect2.setAttribute("width", bbox2.width + 4);
+            rect2.setAttribute("height", bbox2.height + 4);
+            rect2.setAttribute("fill", "none");
+            rect2.setAttribute("stroke", "#ff0000");
+            rect2.setAttribute("stroke-width", "1");
+            rect2.setAttribute("stroke-dasharray", "3,3");
+            rect2.style.opacity = "0.6";
+            
+            const midX = (bbox1.x + bbox1.width / 2 + bbox2.x + bbox2.width / 2) / 2;
+            const midY = (bbox1.y + bbox1.height / 2 + bbox2.y + bbox2.height / 2) / 2;
+            
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", bbox1.x + bbox1.width / 2);
+            line.setAttribute("y1", bbox1.y + bbox1.height / 2);
+            line.setAttribute("x2", bbox2.x + bbox2.width / 2);
+            line.setAttribute("y2", bbox2.y + bbox2.height / 2);
+            line.setAttribute("stroke", "#ff6600");
+            line.setAttribute("stroke-width", "1");
+            line.setAttribute("stroke-dasharray", "2,2");
+            line.style.opacity = "0.8";
+            
+            const badge = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            badge.setAttribute("cx", midX);
+            badge.setAttribute("cy", midY);
+            badge.setAttribute("r", "8");
+            badge.setAttribute("fill", "#ff0000");
+            badge.style.opacity = "0.8";
+            
+            labelLoadingState.collisionVisualizer.appendChild(rect1);
+            labelLoadingState.collisionVisualizer.appendChild(rect2);
+            labelLoadingState.collisionVisualizer.appendChild(line);
+            labelLoadingState.collisionVisualizer.appendChild(badge);
+        } catch (e) {}
+    });
+    
+    lineCollisions.forEach(({ text, line }) => {
+        try {
+            const bbox = text.getBBox();
+            if (!bbox) return;
+            
+            const x1 = parseFloat(line.getAttribute('x1'));
+            const y1 = parseFloat(line.getAttribute('y1'));
+            const x2 = parseFloat(line.getAttribute('x2'));
+            const y2 = parseFloat(line.getAttribute('y2'));
+            
+            if ([x1, y1, x2, y2].some(isNaN)) return;
+            
+            const warningRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            warningRect.setAttribute("x", bbox.x - 2);
+            warningRect.setAttribute("y", bbox.y - 2);
+            warningRect.setAttribute("width", bbox.width + 4);
+            warningRect.setAttribute("height", bbox.height + 4);
+            warningRect.setAttribute("fill", "none");
+            warningRect.setAttribute("stroke", "#ffa500");
+            warningRect.setAttribute("stroke-width", "2");
+            warningRect.setAttribute("stroke-dasharray", "5,5");
+            warningRect.style.opacity = "0.7";
+            
+            labelLoadingState.collisionVisualizer.appendChild(warningRect);
+        } catch (e) {}
+    });
+    
+    const statsText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    statsText.setAttribute("x", "20");
+    statsText.setAttribute("y", "30");
+    statsText.textContent = `⚠️ 标签碰撞: ${collisionPairs.length} | 线条遮挡: ${lineCollisions.length}`;
+    statsText.setAttribute("fill", "#ff0000");
+    statsText.setAttribute("font-size", "14");
+    statsText.setAttribute("font-weight", "bold");
+    
+    labelLoadingState.collisionVisualizer.appendChild(statsText);
+    
+    console.log(`🔍 可视化结果: ${collisionPairs.length} 处标签碰撞, ${lineCollisions.length} 处线条遮挡`);
+}
+
+function getLabelSystemStats() {
+    let candidatesExhaustedCount = 0;
+    let relocatedCount = 0;
+    let noCollisionCount = 0;
+    
+    labelOptimizationResults.forEach((result) => {
+        if (result.candidatesExhausted) candidatesExhaustedCount++;
+        if (result.wasRelocated) relocatedCount++;
+        if (result.originalCollisions === 0 && !result.candidatesExhausted) noCollisionCount++;
+    });
+    
+    return {
+        state: labelLoadingState.phase,
+        totalLabels: map.querySelectorAll('text').length,
+        totalStations: map.querySelectorAll('.station').length,
+        totalLines: map.querySelectorAll('line.line').length,
+        hiddenLabelsCount: hiddenLabelsByPriority.size,
+        overlapHiddenCount: overlapHiddenTexts.size,
+        optimizationStats: {
+            totalOptimized: labelOptimizationResults.size,
+            candidatesExhausted: candidatesExhaustedCount,
+            successfullyRelocated: relocatedCount,
+            noCollision: noCollisionCount
+        },
+        cachedStates: labelStateCache.size,
+        currentZoomLevel: zoomLevel,
+        debugMode: labelLoadingState.debugMode,
+        priorityDistribution: getPriorityDistribution()
+    };
+}
+
+function getPriorityDistribution() {
+    const distribution = { high: 0, normal: 0 };
+    
+    map.querySelectorAll('text').forEach(text => {
+        const priority = parseInt(text.dataset.labelPriority) || 1;
+        if (priority >= 2) {
+            distribution.high++;
+        } else {
+            distribution.normal++;
+        }
+    });
+    
+    return distribution;
+}
+
+// ==================== 初始化流程 ====================
+initializeLabelSystem();
 
 // Pre-fill the search inputs if startPoint or endPoint is already set
 if (startPoint) {
@@ -1590,8 +2737,8 @@ function isTransparentColor(color) {
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
-    // 初始化图例内容
     initializeLegend();
+    initZoomLimitSystem();
     
     // 检查localStorage中是否有查询信息
     const tripId = localStorage.getItem('metroTransferQuery');
